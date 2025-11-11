@@ -47,7 +47,7 @@ export function HeroSection() {
             <span>Save on amazing places to stay</span>
           </div>
 
-          <h1 className="mb-6 font-serif text-6xl font-bold leading-tight text-white lg:text-7xl animate-fade-in-up animation-delay-300">
+          <h1 className="mb-12 font-serif text-6xl font-bold leading-tight text-white lg:text-7xl animate-fade-in-up animation-delay-300">
             Hotels
           </h1>
 
