@@ -47,16 +47,16 @@ export function HeroSection() {
             <span>Save on amazing places to stay</span>
           </div>
 
-          <h1 className="mb-12 font-serif text-6xl font-bold leading-tight text-white lg:text-7xl animate-fade-in-up animation-delay-300">
+          <h1 className="mb-6 font-serif text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl lg:mb-12 lg:text-7xl animate-fade-in-up animation-delay-300">
             Hotels
           </h1>
 
-          <p className="mb-12 text-balance text-xl text-gray-100 lg:text-2xl animate-fade-in-up animation-delay-400">
+          <p className="mb-8 text-balance text-base text-gray-100 sm:text-lg md:text-xl lg:mb-12 lg:text-2xl animate-fade-in-up animation-delay-400">
             Save on amazing places to stay and explore unique experiences
           </p>
 
-          <div className="rounded-2xl bg-white p-3 shadow-2xl animate-fade-in-up animation-delay-500">
-            <div className="grid gap-3 lg:grid-cols-5">
+          <div className="rounded-2xl bg-white p-2 shadow-2xl sm:p-3 animate-fade-in-up animation-delay-500">
+            <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
               {/* Location input */}
               <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 transition-all hover:bg-gray-100">
                 <MapPin className="h-5 w-5 text-gray-400" />
