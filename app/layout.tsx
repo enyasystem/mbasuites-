@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   description:
     "Discover and book luxury hotels worldwide. StayLux offers curated premium accommodations with multi-currency support and seamless booking experience.",
   keywords: ["luxury hotels", "hotel booking", "accommodations", "travel", "resorts"],
-  metadataBase: new URL("https://staylux.vercel.app"),
+  metadataBase: new URL("https://hotel225-app.vercel.app"),
   openGraph: {
     title: "StayLux - Luxury Hotel Booking",
     description: "Discover premium accommodations worldwide with StayLux",
-    url: "https://staylux.vercel.app",
+    url: "https://hotel225-app.vercel.app",
     siteName: "StayLux",
     locale: "en_US",
     type: "website",
@@ -45,8 +45,11 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-light-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
     shortcut: "/favicon.ico",
   },
   robots: "index, follow",
@@ -61,8 +64,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="canonical" href="https://staylux.vercel.app" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon-light-32x32.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="canonical" href="https://hotel225-app.vercel.app" />
         <meta name="theme-color" content="#D4A574" />
         <meta property="og:type" content="website" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

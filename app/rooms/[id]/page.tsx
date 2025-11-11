@@ -36,8 +36,9 @@ async function getRoom(id: string): Promise<Room | null> {
   }
 }
 
-export default async function RoomPage({ params }: { params: { id: string } }) {
-  const room = await getRoom(params.id)
+export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const room = await getRoom(id)
 
   if (!room) {
     notFound()
