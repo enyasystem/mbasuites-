@@ -61,7 +61,7 @@ export function HeroSection() {
               <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 transition-all hover:bg-gray-100">
                 <MapPin className="h-5 w-5 text-gray-400" />
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-gray-700">Where to?</label>
+                  <label className="block text-xs font-semibold text-gray-700">Destination</label>
                   <input
                     type="text"
                     placeholder="City, area, landmark"
