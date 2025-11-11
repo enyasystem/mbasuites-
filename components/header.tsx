@@ -27,12 +27,10 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border/40 bg-white/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80">
       <nav className="container mx-auto flex items-center justify-between px-6 py-4 lg:px-8">
         <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#FF8F5E] shadow-lg shadow-[#FF6B35]/20">
-            <span className="font-serif text-2xl font-bold text-white">L</span>
-          </div>
+          <img src="/logo.jpg" alt="StayLux" className="h-10 w-auto rounded-lg shadow-md" />
           <div className="flex flex-col">
-            <span className="font-serif text-xl font-bold leading-tight text-gray-900">Luxury Hotel</span>
-            <span className="text-xs text-gray-500">Premium Experience</span>
+            <span className="font-serif text-xl font-bold leading-tight text-gray-900">StayLux</span>
+            <span className="text-xs text-gray-500">Premium Hotels</span>
           </div>
         </Link>
 
