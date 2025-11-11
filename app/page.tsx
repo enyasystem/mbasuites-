@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { neon } from "@neondatabase/serverless"
+import { db } from "@/lib/db"
 import { RoomCard } from "@/components/room-card"
 import { HeroSection } from "@/components/hero-section"
 import { FeaturesSection } from "@/components/features-section"
@@ -24,8 +24,8 @@ interface Room {
 
 async function getRooms(): Promise<Room[]> {
   try {
-    const sql = neon(process.env.NEON_DATABASE_URL!)
-    const rooms = await sql`SELECT * FROM rooms WHERE available = true ORDER BY price_usd ASC LIMIT 6`
+    const rooms = await db`SELECT * FROM rooms WHERE available = true ORDER BY price_usd ASC LIMIT 6`
+    console.log("[v0] Fetched rooms count:", rooms.length)
     return rooms as Room[]
   } catch (error) {
     console.error("[v0] Error fetching rooms:", error)
