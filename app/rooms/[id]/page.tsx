@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation"
-import { neon } from "@neondatabase/serverless"
+import { db } from "@/lib/db"
 import { RoomDetails } from "@/components/room-details"
 import { BookingForm } from "@/components/booking-form"
 import { Breadcrumb } from "@/components/breadcrumb"
 import { StickyBookingCTA } from "@/components/sticky-booking-cta"
-
-export const runtime = "edge"
 
 interface Room {
   id: number
@@ -30,8 +28,7 @@ async function getRoom(id: string): Promise<Room | null> {
       return null
     }
 
-    const sql = neon(process.env.NEON_DATABASE_URL!)
-    const rooms = await sql`SELECT * FROM rooms WHERE id = ${roomId} AND available = true`
+    const rooms = await db`SELECT * FROM rooms WHERE id = ${roomId} AND available = true`
     return (rooms[0] as Room) || null
   } catch (error) {
     console.error("[v0] Error fetching room:", error)
