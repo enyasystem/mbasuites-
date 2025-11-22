@@ -9,15 +9,15 @@ export function Footer() {
           <div>
             <div className="mb-6 flex items-center space-x-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70">
-                <span className="font-serif text-2xl font-bold text-primary-foreground">H</span>
+                <span className="font-serif text-2xl font-bold text-primary-foreground">MS</span>
               </div>
               <div>
-                <span className="font-serif text-2xl font-bold text-foreground block">HotelHub</span>
-                <span className="text-xs text-muted-foreground">Luxury Hotels</span>
+                <span className="font-serif text-2xl font-bold text-foreground block">MBA Suites</span>
+                <span className="text-xs text-muted-foreground">Professional Services</span>
               </div>
             </div>
             <p className="text-pretty text-sm text-muted-foreground leading-relaxed">
-              Experience world-class hospitality with stunning rooms and exceptional service worldwide.
+              Premium business accommodations and professional services tailored for modern executives.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export function Footer() {
 
         <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
           <p>
-            &copy; {new Date().getFullYear()} HotelHub. All rights reserved. |{" "}
+            &copy; {new Date().getFullYear()} MBA Suites. All rights reserved. |{" "}
             <Link href="/" className="hover:text-primary">
               Privacy
             </Link>{" "}

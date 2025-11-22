@@ -1,30 +1,32 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Playfair_Display, Inter } from "next/font/google"
+import { Playfair_Display, Lora } from "next/font/google"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
+  weight: ["400", "500", "600", "700"],
 })
 
-const inter = Inter({
+const lora = Lora({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
 })
 
 export const metadata: Metadata = {
-  title: "StayLux - Luxury Hotel Booking | Premium Accommodations Worldwide",
+  title: "MBA Suites - Coming Soon | Premium Business Accommodations",
   description:
-    "Discover and book luxury hotels worldwide. StayLux offers curated premium accommodations with multi-currency support and seamless booking experience.",
-  keywords: ["luxury hotels", "hotel booking", "accommodations", "travel", "resorts"],
-  metadataBase: new URL("https://hotel225-app.vercel.app"),
+    "MBA Suites - Premium business accommodations and professional services. We're building something extraordinary. Coming soon.",
+  keywords: ["business accommodations", "corporate housing", "professional services", "coming soon"],
+  metadataBase: new URL("https://mbasuites.com"),
   openGraph: {
-    title: "StayLux - Luxury Hotel Booking",
-    description: "Discover premium accommodations worldwide with StayLux",
-    url: "https://hotel225-app.vercel.app",
-    siteName: "StayLux",
+    title: "MBA Suites - Coming Soon",
+    description: "Premium business accommodations. We're building something extraordinary.",
+    url: "https://mbasuites.com",
+    siteName: "MBA Suites",
     locale: "en_US",
     type: "website",
     images: [
@@ -32,25 +34,19 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "StayLux - Luxury Hotel Booking Platform",
+        alt: "MBA Suites - Coming Soon",
         type: "image/jpeg",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@staylux",
-    title: "StayLux - Luxury Hotel Booking",
-    description: "Discover premium accommodations worldwide",
+    title: "MBA Suites - Coming Soon",
+    description: "Premium business accommodations",
     images: ["/og-image.jpg"],
   },
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-light-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-icon.png",
-    shortcut: "/favicon.ico",
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
   },
   robots: "index, follow",
     generator: 'v0.app'
@@ -62,14 +58,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${lora.variable}`}>
       <head>
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon-light-32x32.png" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
-        <link rel="canonical" href="https://hotel225-app.vercel.app" />
-        <meta name="theme-color" content="#D4A574" />
-        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://mbasuites.com" />
+        <meta name="theme-color" content="#0F172A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
