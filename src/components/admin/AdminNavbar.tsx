@@ -25,7 +25,7 @@ const AdminNavbar = () => {
               <Hotel className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <span className="text-xl font-bold text-foreground">LuxeStay</span>
+              <span className="text-xl font-bold text-foreground">MBA Suites</span>
               <span className="text-xs text-muted-foreground block">Admin Panel</span>
             </div>
           </Link>
