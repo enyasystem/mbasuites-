@@ -1,0 +1,322 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { usePaystackPayment } from "react-paystack";
+import { format } from "date-fns";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { useBooking } from "@/contexts/BookingContext";
+import { toast } from "@/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+const formSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  specialRequests: z.string().optional(),
+  agreeToTerms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export default function Checkout() {
+  const navigate = useNavigate();
+  const { bookingData } = useBooking();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      specialRequests: "",
+      agreeToTerms: false,
+    },
+  });
+  // Paystack configuration - TEST MODE
+  const paystackConfig = {
+    reference: `booking_${new Date().getTime()}`,
+    email: form.watch("email") || "guest@example.com",
+    amount: (bookingData?.totalPrice ?? 0) * 100, // Paystack expects amount in kobo (lowest currency unit)
+    publicKey: "pk_test_xxxxxxxxxxxxx", // Replace with actual test key
+  };
+
+  // Initialize Paystack payment hook unconditionally to satisfy Hooks rules
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  // Redirect if no booking data
+  if (!bookingData.room || !bookingData.checkIn || !bookingData.checkOut) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h1 className="text-3xl font-bold mb-4">No Booking Selected</h1>
+          <p className="text-muted-foreground mb-8">
+            Please select a room and dates to proceed with checkout.
+          </p>
+          <Button onClick={() => navigate("/rooms")}>Browse Rooms</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  type PaystackReference = { reference?: string };
+
+  const onSuccess = (reference: PaystackReference) => {
+    console.log("Payment successful:", reference);
+    setIsProcessing(false);
+    toast({
+      title: "Payment Successful!",
+      description: "Your booking has been confirmed.",
+    });
+    navigate("/confirmation", {
+      state: {
+        bookingReference: reference.reference,
+        guestInfo: form.getValues(),
+        bookingData,
+      },
+    });
+  };
+
+  const onClose = () => {
+    setIsProcessing(false);
+    toast({
+      title: "Payment Cancelled",
+      description: "Your payment was not completed.",
+      variant: "destructive",
+    });
+  };
+
+  const onSubmit = (data: FormData) => {
+    setIsProcessing(true);
+    // Update Paystack config with the submitted email
+    initializePayment({ onSuccess, onClose });
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8">Complete Your Booking</h1>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Guest Information Form */}
+          <div className="lg:col-span-2">
+            <Card className="p-6">
+              <h2 className="text-2xl font-semibold mb-6">Guest Information</h2>
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="john.doe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+234 800 000 0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="specialRequests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Special Requests (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Any special requests or requirements..."
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="agreeToTerms"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            I agree to the terms and conditions
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? "Processing..." : "Proceed to Payment"}
+                  </Button>
+                </form>
+              </Form>
+            </Card>
+          </div>
+
+          {/* Booking Summary */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-4">
+              <h2 className="text-2xl font-semibold mb-6">Booking Summary</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <img
+                    src={bookingData.room.images[0]}
+                    alt={bookingData.room.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                  <h3 className="font-semibold text-lg">{bookingData.room.name}</h3>
+                  <p className="text-sm text-muted-foreground">{bookingData.room.category}</p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Check-in</span>
+                    <span className="font-medium">
+                      {format(bookingData.checkIn, "MMM dd, yyyy")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Check-out</span>
+                    <span className="font-medium">
+                      {format(bookingData.checkOut, "MMM dd, yyyy")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Nights</span>
+                    <span className="font-medium">{bookingData.nights}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Guests</span>
+                    <span className="font-medium">
+                      {bookingData.guests.adults} adult{bookingData.guests.adults !== 1 ? "s" : ""}
+                      {bookingData.guests.children > 0 && `, ${bookingData.guests.children} child${bookingData.guests.children !== 1 ? "ren" : ""}`}
+                    </span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      ₦{bookingData.room.price.toLocaleString()} × {bookingData.nights} nights
+                    </span>
+                    <span>₦{(bookingData.room.price * bookingData.nights).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Service fee</span>
+                    <span>₦0</span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>₦{bookingData.totalPrice.toLocaleString()}</span>
+                </div>
+
+                <div className="bg-muted/50 p-3 rounded-lg mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    💳 Payment is processed securely via Paystack (Test Mode)
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
