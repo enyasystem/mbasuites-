@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { motion } from "framer-motion";
 
 const testimonials = [
   {
@@ -51,17 +52,26 @@ const Testimonials = () => {
   return (
     <section className="bg-gradient-to-b from-background to-secondary/30 py-16" aria-labelledby="testimonials-title">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <div className="inline-block bg-accent/10 text-accent px-3 py-1 rounded-full text-sm font-semibold mb-4">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div 
+            className="inline-block bg-accent/10 text-accent px-3 py-1 rounded-full text-sm font-semibold mb-4"
+            whileHover={{ scale: 1.05 }}
+          >
             Testimonials
-          </div>
+          </motion.div>
           <h2 id="testimonials-title" className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
             What Guests <span className="text-accent">Say</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Don't just take our word for it. Here's what our guests say about their stays at MBA Suites.
           </p>
-        </div>
+        </motion.div>
         
         <div className="max-w-6xl mx-auto">
           <Carousel

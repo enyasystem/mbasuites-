@@ -1,5 +1,6 @@
 import { Tag, Headphones, Globe2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 const features = [
   {
@@ -24,22 +25,37 @@ const Features = () => {
     <section className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {features.map((feature, index) => (
-          <Card
+          <motion.div
             key={index}
-            className="p-6 hover:shadow-md transition-all duration-300 border-border bg-gradient-to-b from-card to-secondary/30"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.15 }}
           >
-            <div className="flex flex-col items-start gap-4 text-left">
-              <div className="bg-accent/10 p-3 rounded-lg">
-                <feature.icon className="h-6 w-6 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            </div>
-          </Card>
+            <Card
+              className="p-6 hover:shadow-md transition-all duration-300 border-border bg-gradient-to-b from-card to-secondary/30 h-full"
+            >
+              <motion.div 
+                className="flex flex-col items-start gap-4 text-left h-full"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <motion.div 
+                  className="bg-accent/10 p-3 rounded-lg"
+                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <feature.icon className="h-6 w-6 text-accent" />
+                </motion.div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            </Card>
+          </motion.div>
         ))}
       </div>
     </section>

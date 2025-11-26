@@ -22,6 +22,7 @@ import { Users, Maximize2, Star, Wifi, Coffee, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { motion } from "framer-motion";
 
 const Rooms = () => {
   const initialFilters: RoomFilters = {
@@ -442,95 +443,139 @@ const Rooms = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredAndSortedRooms.map((room) => (
-                    <Link key={room.id} to={`/rooms/${room.id}`} className="group block">
-                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={room.images[0]}
-                          alt={room.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute top-3 left-3">
-                          <Badge className="bg-accent text-accent-foreground">
-                            {room.category.charAt(0).toUpperCase() + room.category.slice(1)}
-                          </Badge>
-                        </div>
-                        <div className="absolute top-3 right-3">
-                          <div className="bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-accent text-accent" />
-                            <span className="text-sm font-semibold">{room.rating}</span>
-                          </div>
-                        </div>
-                      </div>
+                  {filteredAndSortedRooms.map((room, index) => (
+                    <motion.div
+                      key={room.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
+                    >
+                      <Link to={`/rooms/${room.id}`} className="group block">
+                        <motion.div
+                          whileHover={{ y: -8 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
+                            <motion.div 
+                              className="relative h-48 overflow-hidden"
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <img
+                                src={room.images[0]}
+                                alt={room.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              />
+                              <motion.div 
+                                className="absolute top-3 left-3"
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                <Badge className="bg-accent text-accent-foreground">
+                                  {room.category.charAt(0).toUpperCase() + room.category.slice(1)}
+                                </Badge>
+                              </motion.div>
+                              <motion.div 
+                                className="absolute top-3 right-3"
+                                initial={{ x: 20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                <div className="bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1">
+                                  <Star className="h-4 w-4 fill-accent text-accent" />
+                                  <span className="text-sm font-semibold">{room.rating}</span>
+                                </div>
+                              </motion.div>
+                            </motion.div>
 
-                      <CardContent className="p-4">
-                        <h3 className="text-lg font-semibold mb-2 group-hover:text-accent transition-colors">
-                          {room.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {room.description}
-                        </p>
+                            <CardContent className="p-4">
+                              <h3 className="text-lg font-semibold mb-2 group-hover:text-accent transition-colors">
+                                {room.name}
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                                {room.description}
+                              </p>
 
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            <span>{room.capacity.adults} adults</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Maximize2 className="h-4 w-4" />
-                            <span>{room.size}m²</span>
-                          </div>
-                        </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-4 w-4" />
+                                  <span>{room.capacity.adults} adults</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Maximize2 className="h-4 w-4" />
+                                  <span>{room.size}m²</span>
+                                </div>
+                              </div>
 
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.slice(0, 4).map((amenity) => {
-                            let icon = null;
-                            if (amenity === "WiFi") icon = <Wifi className="h-3 w-3" />;
-                            if (amenity === "Coffee Maker") icon = <Coffee className="h-3 w-3" />;
-                            if (amenity === "TV") icon = <Tv className="h-3 w-3" />;
-                            
-                            return (
-                              <Badge key={amenity} variant="secondary" className="text-xs">
-                                {icon}
-                                <span className="ml-1">{amenity}</span>
-                              </Badge>
-                            );
-                          })}
-                          {room.amenities.length > 4 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{room.amenities.length - 4} more
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
+                              <div className="flex flex-wrap gap-2">
+                                {room.amenities.slice(0, 4).map((amenity) => {
+                                  let icon = null;
+                                  if (amenity === "WiFi") icon = <Wifi className="h-3 w-3" />;
+                                  if (amenity === "Coffee Maker") icon = <Coffee className="h-3 w-3" />;
+                                  if (amenity === "TV") icon = <Tv className="h-3 w-3" />;
+                                  
+                                  return (
+                                    <Badge key={amenity} variant="secondary" className="text-xs">
+                                      {icon}
+                                      <span className="ml-1">{amenity}</span>
+                                    </Badge>
+                                  );
+                                })}
+                                {room.amenities.length > 4 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{room.amenities.length - 4} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </CardContent>
 
-                      <CardFooter className="flex items-center justify-between pt-4 border-t">
-                        <div>
-                          <p className="text-2xl font-bold text-foreground">
-                            {formatPrice(room.price)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">per night</p>
-                        </div>
-                        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                          Book Now
-                        </Button>
-                      </CardFooter>
-                      </Card>
-                    </Link>
+                            <CardFooter className="flex items-center justify-between pt-4 border-t">
+                              <div>
+                                <p className="text-2xl font-bold text-foreground">
+                                  {formatPrice(room.price)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">per night</p>
+                              </div>
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                                  Book Now
+                                </Button>
+                              </motion.div>
+                            </CardFooter>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    </motion.div>
                   ))}
                 </div>
 
                 {/* Floating Apply Filters button */}
-                <div className="fixed right-6 bottom-6 z-50">
+                <motion.div 
+                  className="fixed right-6 bottom-6 z-50"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     className="flex items-center gap-3 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
                     onClick={applyStagedFilters}
                   >
                     <span>Apply Filters</span>
-                    <span className="inline-flex items-center justify-center bg-background text-foreground rounded-full w-6 h-6 text-xs">{activeFiltersCount()}</span>
+                    <motion.span 
+                      className="inline-flex items-center justify-center bg-background text-foreground rounded-full w-6 h-6 text-xs"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {activeFiltersCount()}
+                    </motion.span>
                   </Button>
-                </div>
+                </motion.div>
               </>
             )}
           </div>

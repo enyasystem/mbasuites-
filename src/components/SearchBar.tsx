@@ -9,6 +9,7 @@ import { useState } from "react";
 import GuestSelector from "@/components/GuestSelector";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const SearchBar = () => {
   const navigate = useNavigate();
@@ -21,16 +22,25 @@ const SearchBar = () => {
   };
 
   return (
-    <Card className="container mx-auto px-4 -mt-16 relative z-10 shadow-lg">
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+    >
+      <Card className="container mx-auto px-4 -mt-16 relative z-10 shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Location */}
           {/* <div className="space-y-2">
            
           </div> */}
 
           {/* Check-in date */}
-          <div className="space-y-2">
+          <motion.div 
+            className="space-y-2"
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
             <label className="text-sm text-muted-foreground flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               Check-in
@@ -40,7 +50,7 @@ const SearchBar = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal transition-all hover:border-accent",
                     !checkIn && "text-muted-foreground"
                   )}
                 >
@@ -59,10 +69,14 @@ const SearchBar = () => {
                 />
               </PopoverContent>
             </Popover>
-          </div>
+          </motion.div>
 
           {/* Check-out date */}
-          <div className="space-y-2">
+          <motion.div 
+            className="space-y-2"
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
             <label className="text-sm text-muted-foreground flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               Check-out
@@ -72,7 +86,7 @@ const SearchBar = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal transition-all hover:border-accent",
                     !checkOut && "text-muted-foreground"
                   )}
                 >
@@ -91,10 +105,14 @@ const SearchBar = () => {
                 />
               </PopoverContent>
             </Popover>
-          </div>
+          </motion.div>
 
           {/* Guests */}
-          <div className="space-y-2">
+          <motion.div 
+            className="space-y-2"
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
             <label className="text-sm text-muted-foreground flex items-center gap-1">
               <Users className="h-4 w-4" />
               Guests and rooms
@@ -105,21 +123,28 @@ const SearchBar = () => {
               defaultRooms={guests.rooms}
               onChange={(g) => setGuests(g)}
             />
-          </div>
+          </motion.div>
 
           {/* Search Button */}
           <div className="flex items-end">
-            <Button 
-              onClick={handleSearch}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-accent h-10"
+            <motion.div 
+              className="w-full"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
+              <Button 
+                onClick={handleSearch}
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-accent h-10"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+            </motion.div>
           </div>
         </div>
       </div>
     </Card>
+    </motion.div>
   );
 };
 

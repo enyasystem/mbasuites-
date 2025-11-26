@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { usePaystackPayment } from "react-paystack";
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -130,80 +131,138 @@ export default function Checkout() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <motion.div whileFocus={{ scale: 1.01 }}>
+                                <Input 
+                                  placeholder="John" 
+                                  className="transition-all focus:ring-2 focus:ring-accent" 
+                                  {...field} 
+                                />
+                              </motion.div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
 
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <motion.div whileFocus={{ scale: 1.01 }}>
+                                <Input 
+                                  placeholder="Doe" 
+                                  className="transition-all focus:ring-2 focus:ring-accent" 
+                                  {...field} 
+                                />
+                              </motion.div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="john.doe@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address</FormLabel>
+                          <FormControl>
+                            <motion.div whileFocus={{ scale: 1.01 }}>
+                              <Input 
+                                type="email" 
+                                placeholder="john.doe@example.com" 
+                                className="transition-all focus:ring-2 focus:ring-accent" 
+                                {...field} 
+                              />
+                            </motion.div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
 
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input type="tel" placeholder="+234 800 000 0000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <motion.div whileFocus={{ scale: 1.01 }}>
+                              <Input 
+                                type="tel" 
+                                placeholder="+234 800 000 0000" 
+                                className="transition-all focus:ring-2 focus:ring-accent" 
+                                {...field} 
+                              />
+                            </motion.div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
 
-                  <FormField
-                    control={form.control}
-                    name="specialRequests"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Special Requests (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Any special requests or requirements..."
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="specialRequests"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Special Requests (Optional)</FormLabel>
+                          <FormControl>
+                            <motion.div whileFocus={{ scale: 1.01 }}>
+                              <Textarea
+                                placeholder="Any special requests or requirements..."
+                                className="min-h-[100px] transition-all focus:ring-2 focus:ring-accent"
+                                {...field}
+                              />
+                            </motion.div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
 
                   <FormField
                     control={form.control}
@@ -226,14 +285,28 @@ export default function Checkout() {
                     )}
                   />
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={isProcessing}
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {isProcessing ? "Processing..." : "Proceed to Payment"}
-                  </Button>
+                    <Button
+                      type="submit"
+                      className="w-full relative overflow-hidden"
+                      size="lg"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing && (
+                        <motion.div
+                          className="absolute inset-0 bg-accent/20"
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      )}
+                      <span className="relative">
+                        {isProcessing ? "Processing..." : "Proceed to Payment"}
+                      </span>
+                    </Button>
+                  </motion.div>
                 </form>
               </Form>
             </Card>

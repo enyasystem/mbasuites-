@@ -6,10 +6,11 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 const faqs = [
   {
-    question: "How do I make a hotel booking on MBA Suites?",
+    question: "How do I make a hotel booking on LuxeStay?",
     answer:
       "Simply enter your destination, check-in and check-out dates, and the number of guests in the search bar. Browse through available hotels, compare prices and amenities, then click 'Book Now' on your preferred option. Follow the checkout process to complete your reservation.",
   },
@@ -34,30 +35,56 @@ const FAQ = () => {
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">FAQs</h2>
+        <motion.h2 
+          className="text-2xl md:text-3xl font-bold text-foreground mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          FAQs
+        </motion.h2>
         <Accordion type="single" collapsible className="space-y-4">
           {faqs.map((faq, index) => (
-            <AccordionItem
+            <motion.div
               key={index}
-              value={`item-${index}`}
-              className="border border-border rounded-lg px-6 bg-card"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <AccordionTrigger className="text-left font-semibold hover:text-accent">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value={`item-${index}`}
+                className="border border-border rounded-lg px-6 bg-card hover:shadow-md transition-shadow"
+              >
+                <AccordionTrigger className="text-left font-semibold hover:text-accent">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            </motion.div>
           ))}
         </Accordion>
 
-        <div className="mt-8 text-center">
-          <Button variant="outline" size="lg" className="gap-2">
-            <HelpCircle className="h-5 w-5" />
-            Visit Help Center
-          </Button>
-        </div>
+        <motion.div 
+          className="mt-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button variant="outline" size="lg" className="gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Visit Help Center
+            </Button>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
