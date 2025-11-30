@@ -1,14 +1,17 @@
-import { Hotel, Menu, User, DollarSign } from "lucide-react";
+import { Hotel, Menu, User, DollarSign, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import type { Currency } from "@/context/CurrencyContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,8 +24,15 @@ const currencies: { code: Currency; symbol: string; name: string }[] = [
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currency, setCurrency } = useCurrency();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const current = currencies.find(c => c.code === currency) ?? currencies[0];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <motion.nav 
@@ -76,9 +86,11 @@ const Navbar = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
+            {user && <NotificationCenter />}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2">
                   <span>{current.symbol} {current.code}</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -94,18 +106,47 @@ const Navbar = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <User className="h-4 w-4" />
-              <span>Sign In</span>
-            </Button>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                Register
-              </Button>
-            </motion.div>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <User className="h-4 w-4" />
+                    <span>{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="cursor-pointer">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/login")}>
+                  <User className="h-4 w-4" />
+                  <span>Sign In</span>
+                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button 
+                    size="sm" 
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    onClick={() => navigate("/signup")}
+                  >
+                    Register
+                  </Button>
+                </motion.div>
+              </>
+            )}
           </motion.div>
 
           {/* Mobile Menu Button */}
@@ -162,14 +203,58 @@ const Navbar = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Sign In
-                  </Button>
-                  <Button size="sm" className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                    Register
-                  </Button>
-                </div>
+                {user ? (
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        navigate("/dashboard");
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-destructive"
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        navigate("/login");
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      Sign In
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                      onClick={() => {
+                        navigate("/signup");
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      Register
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

@@ -5,6 +5,7 @@ import { RoomFilters } from "@/types/room";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { RippleCard } from "@/components/ui/ripple-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -455,7 +456,7 @@ const Rooms = () => {
                           whileHover={{ y: -8 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
+                          <RippleCard className="overflow-hidden border border-border rounded-lg hover:shadow-lg transition-all duration-300 h-full">
                             <motion.div 
                               className="relative h-48 overflow-hidden"
                               whileHover={{ scale: 1.05 }}
@@ -546,7 +547,7 @@ const Rooms = () => {
                                 </Button>
                               </motion.div>
                             </CardFooter>
-                          </Card>
+                          </RippleCard>
                         </motion.div>
                       </Link>
                     </motion.div>

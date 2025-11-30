@@ -1,11 +1,13 @@
 import { Card } from "@/components/ui/card";
+import { RippleCard } from "@/components/ui/ripple-card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Tag, Headphones, Globe2 } from "lucide-react";
 import roomDeluxe from "@/assets/room-deluxe.jpg";
 import roomSuite from "@/assets/room-suite.jpg";
 import { useNavigate } from "react-router-dom";
 import { useCurrency } from "@/context/CurrencyContext";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 
 
@@ -31,9 +33,17 @@ const featuredRooms = [
 const SpecialOffers = () => {
   const navigate = useNavigate();
   const { formatPrice } = useCurrency();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  const image1Y = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
+  const image2Y = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
   return (
-    <section className="container mx-auto px-4 py-12">
+    <section ref={ref} className="container mx-auto px-4 py-12">
       {/* Featured Rooms Grid */}
       <div>
         <motion.h2 
@@ -62,10 +72,11 @@ const SpecialOffers = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <img
+                  <motion.img
                     src={room.image}
                     alt={room.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    style={{ y: index === 0 ? image1Y : image2Y }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent" />
                   <motion.div 
@@ -129,7 +140,7 @@ const SpecialOffers = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="p-6 h-full">
+              <RippleCard className="p-6 border border-border rounded-lg h-full">
                 <motion.div 
                   className="flex flex-col items-start gap-4 h-full"
                   whileHover={{ y: -5 }}
@@ -147,7 +158,7 @@ const SpecialOffers = () => {
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
                 </motion.div>
-              </Card>
+              </RippleCard>
             </motion.div>
           ))}
 

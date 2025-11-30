@@ -10,26 +10,37 @@ const Hero = () => {
     offset: ["start start", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  // Multi-layer parallax with different speeds for depth
+  const yBackground = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
+  const yMidground = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const yForeground = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   return (
     <section ref={ref} className="relative h-[600px] md:h-[700px] overflow-hidden">
-      {/* Background Image with Parallax */}
+      {/* Background Image with Enhanced Parallax */}
       <motion.div 
         className="absolute inset-0"
-        style={{ y }}
+        style={{ y: yBackground }}
       >
         <motion.img
           src={heroImage}
           alt="Premium serviced apartments at MBA Suites"
           className="w-full h-[120%] object-cover"
+          style={{ scale }}
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-navy/90 via-navy/75 to-navy/60" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-accent/20 via-transparent to-transparent" />
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-br from-navy/90 via-navy/75 to-navy/60"
+          style={{ y: yMidground }}
+        />
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-tr from-accent/20 via-transparent to-transparent"
+          style={{ y: yMidground }}
+        />
       </motion.div>
 
       {/* Animated Floating Elements */}
@@ -58,10 +69,10 @@ const Hero = () => {
         }}
       />
 
-      {/* Content with Staggered Animations */}
+      {/* Content with Staggered Animations and Parallax */}
       <motion.div 
         className="relative container mx-auto px-4 h-full flex flex-col justify-center"
-        style={{ opacity }}
+        style={{ opacity, y: yForeground }}
       >
         <div className="max-w-4xl">
           {/* Badge */}
@@ -77,7 +88,7 @@ const Hero = () => {
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className="text-sm font-medium text-white">Premium Serviced Apartments in Lagos</span>
+            <span className="text-sm font-medium text-white">Premium Serviced Apartments</span>
           </motion.div>
           
           {/* Title with Letter Animation */}

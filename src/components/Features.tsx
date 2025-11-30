@@ -1,5 +1,5 @@
 import { Tag, Headphones, Globe2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { RippleCard } from "@/components/ui/ripple-card";
 import { motion } from "framer-motion";
 
 const features = [
@@ -32,8 +32,8 @@ const Features = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.15 }}
           >
-            <Card
-              className="p-6 hover:shadow-md transition-all duration-300 border-border bg-gradient-to-b from-card to-secondary/30 h-full"
+            <RippleCard
+              className="p-6 rounded-lg border border-border bg-gradient-to-b from-card to-secondary/30 hover:shadow-md transition-all duration-300 h-full"
             >
               <motion.div 
                 className="flex flex-col items-start gap-4 text-left h-full"
@@ -54,7 +54,7 @@ const Features = () => {
                   </p>
                 </div>
               </motion.div>
-            </Card>
+            </RippleCard>
           </motion.div>
         ))}
       </div>

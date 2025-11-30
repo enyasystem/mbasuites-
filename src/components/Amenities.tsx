@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { RippleCard } from "@/components/ui/ripple-card";
 import { 
   Wifi, 
   AirVent, 
@@ -11,7 +12,8 @@ import {
   Dumbbell,
   Coffee
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const amenities = [
   {
@@ -67,8 +69,21 @@ const amenities = [
 ];
 
 const Amenities = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+
   return (
-    <section className="py-16 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="amenities-title">
+    <motion.section 
+      ref={ref}
+      className="py-16 bg-gradient-to-b from-secondary/30 to-background relative overflow-hidden" 
+      aria-labelledby="amenities-title"
+      style={{ y: backgroundY }}
+    >
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-12"
@@ -100,7 +115,7 @@ const Amenities = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
             >
-              <Card className="p-6 border-border group cursor-pointer h-full">
+              <RippleCard className="p-6 border border-border rounded-lg group cursor-pointer h-full">
                 <motion.div 
                   className="flex flex-col items-center text-center gap-4 h-full"
                   whileHover={{ y: -5 }}
@@ -122,7 +137,7 @@ const Amenities = () => {
                     </p>
                   </div>
                 </motion.div>
-              </Card>
+              </RippleCard>
             </motion.div>
           ))}
         </div>
@@ -139,7 +154,7 @@ const Amenities = () => {
           </p>
         </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

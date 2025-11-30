@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 
 const faqs = [
   {
-    question: "How do I make a hotel booking on LuxeStay?",
+    question: "How do I make a hotel booking on MBA Suites?",
     answer:
       "Simply enter your destination, check-in and check-out dates, and the number of guests in the search bar. Browse through available hotels, compare prices and amenities, then click 'Book Now' on your preferred option. Follow the checkout process to complete your reservation.",
   },

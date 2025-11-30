@@ -1,18 +1,26 @@
 import { Search, MapPin, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { useState } from "react";
 import GuestSelector from "@/components/GuestSelector";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLocation } from "@/context/LocationContext";
 
 const SearchBar = () => {
   const navigate = useNavigate();
+  const { location, setLocation } = useLocation();
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
@@ -31,9 +39,26 @@ const SearchBar = () => {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Location */}
-          {/* <div className="space-y-2">
-           
-          </div> */}
+          <motion.div 
+            className="space-y-2"
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
+            <label className="text-sm text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              Location
+            </label>
+            <Select value={location} onValueChange={(value) => setLocation(value as any)}>
+              <SelectTrigger className="w-full transition-all hover:border-accent">
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border border-border z-50">
+                <SelectItem value="Lagos">Nigeria - Lagos, Lekki</SelectItem>
+                <SelectItem value="USA">Kenya - Nakuru </SelectItem>
+                <SelectItem value="South Africa">USA - ILLINOIS, GEORGIA </SelectItem>
+              </SelectContent>
+            </Select>
+          </motion.div>
 
           {/* Check-in date */}
           <motion.div 

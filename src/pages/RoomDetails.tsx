@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { rooms } from "@/data/rooms";
 import { useBooking } from "@/contexts/BookingContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Carousel,
   CarouselContent,
@@ -17,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GuestSelector from "@/components/GuestSelector";
+import { ReviewForm } from "@/components/ReviewForm";
+import { ReviewsList, Review } from "@/components/ReviewsList";
 import { format, differenceInCalendarDays } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Star, Users, Maximize2 } from "lucide-react";
@@ -26,12 +29,45 @@ const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { setBookingData } = useBooking();
+  const { user } = useAuth();
   const room = useMemo(() => rooms.find((r) => r.id === id), [id]);
 
   const [checkIn, setCheckIn] = useState<Date | undefined>();
   const [checkOut, setCheckOut] = useState<Date | undefined>();
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
   const { formatPrice } = useCurrency();
+
+  // Mock reviews data - in real app, fetch from database
+  const [reviews] = useState<Review[]>([
+    {
+      id: "1",
+      userId: "user1",
+      userName: "Jane Doe",
+      rating: 5,
+      comment: "Amazing stay! The room was spotless and the staff were incredibly friendly. Will definitely come back!",
+      createdAt: "2024-11-20",
+    },
+    {
+      id: "2",
+      userId: "user2",
+      userName: "Mark Smith",
+      rating: 4,
+      comment: "Great location and comfortable room. The amenities exceeded my expectations.",
+      createdAt: "2024-11-15",
+    },
+    {
+      id: "3",
+      userId: "user3",
+      userName: "Sarah Johnson",
+      rating: 5,
+      comment: "Absolutely loved it! Beautiful views and excellent service throughout my stay.",
+      createdAt: "2024-11-10",
+    },
+  ]);
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : room?.rating || 0;
 
   if (!room) {
     return (
@@ -72,10 +108,6 @@ const RoomDetails = () => {
     navigate('/checkout');
   };
 
-  const reviews = [
-    { id: 1, author: "Jane D.", rating: 5, comment: "Amazing stay, very comfortable!" },
-    { id: 2, author: "Mark S.", rating: 4, comment: "Great location and friendly staff." },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,19 +160,37 @@ const RoomDetails = () => {
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-3">Guest Reviews</h3>
-                <div className="space-y-4">
-                  {reviews.map((r) => (
-                    <div key={r.id} className="border rounded p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">{r.author}</div>
-                          <div className="text-sm text-muted-foreground">{r.rating} / 5</div>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm">{r.comment}</div>
-                    </div>
-                  ))}
+                <ReviewsList reviews={reviews} averageRating={averageRating} />
+              </div>
+
+              {user && (
+                <div className="mt-6">
+                  <ReviewForm
+                    roomId={room.id}
+                    roomName={room.name}
+                    onReviewSubmitted={() => {
+                      // In real app, refresh reviews from database
+                      console.log("Review submitted");
+                    }}
+                  />
                 </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <div className="text-sm text-muted-foreground text-center">
+                {!user && (
+                  <p>
+                    <Button
+                      variant="link"
+                      className="text-accent p-0 h-auto"
+                      onClick={() => navigate("/login")}
+                    >
+                      Sign in
+                    </Button>
+                    {" "}to leave a review
+                  </p>
+                )}
               </div>
             </Card>
           </div>

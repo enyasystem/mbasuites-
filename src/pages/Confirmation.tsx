@@ -1,16 +1,143 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Download, Mail, Phone } from "lucide-react";
+import { CheckCircle, Download, Mail, Phone, FileText } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function Confirmation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { bookingReference, guestInfo, bookingData } = location.state || {};
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    // Add header
+    doc.setFillColor(41, 128, 185);
+    doc.rect(0, 0, 210, 40, "F");
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.text("BOOKING INVOICE", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.text("Luxury Hotel Booking System", 105, 30, { align: "center" });
+    
+    // Reset text color
+    doc.setTextColor(0, 0, 0);
+    
+    // Booking Reference
+    doc.setFontSize(16);
+    doc.setFont(undefined, "bold");
+    doc.text("Booking Reference", 20, 55);
+    doc.setFont(undefined, "normal");
+    doc.setFontSize(14);
+    doc.text(bookingReference, 20, 63);
+    
+    // Booking Date
+    doc.setFontSize(10);
+    doc.text(`Invoice Date: ${format(new Date(), "MMMM dd, yyyy")}`, 150, 55);
+    
+    // Guest Information
+    doc.setFontSize(14);
+    doc.setFont(undefined, "bold");
+    doc.text("Guest Information", 20, 80);
+    doc.setFont(undefined, "normal");
+    doc.setFontSize(11);
+    doc.text(`Name: ${guestInfo.firstName} ${guestInfo.lastName}`, 20, 88);
+    doc.text(`Email: ${guestInfo.email}`, 20, 96);
+    doc.text(`Phone: ${guestInfo.phone}`, 20, 104);
+    
+    // Booking Details
+    doc.setFont(undefined, "bold");
+    doc.setFontSize(14);
+    doc.text("Booking Details", 20, 120);
+    
+    autoTable(doc, {
+      startY: 125,
+      head: [["Description", "Details"]],
+      body: [
+        ["Room", bookingData.room.name],
+        ["Room Category", bookingData.room.category],
+        ["Bed Type", bookingData.room.bedType],
+        ["Check-in", format(bookingData.checkIn, "EEEE, MMMM dd, yyyy")],
+        ["Check-out", format(bookingData.checkOut, "EEEE, MMMM dd, yyyy")],
+        ["Number of Nights", bookingData.nights.toString()],
+        [
+          "Guests",
+          `${bookingData.guests.adults} adult${bookingData.guests.adults !== 1 ? "s" : ""}${
+            bookingData.guests.children > 0
+              ? `, ${bookingData.guests.children} child${
+                  bookingData.guests.children !== 1 ? "ren" : ""
+                }`
+              : ""
+          }`,
+        ],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+    
+    // Price Breakdown
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    
+    doc.setFont(undefined, "bold");
+    doc.setFontSize(14);
+    doc.text("Price Breakdown", 20, finalY);
+    
+    autoTable(doc, {
+      startY: finalY + 5,
+      head: [["Item", "Amount"]],
+      body: [
+        [
+          `₦${bookingData.room.price.toLocaleString()} × ${bookingData.nights} nights`,
+          `₦${(bookingData.room.price * bookingData.nights).toLocaleString()}`,
+        ],
+        ["Service Fee", "₦0"],
+      ],
+      foot: [["Total Amount Paid", `₦${bookingData.totalPrice.toLocaleString()}`]],
+      theme: "striped",
+      headStyles: { fillColor: [41, 128, 185] },
+      footStyles: { fillColor: [52, 152, 219], fontStyle: "bold" },
+    });
+    
+    // Special Requests
+    if (guestInfo.specialRequests) {
+      const footerY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFont(undefined, "bold");
+      doc.setFontSize(12);
+      doc.text("Special Requests", 20, footerY);
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(10);
+      const splitText = doc.splitTextToSize(guestInfo.specialRequests, 170);
+      doc.text(splitText, 20, footerY + 7);
+    }
+    
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(9);
+    doc.setTextColor(128, 128, 128);
+    doc.text("Thank you for choosing our hotel!", 105, pageHeight - 20, {
+      align: "center",
+    });
+    doc.text("For inquiries, contact: reservations@hotel.com", 105, pageHeight - 15, {
+      align: "center",
+    });
+    
+    // Save PDF
+    doc.save(`booking-invoice-${bookingReference}.pdf`);
+    
+    toast({
+      title: "Invoice Downloaded",
+      description: "Your booking invoice has been downloaded successfully.",
+    });
+  };
 
   // Redirect if no booking data
   if (!bookingReference || !guestInfo || !bookingData) {
@@ -204,10 +331,14 @@ export default function Confirmation() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button variant="outline" onClick={generatePDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Download PDF Invoice
+            </Button>
             <Button variant="outline" onClick={() => window.print()}>
               <Download className="h-4 w-4 mr-2" />
-              Download Receipt
+              Print Receipt
             </Button>
             <Button onClick={() => navigate("/")}>Back to Home</Button>
           </div>

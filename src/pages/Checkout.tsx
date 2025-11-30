@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { usePaystackPayment } from "react-paystack";
+import { loadStripe } from "@stripe/stripe-js";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -14,8 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useBooking } from "@/contexts/BookingContext";
+import { useLocation } from "@/context/LocationContext";
 import { toast } from "@/hooks/use-toast";
+import { CreditCard, Wallet } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -38,10 +43,19 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+// Initialize Stripe (test mode)
+const stripePromise = loadStripe("pk_test_51PXxxxxxxxxxxxxxYourStripeKeyHere");
+
+type PaymentMethod = "paystack" | "stripe";
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { bookingData } = useBooking();
+  const { location } = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    location === "Lagos" ? "paystack" : "stripe"
+  );
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -54,6 +68,11 @@ export default function Checkout() {
       agreeToTerms: false,
     },
   });
+
+  // Update suggested payment method when location changes
+  useEffect(() => {
+    setPaymentMethod(location === "Lagos" ? "paystack" : "stripe");
+  }, [location]);
   // Paystack configuration - TEST MODE
   const paystackConfig = {
     reference: `booking_${new Date().getTime()}`,
@@ -109,10 +128,49 @@ export default function Checkout() {
     });
   };
 
+  const handleStripePayment = async (data: FormData) => {
+    try {
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Stripe failed to load");
+      }
+
+      // In a real app, you'd create a payment intent on your backend
+      // For now, simulate successful payment
+      setTimeout(() => {
+        setIsProcessing(false);
+        const bookingRef = `STR-${new Date().getTime()}`;
+        toast({
+          title: "Payment Successful!",
+          description: "Your booking has been confirmed.",
+        });
+        navigate("/confirmation", {
+          state: {
+            bookingReference: bookingRef,
+            guestInfo: data,
+            bookingData,
+          },
+        });
+      }, 2000);
+    } catch (error) {
+      setIsProcessing(false);
+      toast({
+        title: "Payment Failed",
+        description: "There was an error processing your payment.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = (data: FormData) => {
     setIsProcessing(true);
-    // Update Paystack config with the submitted email
-    initializePayment({ onSuccess, onClose });
+    
+    if (paymentMethod === "paystack") {
+      // Update Paystack config with the submitted email
+      initializePayment({ onSuccess, onClose });
+    } else {
+      handleStripePayment(data);
+    }
   };
 
   return (
@@ -264,6 +322,57 @@ export default function Checkout() {
                     />
                   </motion.div>
 
+                  {/* Payment Method Selection */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-sm font-medium">Payment Method</label>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                      className="grid grid-cols-2 gap-4"
+                    >
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Label
+                          htmlFor="paystack"
+                          className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
+                            paymentMethod === "paystack"
+                              ? "border-primary bg-primary/5"
+                              : "border-muted hover:border-muted-foreground/50"
+                          }`}
+                        >
+                          <RadioGroupItem value="paystack" id="paystack" className="sr-only" />
+                          <Wallet className="h-8 w-8 mb-2" />
+                          <span className="font-semibold">Paystack</span>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            Recommended for Nigeria
+                          </span>
+                        </Label>
+                      </motion.div>
+
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Label
+                          htmlFor="stripe"
+                          className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
+                            paymentMethod === "stripe"
+                              ? "border-primary bg-primary/5"
+                              : "border-muted hover:border-muted-foreground/50"
+                          }`}
+                        >
+                          <RadioGroupItem value="stripe" id="stripe" className="sr-only" />
+                          <CreditCard className="h-8 w-8 mb-2" />
+                          <span className="font-semibold">Stripe</span>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            International cards
+                          </span>
+                        </Label>
+                      </motion.div>
+                    </RadioGroup>
+                  </motion.div>
+
                   <FormField
                     control={form.control}
                     name="agreeToTerms"
@@ -380,7 +489,8 @@ export default function Checkout() {
 
                 <div className="bg-muted/50 p-3 rounded-lg mt-4">
                   <p className="text-xs text-muted-foreground">
-                    💳 Payment is processed securely via Paystack (Test Mode)
+                    💳 Payment is processed securely via{" "}
+                    {paymentMethod === "paystack" ? "Paystack" : "Stripe"} (Test Mode)
                   </p>
                 </div>
               </div>

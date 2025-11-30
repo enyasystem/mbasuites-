@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import roomDeluxe from "@/assets/room-deluxe.jpg";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const LandingAbout = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  const imageY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+
   return (
-    <section className="container mx-auto px-4 py-16" aria-labelledby="landing-about-title">
+    <section ref={ref} className="container mx-auto px-4 py-16" aria-labelledby="landing-about-title">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -83,6 +91,7 @@ const LandingAbout = () => {
                   alt="Deluxe King Room interior with city view at MBA Suites"
                   loading="lazy"
                   className="w-full h-[400px] object-cover block"
+                  style={{ y: imageY }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.4 }}
                 />

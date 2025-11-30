@@ -1,5 +1,5 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
+import { RippleCard } from "@/components/ui/ripple-card";
 import { Star, Quote } from "lucide-react";
 import {
   Carousel,
@@ -84,8 +84,8 @@ const Testimonials = () => {
             <CarouselContent className="-ml-4">
               {testimonials.map((t, i) => (
                 <CarouselItem key={i} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Card 
-                    className="h-full p-8 hover:shadow-lg transition-all duration-300 border-border relative overflow-hidden group" 
+                  <RippleCard 
+                    className="h-full p-8 border border-border rounded-lg hover:shadow-lg transition-all duration-300 relative overflow-hidden group" 
                     role="article" 
                     aria-label={`Testimonial by ${t.author}`}
                   >
@@ -116,7 +116,7 @@ const Testimonials = () => {
                         <span className="text-xs text-muted-foreground">{t.role}</span>
                       </div>
                     </div>
-                  </Card>
+                  </RippleCard>
                 </CarouselItem>
               ))}
             </CarouselContent>
