@@ -15,3 +15,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Debug: log the Supabase URL/key at runtime to help verify which project the app is pointed at
+// Removed unconditional runtime logging; use `client_debug` flag in payment_settings to enable logs from the app when necessary.

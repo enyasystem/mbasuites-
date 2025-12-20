@@ -9,22 +9,22 @@ const About = () => {
     {
       name: "Sarah Johnson",
       role: "General Manager",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+      image: "/placeholder.svg",
     },
     {
       name: "Michael Chen",
       role: "Head of Operations",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+      image: "/placeholder.svg",
     },
     {
       name: "Emily Rodriguez",
       role: "Customer Experience Lead",
-      image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=400&fit=crop",
+      image: "/placeholder.svg",
     },
     {
       name: "David Kim",
       role: "Property Manager",
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop",
+      image: "/placeholder.svg",
     },
   ];
 

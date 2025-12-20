@@ -133,6 +133,28 @@ Build and host the `dist/` folder on any static hosting (Netlify, Vercel, GitHub
 npm run build
 # then deploy the generated `dist` folder to your hosting provider
 ```
+### How to use Booking.com/Airbnb sync:
+
+Get the iCal export URL from your Booking.com or Airbnb property
+Add it in Admin Dashboard → Sync → Add Calendar
+Click "Sync" to import blocked dates
+Copy your export URL and paste it into Booking.com/Airbnb to sync your direct bookings back
+Enhanced booking system is now complete with:
+
+✅ Implemented:
+
+Double-booking prevention - Database trigger blocks overlapping bookings
+Real-time availability - Live updates via Supabase Realtime
+Booking operations - Create, update, cancel, confirm, complete APIs
+External calendar sync - Import from Booking.com/Airbnb via iCal
+Calendar export - Generate iCal URLs for external platforms
+Admin UI - New "Sync" tab to manage external calendars
+How to use Booking.com/Airbnb sync:
+
+Get the iCal export URL from your Booking.com or Airbnb property
+Add it in Admin Dashboard → Sync → Add Calendar
+Click "Sync" to import blocked dates
+Copy your export URL and paste it into Booking.com/Airbnb to sync your direct bookings back
 
 ## Next recommendations
 

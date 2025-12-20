@@ -74,7 +74,7 @@ const ForgotPassword = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   className="space-y-4"
                 >
-                  <div className="rounded-lg bg-accent/10 p-4 text-sm text-accent-foreground">
+                  <div className="rounded-lg bg-accent/10 p-4 text-sm text-black">
                     <p>We've sent a password reset link to <strong>{submittedEmail}</strong></p>
                     <p className="mt-2">Please check your inbox and follow the instructions to reset your password.</p>
                   </div>

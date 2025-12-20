@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -16,6 +17,7 @@ import StaffLogin from "./pages/StaffLogin";
 import Confirmation from "./pages/Confirmation";
 import MyBookings from "./pages/MyBookings";
 import AdminDashboard from "./pages/AdminDashboard";
+import StaffDashboard from "./pages/StaffDashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -36,6 +38,10 @@ const queryClient = new QueryClient();
 const AnimatedRoutes = () => {
   const location = useLocation();
 
+  useEffect(() => {
+    // Ensure browser is scrolled to top on route change so new pages render from the top
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [location.pathname]);
   return (
     <>
       <AnimatePresence mode="wait">
@@ -50,6 +56,7 @@ const AnimatedRoutes = () => {
           <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
           <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
           <Route path="/staff-login" element={<PageTransition><StaffLogin /></PageTransition>} />
+          <Route path="/staff" element={<PageTransition><StaffDashboard /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><AdminDashboard /></PageTransition>} />
           <Route path="/confirmation" element={<PageTransition><Confirmation /></PageTransition>} />
           <Route path="/my-bookings" element={<PageTransition><MyBookings /></PageTransition>} />

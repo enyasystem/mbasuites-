@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, parseISO, differenceInDays } from "date-fns";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,108 +15,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, Users, MapPin, Mail, Phone, ChevronRight } from "lucide-react";
-import { rooms } from "@/data/rooms";
-
-interface MockBooking {
-  id: string;
-  reference: string;
-  roomId: string;
-  checkIn: Date;
-  checkOut: Date;
-  guests: {
-    adults: number;
-    children: number;
-  };
-  guestInfo: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
-  status: "confirmed" | "pending" | "cancelled" | "completed";
-  totalPrice: number;
-  nights: number;
-  bookedAt: Date;
-  specialRequests?: string;
-}
-
-// Mock booking data
-const mockBookings: MockBooking[] = [
-  {
-    id: "1",
-    reference: "BK-2024-001",
-    roomId: "1",
-    checkIn: new Date(2024, 11, 25), // Dec 25, 2024
-    checkOut: new Date(2024, 11, 28), // Dec 28, 2024
-    guests: { adults: 2, children: 0 },
-    guestInfo: {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phone: "+234 800 123 4567",
-    },
-    status: "confirmed",
-    totalPrice: 45000,
-    nights: 3,
-    bookedAt: new Date(2024, 10, 15),
-    specialRequests: "Late check-in requested",
-  },
-  {
-    id: "2",
-    reference: "BK-2024-002",
-    roomId: "5",
-    checkIn: new Date(2025, 0, 10), // Jan 10, 2025
-    checkOut: new Date(2025, 0, 15), // Jan 15, 2025
-    guests: { adults: 2, children: 1 },
-    guestInfo: {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phone: "+234 800 123 4567",
-    },
-    status: "confirmed",
-    totalPrice: 200000,
-    nights: 5,
-    bookedAt: new Date(2024, 11, 1),
-  },
-  {
-    id: "3",
-    reference: "BK-2024-003",
-    roomId: "3",
-    checkIn: new Date(2024, 9, 5), // Oct 5, 2024
-    checkOut: new Date(2024, 9, 8), // Oct 8, 2024
-    guests: { adults: 2, children: 0 },
-    guestInfo: {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phone: "+234 800 123 4567",
-    },
-    status: "completed",
-    totalPrice: 60000,
-    nights: 3,
-    bookedAt: new Date(2024, 8, 20),
-  },
-  {
-    id: "4",
-    reference: "BK-2024-004",
-    roomId: "2",
-    checkIn: new Date(2024, 10, 20), // Nov 20, 2024
-    checkOut: new Date(2024, 10, 22), // Nov 22, 2024
-    guests: { adults: 1, children: 0 },
-    guestInfo: {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phone: "+234 800 123 4567",
-    },
-    status: "cancelled",
-    totalPrice: 30000,
-    nights: 2,
-    bookedAt: new Date(2024, 10, 10),
-  },
-];
+import { Calendar, Clock, Users, Mail, Phone, ChevronRight } from "lucide-react";
+import { useUserBookings, UserBooking } from "@/hooks/useUserBookings";
+import { useCurrency } from "@/context/CurrencyContext";
+import roomDeluxe from "@/assets/room-deluxe.jpg";
+import roomSuite from "@/assets/room-suite.jpg";
 
 const statusConfig = {
   confirmed: { label: "Confirmed", variant: "default" as const, color: "text-green-600" },
@@ -126,23 +30,59 @@ const statusConfig = {
 
 export default function MyBookings() {
   const navigate = useNavigate();
-  const [selectedBooking, setSelectedBooking] = useState<MockBooking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<UserBooking | null>(null);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
+  const { bookings, isLoading, error } = useUserBookings();
+  const { formatPrice } = useCurrency();
 
-  const filteredBookings = mockBookings.filter((booking) => {
+  const filteredBookings = bookings.filter((booking) => {
     const now = new Date();
+    const checkIn = parseISO(booking.check_in_date);
+    const checkOut = parseISO(booking.check_out_date);
+    
     if (filter === "upcoming") {
-      return booking.checkIn > now && booking.status !== "cancelled";
+      return checkIn > now && booking.status !== "cancelled";
     }
     if (filter === "past") {
-      return booking.checkOut < now || booking.status === "cancelled" || booking.status === "completed";
+      return checkOut < now || booking.status === "cancelled" || booking.status === "completed";
     }
     return true;
   });
 
-  const getRoomDetails = (roomId: string) => {
-    return rooms.find((r) => r.id === roomId);
+  const getNights = (checkIn: string, checkOut: string) => {
+    return differenceInDays(parseISO(checkOut), parseISO(checkIn));
   };
+
+  const getRoomImage = (booking: UserBooking) => {
+    if (booking.room?.image_url) return booking.room.image_url;
+    if (booking.room?.room_type === "suite") return roomSuite;
+    return roomDeluxe;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-6 w-64 mb-8" />
+            <div className="flex gap-2 mb-6">
+              <Skeleton className="h-10 w-28" />
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-20" />
+            </div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-48 w-full" />
+              ))}
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,8 +122,17 @@ export default function MyBookings() {
             </Button>
           </div>
 
+          {error && (
+            <Card className="p-6 text-center border-destructive">
+              <p className="text-destructive">{error}</p>
+              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </Card>
+          )}
+
           {/* Bookings List */}
-          {filteredBookings.length === 0 ? (
+          {!error && filteredBookings.length === 0 ? (
             <Card className="p-12 text-center">
               <div className="text-muted-foreground mb-4">
                 <Calendar className="h-16 w-16 mx-auto mb-4 opacity-50" />
@@ -201,10 +150,8 @@ export default function MyBookings() {
           ) : (
             <div className="space-y-4">
               {filteredBookings.map((booking) => {
-                const room = getRoomDetails(booking.roomId);
-                if (!room) return null;
-
                 const statusInfo = statusConfig[booking.status];
+                const nights = getNights(booking.check_in_date, booking.check_out_date);
 
                 return (
                   <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -212,8 +159,8 @@ export default function MyBookings() {
                       {/* Room Image */}
                       <div className="md:col-span-1">
                         <img
-                          src={room.images[0]}
-                          alt={room.name}
+                          src={getRoomImage(booking)}
+                          alt={booking.room?.title || "Room"}
                           className="w-full h-32 md:h-full object-cover rounded-lg"
                         />
                       </div>
@@ -222,9 +169,9 @@ export default function MyBookings() {
                       <div className="md:col-span-2 space-y-3">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-xl font-semibold">{room.name}</h3>
+                            <h3 className="text-xl font-semibold">{booking.room?.title || "Room"}</h3>
                             <p className="text-sm text-muted-foreground">
-                              Ref: {booking.reference}
+                              Ref: {booking.id.slice(0, 8).toUpperCase()}
                             </p>
                           </div>
                           <Badge variant={statusInfo.variant}>
@@ -238,7 +185,7 @@ export default function MyBookings() {
                             <div>
                               <p className="text-muted-foreground">Check-in</p>
                               <p className="font-medium">
-                                {format(booking.checkIn, "MMM dd, yyyy")}
+                                {format(parseISO(booking.check_in_date), "MMM dd, yyyy")}
                               </p>
                             </div>
                           </div>
@@ -247,7 +194,7 @@ export default function MyBookings() {
                             <div>
                               <p className="text-muted-foreground">Check-out</p>
                               <p className="font-medium">
-                                {format(booking.checkOut, "MMM dd, yyyy")}
+                                {format(parseISO(booking.check_out_date), "MMM dd, yyyy")}
                               </p>
                             </div>
                           </div>
@@ -255,21 +202,14 @@ export default function MyBookings() {
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <p className="text-muted-foreground">Duration</p>
-                              <p className="font-medium">{booking.nights} nights</p>
+                              <p className="font-medium">{nights} nights</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <p className="text-muted-foreground">Guests</p>
-                              <p className="font-medium">
-                                {booking.guests.adults} adult
-                                {booking.guests.adults !== 1 ? "s" : ""}
-                                {booking.guests.children > 0 &&
-                                  `, ${booking.guests.children} child${
-                                    booking.guests.children !== 1 ? "ren" : ""
-                                  }`}
-                              </p>
+                              <p className="font-medium">{booking.num_guests} guest{booking.num_guests !== 1 ? "s" : ""}</p>
                             </div>
                           </div>
                         </div>
@@ -280,7 +220,7 @@ export default function MyBookings() {
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">Total Price</p>
                           <p className="text-2xl font-bold">
-                            ₦{booking.totalPrice.toLocaleString()}
+                            {formatPrice(booking.total_amount)}
                           </p>
                         </div>
 
@@ -308,7 +248,7 @@ export default function MyBookings() {
                                     {statusConfig[selectedBooking.status].label}
                                   </Badge>
                                   <p className="text-sm text-muted-foreground">
-                                    Booked on {format(selectedBooking.bookedAt, "MMM dd, yyyy")}
+                                    Booked on {format(parseISO(selectedBooking.created_at), "MMM dd, yyyy")}
                                   </p>
                                 </div>
 
@@ -319,19 +259,16 @@ export default function MyBookings() {
                                   <h3 className="font-semibold mb-3">Room Information</h3>
                                   <div className="flex gap-4">
                                     <img
-                                      src={getRoomDetails(selectedBooking.roomId)?.images[0]}
-                                      alt={getRoomDetails(selectedBooking.roomId)?.name}
+                                      src={getRoomImage(selectedBooking)}
+                                      alt={selectedBooking.room?.title || "Room"}
                                       className="w-32 h-24 object-cover rounded-lg"
                                     />
                                     <div>
                                       <p className="font-medium">
-                                        {getRoomDetails(selectedBooking.roomId)?.name}
+                                        {selectedBooking.room?.title || "Room"}
                                       </p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {getRoomDetails(selectedBooking.roomId)?.bedType}
-                                      </p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {getRoomDetails(selectedBooking.roomId)?.size}m²
+                                      <p className="text-sm text-muted-foreground capitalize">
+                                        {selectedBooking.room?.room_type} Room
                                       </p>
                                     </div>
                                   </div>
@@ -346,30 +283,27 @@ export default function MyBookings() {
                                     <div>
                                       <p className="text-muted-foreground">Check-in</p>
                                       <p className="font-medium">
-                                        {format(selectedBooking.checkIn, "EEEE, MMMM dd, yyyy")}
+                                        {format(parseISO(selectedBooking.check_in_date), "EEEE, MMMM dd, yyyy")}
                                       </p>
                                       <p className="text-xs text-muted-foreground">After 2:00 PM</p>
                                     </div>
                                     <div>
                                       <p className="text-muted-foreground">Check-out</p>
                                       <p className="font-medium">
-                                        {format(selectedBooking.checkOut, "EEEE, MMMM dd, yyyy")}
+                                        {format(parseISO(selectedBooking.check_out_date), "EEEE, MMMM dd, yyyy")}
                                       </p>
                                       <p className="text-xs text-muted-foreground">Before 12:00 PM</p>
                                     </div>
                                     <div>
                                       <p className="text-muted-foreground">Duration</p>
-                                      <p className="font-medium">{selectedBooking.nights} nights</p>
+                                      <p className="font-medium">
+                                        {getNights(selectedBooking.check_in_date, selectedBooking.check_out_date)} nights
+                                      </p>
                                     </div>
                                     <div>
                                       <p className="text-muted-foreground">Guests</p>
                                       <p className="font-medium">
-                                        {selectedBooking.guests.adults} adult
-                                        {selectedBooking.guests.adults !== 1 ? "s" : ""}
-                                        {selectedBooking.guests.children > 0 &&
-                                          `, ${selectedBooking.guests.children} child${
-                                            selectedBooking.guests.children !== 1 ? "ren" : ""
-                                          }`}
+                                        {selectedBooking.num_guests} guest{selectedBooking.num_guests !== 1 ? "s" : ""}
                                       </p>
                                     </div>
                                   </div>
@@ -381,27 +315,26 @@ export default function MyBookings() {
                                 <div>
                                   <h3 className="font-semibold mb-3">Guest Information</h3>
                                   <div className="space-y-2 text-sm">
-                                    <p className="font-medium">
-                                      {selectedBooking.guestInfo.firstName}{" "}
-                                      {selectedBooking.guestInfo.lastName}
-                                    </p>
+                                    <p className="font-medium">{selectedBooking.guest_name}</p>
                                     <p className="flex items-center gap-2 text-muted-foreground">
                                       <Mail className="h-4 w-4" />
-                                      {selectedBooking.guestInfo.email}
+                                      {selectedBooking.guest_email}
                                     </p>
-                                    <p className="flex items-center gap-2 text-muted-foreground">
-                                      <Phone className="h-4 w-4" />
-                                      {selectedBooking.guestInfo.phone}
-                                    </p>
+                                    {selectedBooking.guest_phone && (
+                                      <p className="flex items-center gap-2 text-muted-foreground">
+                                        <Phone className="h-4 w-4" />
+                                        {selectedBooking.guest_phone}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
 
-                                {selectedBooking.specialRequests && (
+                                {selectedBooking.notes && (
                                   <>
                                     <Separator />
                                     <div>
                                       <h3 className="font-semibold mb-2">Special Requests</h3>
-                                      <p className="text-sm">{selectedBooking.specialRequests}</p>
+                                      <p className="text-sm">{selectedBooking.notes}</p>
                                     </div>
                                   </>
                                 )}
@@ -414,30 +347,16 @@ export default function MyBookings() {
                                   <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                       <span className="text-muted-foreground">
-                                        Room rate × {selectedBooking.nights} nights
+                                        Room rate × {getNights(selectedBooking.check_in_date, selectedBooking.check_out_date)} nights
                                       </span>
-                                      <span>₦{selectedBooking.totalPrice.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                      <span className="text-muted-foreground">Service fee</span>
-                                      <span>₦0</span>
+                                      <span>{formatPrice(selectedBooking.total_amount)}</span>
                                     </div>
                                     <Separator />
-                                    <div className="flex justify-between font-bold text-lg">
-                                      <span>Total Paid</span>
-                                      <span>₦{selectedBooking.totalPrice.toLocaleString()}</span>
+                                    <div className="flex justify-between font-semibold">
+                                      <span>Total</span>
+                                      <span>{formatPrice(selectedBooking.total_amount)}</span>
                                     </div>
                                   </div>
-                                </div>
-
-                                {/* Booking Reference */}
-                                <div className="bg-muted/50 p-4 rounded-lg">
-                                  <p className="text-xs text-muted-foreground mb-1">
-                                    Booking Reference
-                                  </p>
-                                  <p className="font-mono font-bold">
-                                    {selectedBooking.reference}
-                                  </p>
                                 </div>
                               </div>
                             )}

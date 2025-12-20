@@ -1,8 +1,9 @@
-import { Hotel, Menu, User, DollarSign, LogOut, LayoutDashboard } from "lucide-react";
+import { Hotel, Menu, User, DollarSign, LogOut, LayoutDashboard, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import type { Currency } from "@/context/CurrencyContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -25,6 +26,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currency, setCurrency } = useCurrency();
   const { user, signOut } = useAuth();
+  const { isAdmin, isStaff } = useRoleCheck();
   const navigate = useNavigate();
 
   const current = currencies.find(c => c.code === currency) ?? currencies[0];
@@ -49,19 +51,20 @@ const Navbar = () => {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <motion.div 
-              className="bg-accent p-2 rounded-lg"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Hotel className="h-6 w-6 text-accent-foreground" />
-            </motion.div>
-            <span className="text-xl font-bold text-primary">MBA Suites</span>
+            <Link to="/" aria-label="Home">
+              <motion.div 
+                className="rounded-lg overflow-hidden bg-transparent"
+                whileHover={{ rotate: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <img src="/logo.png" alt="MBA Suites" className="h-10 w-auto block" />
+              </motion.div>
+            </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {["Home", "Rooms", "About", "Contact", "Help", "My Bookings"].map((item, index) => (
+            {["Home", "Rooms", "Help", "My Bookings"].map((item, index) => (
               <motion.div
                 key={item}
                 initial={{ opacity: 0, y: -10 }}
@@ -120,6 +123,18 @@ const Navbar = () => {
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Dashboard
                   </DropdownMenuItem>
+                  {isStaff && (
+                    <DropdownMenuItem onClick={() => navigate("/staff")} className="cursor-pointer">
+                      <Users className="h-4 w-4 mr-2" />
+                      Staff Portal
+                    </DropdownMenuItem>
+                  )}
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
@@ -217,6 +232,34 @@ const Navbar = () => {
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Dashboard
                     </Button>
+                    {isStaff && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          navigate("/staff");
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Staff Portal
+                      </Button>
+                    )}
+                    {isAdmin && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          navigate("/admin");
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Button>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm" 

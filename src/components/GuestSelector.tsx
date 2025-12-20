@@ -29,9 +29,13 @@ export default function GuestSelector({
   const [children, setChildren] = React.useState<number>(defaultChildren);
   const [rooms, setRooms] = React.useState<number>(defaultRooms);
 
+  // Use ref to avoid onChange in dependency array causing infinite loops
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+
   React.useEffect(() => {
-    onChange?.({ adults, children, rooms });
-  }, [adults, children, rooms, onChange]);
+    onChangeRef.current?.({ adults, children, rooms });
+  }, [adults, children, rooms]);
 
   const label = React.useMemo(() => {
     const parts: string[] = [];

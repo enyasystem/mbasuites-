@@ -1,19 +1,70 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-export type Location = "Lagos" | "USA" | "South Africa";
+export interface LocationData {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  timezone: string;
+  currency: string;
+  is_active: boolean;
+}
 
 interface LocationContextType {
-  location: Location;
-  setLocation: (location: Location) => void;
+  locationId: string | null;
+  setLocationId: (id: string | null) => void;
+  locations: LocationData[];
+  isLoading: boolean;
+  selectedLocation: LocationData | null;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
-  const [location, setLocation] = useState<Location>("Lagos");
+  const [locationId, setLocationId] = useState<string | null>(null);
+  const [locations, setLocations] = useState<LocationData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('locations')
+          .select('*')
+          .eq('is_active', true)
+          .order('name');
+
+        if (error) throw error;
+        
+        setLocations(data || []);
+        // Set first location as default if none selected
+        if (data && data.length > 0 && !locationId) {
+          setLocationId(data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  const selectedLocation = locations.find(loc => loc.id === locationId) || null;
 
   return (
-    <LocationContext.Provider value={{ location, setLocation }}>
+    <LocationContext.Provider value={{ 
+      locationId, 
+      setLocationId, 
+      locations, 
+      isLoading,
+      selectedLocation 
+    }}>
       {children}
     </LocationContext.Provider>
   );

@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
-import { rooms, allAmenities, allBedTypes, allCategories } from "@/data/rooms";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useLocation } from "@/context/LocationContext";
+import { useRooms, DatabaseRoom } from "@/hooks/useRooms";
 import { RoomFilters } from "@/types/room";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -19,32 +21,111 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Users, Maximize2, Star, Wifi, Coffee, Tv } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Users, Maximize2, Star, Wifi, Coffee, Tv, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
+import roomDeluxe from "@/assets/room-deluxe.jpg";
+import roomSuite from "@/assets/room-suite.jpg";
+
+// Static filter options
+const allAmenities = ["WiFi", "AC", "TV", "Minibar", "Safe", "Coffee Maker", "Bathtub", "Living Area", "Work Desk", "Balcony"];
+const allBedTypes = ["Single Bed", "Double Bed", "Queen Bed", "King Bed", "King Bed + Sofa Bed"];
+const allCategories = [
+  { value: "standard", label: "Standard" },
+  { value: "deluxe", label: "Deluxe" },
+  { value: "suite", label: "Suite" },
+];
 
 const Rooms = () => {
-  const initialFilters: RoomFilters = {
-    priceRange: [0, 1000],
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { locations, selectedLocation, locationId, setLocationId } = useLocation();
+  
+  // Get search params from URL
+  const urlLocationId = searchParams.get("location");
+  const urlCheckIn = searchParams.get("checkIn");
+  const urlCheckOut = searchParams.get("checkOut");
+  const urlGuests = searchParams.get("guests");
+
+  // Handle location change
+  const handleLocationChange = (newLocationId: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (newLocationId === "all") {
+      newParams.delete("location");
+    } else {
+      newParams.set("location", newLocationId);
+    }
+    setSearchParams(newParams);
+  };
+
+  const { rooms: dbRooms, isLoading } = useRooms({
+    locationId: urlLocationId,
+    checkIn: urlCheckIn,
+    checkOut: urlCheckOut,
+    maxGuests: urlGuests ? parseInt(urlGuests) : undefined,
+  });
+
+  // Calculate max price dynamically from rooms data
+  const maxPrice = useMemo(() => {
+    if (dbRooms.length === 0) return 500000;
+    return Math.max(...dbRooms.map(r => r.price_per_night), 500000);
+  }, [dbRooms]);
+
+  const initialFilters: RoomFilters = useMemo(() => ({
+    priceRange: [0, maxPrice] as [number, number],
     bedTypes: [],
     minSize: 0,
     amenities: [],
     categories: [],
     sortBy: "price-asc",
-  };
+  }), [maxPrice]);
+  const [filters, setFilters] = useState<RoomFilters>(() => ({
+    priceRange: [0, 500000] as [number, number],
+    bedTypes: [],
+    minSize: 0,
+    amenities: [],
+    categories: [],
+    sortBy: "price-asc",
+  }));
+  const [stagedFilters, setStagedFilters] = useState<RoomFilters>(() => ({
+    priceRange: [0, 500000] as [number, number],
+    bedTypes: [],
+    minSize: 0,
+    amenities: [],
+    categories: [],
+    sortBy: "price-asc",
+  }));
+  const { formatLocalPrice } = useCurrency();
 
-  const [filters, setFilters] = useState<RoomFilters>(initialFilters);
-  const [stagedFilters, setStagedFilters] = useState<RoomFilters>(initialFilters);
-  const [isLoading, setIsLoading] = useState(true);
-  const { currency, formatPrice, convertUsdTo, convertToUsd } = useCurrency();
-
+  // Update filters when maxPrice changes (data loaded)
   useEffect(() => {
-    // Simulate loading rooms data
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
+    if (maxPrice > 0) {
+      setFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
+      setStagedFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
+    }
+  }, [maxPrice]);
+
+  // Map database rooms to display format
+  const rooms = useMemo(() => {
+    return dbRooms.map((room) => ({
+      id: room.id,
+      name: room.title,
+      type: room.room_type,
+      category: room.room_type,
+      price: room.price_per_night,
+      size: 30, // Default size as not in DB
+      capacity: { adults: room.max_guests, children: 0 },
+      bedType: room.room_type === "suite" ? "King Bed" : room.room_type === "deluxe" ? "Queen Bed" : "Double Bed",
+      amenities: room.amenities || [],
+      images: [room.image_url || (room.room_type === "suite" ? roomSuite : roomDeluxe)],
+      description: room.description || "",
+      rating: 4.5, // Default rating as not in DB
+      available: room.is_available,
+      locationId: room.location_id,
+    }));
+  }, [dbRooms]);
 
   const filteredAndSortedRooms = useMemo(() => {
     let filtered = rooms.filter((room) => {
@@ -96,7 +177,7 @@ const Rooms = () => {
     });
 
     return filtered;
-  }, [filters]);
+  }, [filters, rooms]);
 
   const toggleAmenity = (amenity: string) => {
     setStagedFilters((prev) => ({
@@ -187,7 +268,7 @@ const Rooms = () => {
       if (type === 'bed' && typeof value === 'string') copy.bedTypes = copy.bedTypes.filter(b => b !== value);
       if (type === 'category' && typeof value === 'string') copy.categories = copy.categories.filter(c => c !== value);
       if (type === 'minSize') copy.minSize = 0;
-      if (type === 'priceRange') copy.priceRange = [0,1000];
+      if (type === 'priceRange') copy.priceRange = [0, maxPrice];
       return copy;
     }
 
@@ -197,18 +278,202 @@ const Rooms = () => {
     setStagedFilters(newStaged);
   };
 
+  // Reusable filters card so we can show it in the sidebar (large screens)
+  // and inside a dropdown/popover for small screens.
+  const FiltersCard = ({ compact }: { compact?: boolean }) => (
+    <Card className={compact ? "" : "sticky top-24"}>
+      {!compact && (
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Filters</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+              className="text-accent hover:text-accent/80"
+            >
+              Reset
+            </Button>
+          </div>
+        </CardHeader>
+      )}
+      <CardContent>
+        <ScrollArea className="h-[600px] pr-4">
+          {/* Price Range */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Price Range (per night)</Label>
+            <div className="space-y-4">
+              <Slider
+                value={stagedFilters.priceRange}
+                onValueChange={(value) =>
+                  setStagedFilters((prev) => ({
+                    ...prev,
+                    priceRange: value as [number, number],
+                  }))
+                }
+                max={maxPrice}
+                min={0}
+                step={1000}
+                className="w-full"
+              />
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{formatLocalPrice(stagedFilters.priceRange[0])}</span>
+                <span>{formatLocalPrice(stagedFilters.priceRange[1])}</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Room Category */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Room Category</Label>
+            <div className="space-y-3">
+              {allCategories.map((category) => (
+                <div key={category.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-${category.value}`}
+                    checked={stagedFilters.categories.includes(category.value)}
+                    onCheckedChange={() => toggleCategory(category.value)}
+                  />
+                  <Label
+                    htmlFor={`category-${category.value}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{category.label}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('category', category.value)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Bed Type */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Bed Type</Label>
+            <div className="space-y-3">
+              {allBedTypes.map((bedType) => (
+                <div key={bedType} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`bed-${bedType}`}
+                    checked={stagedFilters.bedTypes.includes(bedType)}
+                    onCheckedChange={() => toggleBedType(bedType)}
+                  />
+                  <Label
+                    htmlFor={`bed-${bedType}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{bedType}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('bed', bedType)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Room Size */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Minimum Room Size</Label>
+            <div className="space-y-4">
+              <Slider
+                value={[stagedFilters.minSize]}
+                onValueChange={(value) =>
+                  setStagedFilters((prev) => ({ ...prev, minSize: value[0] }))
+                }
+                max={100}
+                min={0}
+                step={5}
+                className="w-full"
+              />
+              <div className="text-sm text-muted-foreground">
+                {stagedFilters.minSize} m² and above
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Amenities */}
+          <div className="space-y-4">
+            <Label className="text-sm font-semibold">Amenities</Label>
+            <div className="space-y-3">
+              {allAmenities.map((amenity) => (
+                <div key={amenity} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`amenity-${amenity}`}
+                    checked={stagedFilters.amenities.includes(amenity)}
+                    onCheckedChange={() => toggleAmenity(amenity)}
+                  />
+                  <Label
+                    htmlFor={`amenity-${amenity}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{amenity}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('amenity', amenity)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            Our Rooms
-          </h1>
-          <p className="text-muted-foreground">
-            Discover the perfect room for your stay. {filteredAndSortedRooms.length} rooms available
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+                Our Rooms
+              </h1>
+              <p className="text-muted-foreground">Discover the perfect room for your stay.</p>
+            </div>
+            
+            {/* Location Selector */}
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <Select
+                value={urlLocationId || "all"}
+                onValueChange={handleLocationChange}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name} - {loc.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+            {urlCheckIn && urlCheckOut && (
+              <Badge variant="outline">
+                {urlCheckIn} → {urlCheckOut}
+              </Badge>
+            )}
+            {urlGuests && (
+              <Badge variant="outline">
+                <Users className="h-3 w-3 mr-1" />
+                {urlGuests} guests
+              </Badge>
+            )}
+            <span className="font-medium text-foreground">{rooms.length} rooms available</span>
+          </div>
           {/* Active filter chips (applied filters) */}
           <div className="mt-3 flex flex-wrap gap-2">
             {filters.categories.map((c) => (
@@ -240,154 +505,32 @@ const Rooms = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <aside className="lg:w-80 shrink-0">
-            <Card className="sticky top-24">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Filters</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={resetFilters}
-                    className="text-accent hover:text-accent/80"
-                  >
-                    Reset
+          {/* Filters Sidebar (desktop) + Popover (mobile) */}
+          <div className="lg:w-80 shrink-0">
+            <div className="hidden lg:block">
+              <FiltersCard />
+            </div>
+            <div className="block lg:hidden">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="mr-2">
+                    Filters ({activeFiltersCount()})
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[600px] pr-4">
-                  {/* Price Range */}
-                  <div className="space-y-4 mb-6">
-                    <Label className="text-sm font-semibold">Price Range (per night)</Label>
-                    <div className="space-y-4">
-                      <Slider
-                        value={[
-                          Math.round(convertUsdTo(stagedFilters.priceRange[0])),
-                          Math.round(convertUsdTo(stagedFilters.priceRange[1])),
-                        ]}
-                        onValueChange={(value) =>
-                          setStagedFilters((prev) => ({
-                            ...prev,
-                            priceRange: [
-                              Math.max(0, Math.round(convertToUsd(value[0]))),
-                              Math.max(0, Math.round(convertToUsd(value[1]))),
-                            ] as [number, number],
-                          }))
-                        }
-                        max={Math.round(convertUsdTo(1000))}
-                        min={Math.round(convertUsdTo(0))}
-                        step={10}
-                        className="w-full"
-                      />
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{formatPrice(stagedFilters.priceRange[0])}</span>
-                        <span>{formatPrice(stagedFilters.priceRange[1])}</span>
-                      </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[320px] max-w-full p-0">
+                  <div className="p-4">
+                    <FiltersCard compact />
+                    <div className="flex justify-end gap-2 mt-2">
+                      <Button variant="ghost" onClick={resetFilters}>Reset</Button>
+                      <Button onClick={() => { applyStagedFilters(); }}>
+                        Apply
+                      </Button>
                     </div>
                   </div>
-
-                  <Separator className="my-6" />
-
-                  {/* Room Category */}
-                  <div className="space-y-4 mb-6">
-                    <Label className="text-sm font-semibold">Room Category</Label>
-                    <div className="space-y-3">
-                      {allCategories.map((category) => (
-                        <div key={category.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`category-${category.value}`}
-                            checked={stagedFilters.categories.includes(category.value)}
-                            onCheckedChange={() => toggleCategory(category.value)}
-                          />
-                          <Label
-                            htmlFor={`category-${category.value}`}
-                            className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                          >
-                            <span>{category.label}</span>
-                            <Badge className="text-xs bg-background/80">{countIfToggled('category', category.value)}</Badge>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  {/* Bed Type */}
-                  <div className="space-y-4 mb-6">
-                    <Label className="text-sm font-semibold">Bed Type</Label>
-                    <div className="space-y-3">
-                      {allBedTypes.map((bedType) => (
-                        <div key={bedType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`bed-${bedType}`}
-                            checked={stagedFilters.bedTypes.includes(bedType)}
-                            onCheckedChange={() => toggleBedType(bedType)}
-                          />
-                          <Label
-                            htmlFor={`bed-${bedType}`}
-                            className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                          >
-                            <span>{bedType}</span>
-                            <Badge className="text-xs bg-background/80">{countIfToggled('bed', bedType)}</Badge>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  {/* Room Size */}
-                  <div className="space-y-4 mb-6">
-                    <Label className="text-sm font-semibold">Minimum Room Size</Label>
-                    <div className="space-y-4">
-                      <Slider
-                        value={[stagedFilters.minSize]}
-                        onValueChange={(value) =>
-                          setStagedFilters((prev) => ({ ...prev, minSize: value[0] }))
-                        }
-                        max={100}
-                        min={0}
-                        step={5}
-                        className="w-full"
-                      />
-                      <div className="text-sm text-muted-foreground">
-                        {stagedFilters.minSize} m² and above
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  {/* Amenities */}
-                  <div className="space-y-4">
-                    <Label className="text-sm font-semibold">Amenities</Label>
-                    <div className="space-y-3">
-                      {allAmenities.map((amenity) => (
-                        <div key={amenity} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`amenity-${amenity}`}
-                            checked={stagedFilters.amenities.includes(amenity)}
-                            onCheckedChange={() => toggleAmenity(amenity)}
-                          />
-                          <Label
-                            htmlFor={`amenity-${amenity}`}
-                            className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                          >
-                            <span>{amenity}</span>
-                            <Badge className="text-xs bg-background/80">{countIfToggled('amenity', amenity)}</Badge>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </aside>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
 
           {/* Rooms Grid */}
           <div className="flex-1">
@@ -534,7 +677,7 @@ const Rooms = () => {
                             <CardFooter className="flex items-center justify-between pt-4 border-t">
                               <div>
                                 <p className="text-2xl font-bold text-foreground">
-                                  {formatPrice(room.price)}
+                                  {formatLocalPrice(room.price)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">per night</p>
                               </div>

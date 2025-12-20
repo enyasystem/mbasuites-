@@ -37,7 +37,8 @@ export default function DashboardStats({
     },
     {
       label: "Total Revenue",
-      value: formatPrice(totalRevenue),
+      // Booking totals are stored in local currency (not USD), so format without conversion
+      value: formatLocalPrice(totalRevenue),
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-50 dark:bg-green-950",

@@ -1,7 +1,13 @@
 import heroImage from "@/assets/hero-hotel.jpg";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+type PaymentSetting = {
+  setting_key: string;
+  setting_value: string | null;
+};
 
 const Hero = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -17,6 +23,37 @@ const Hero = () => {
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
+  const [imageSrc, setImageSrc] = useState<string>(heroImage);
+  const [titleText, setTitleText] = useState<string>("Your Home Away\nFrom Home");
+  const [subtitleText, setSubtitleText] = useState<string>(
+    "Experience premium comfort in fully furnished apartments designed for modern living. Perfect for business and leisure stays."
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    const loadSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("setting_key, setting_value");
+        if (error) throw error;
+        const settings: Record<string, string> = {};
+        data?.forEach((s: PaymentSetting) => {
+          if (s.setting_value) settings[s.setting_key] = s.setting_value;
+        });
+        if (!mounted) return;
+        if (settings.hero_image) setImageSrc(settings.hero_image);
+        if (settings.hero_title) setTitleText(settings.hero_title);
+        if (settings.hero_subtitle) setSubtitleText(settings.hero_subtitle);
+      } catch (err) {
+        // keep defaults on error
+        console.debug("Failed to load hero settings", err);
+      }
+    };
+    loadSettings();
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <section ref={ref} className="relative h-[600px] md:h-[700px] overflow-hidden">
       {/* Background Image with Enhanced Parallax */}
@@ -25,7 +62,7 @@ const Hero = () => {
         style={{ y: yBackground }}
       >
         <motion.img
-          src={heroImage}
+          src={imageSrc || heroImage}
           alt="Premium serviced apartments at MBA Suites"
           className="w-full h-[120%] object-cover"
           style={{ scale }}
@@ -98,8 +135,13 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
           >
-            Your Home Away<br />
-            From <motion.span 
+            {titleText.split('\n').map((line, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
+            <motion.span 
               className="text-accent inline-block"
               animate={{ 
                 textShadow: [
@@ -120,7 +162,7 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl font-light leading-relaxed"
           >
-            Experience premium comfort in fully furnished apartments designed for modern living. Perfect for business and leisure stays.
+            {subtitleText}
           </motion.p>
           
           <motion.div 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation as useRouterLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +24,7 @@ const Login = () => {
   const { signIn, signInWithGoogle, signInWithFacebook } = useAuth();
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
+  const routerLocation = useRouterLocation();
 
   const {
     register,
@@ -39,7 +40,14 @@ const Login = () => {
     
     try {
       await signIn(data.email, data.password);
-      navigate("/dashboard");
+      const returnTo = (routerLocation.state as any)?.returnTo;
+      const formValues = (routerLocation.state as any)?.formValues;
+      const bookingData = (routerLocation.state as any)?.bookingData;
+      if (returnTo) {
+        navigate(returnTo, { state: { formValues, bookingData } });
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       // Error is handled in AuthContext
     } finally {
@@ -51,6 +59,13 @@ const Login = () => {
     setSocialLoading(true);
     try {
       await signInWithGoogle();
+      const returnTo = (routerLocation.state as any)?.returnTo;
+      const formValues = (routerLocation.state as any)?.formValues;
+      const bookingData = (routerLocation.state as any)?.bookingData;
+      if (returnTo) {
+        navigate(returnTo, { state: { formValues, bookingData } });
+        return;
+      }
     } catch (error) {
       // Error is handled in AuthContext
     } finally {
@@ -62,6 +77,13 @@ const Login = () => {
     setSocialLoading(true);
     try {
       await signInWithFacebook();
+      const returnTo = (routerLocation.state as any)?.returnTo;
+      const formValues = (routerLocation.state as any)?.formValues;
+      const bookingData = (routerLocation.state as any)?.bookingData;
+      if (returnTo) {
+        navigate(returnTo, { state: { formValues, bookingData } });
+        return;
+      }
     } catch (error) {
       // Error is handled in AuthContext
     } finally {

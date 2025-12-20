@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRoleCheck } from "@/hooks/useRoleCheck";
+import { Loader2 } from "lucide-react";
 
 type FormValues = {
   email: string;
@@ -18,6 +21,10 @@ type FormValues = {
 
 export default function StaffLogin() {
   const navigate = useNavigate();
+  const { signIn, user, loading: authLoading } = useAuth();
+  const { isAdmin, isStaff, isLoading: roleLoading } = useRoleCheck();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { register, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { email: "", password: "", remember: false },
   });
@@ -30,9 +37,20 @@ export default function StaffLogin() {
     } catch (e) {}
   }, [setValue]);
 
-  const onSubmit = (data: FormValues) => {
-    // simple placeholder auth: replace with real auth flow
+  // Redirect authenticated staff/admins
+  useEffect(() => {
+    if (!authLoading && !roleLoading && user) {
+      if (isAdmin) {
+        navigate("/admin");
+      } else if (isStaff) {
+        navigate("/staff");
+      }
+    }
+  }, [user, authLoading, roleLoading, isAdmin, isStaff, navigate]);
+
+  const onSubmit = async (data: FormValues) => {
     const { email, password, remember } = data;
+    
     if (remember) {
       try {
         window.localStorage.setItem("staff_email", email);
@@ -43,14 +61,29 @@ export default function StaffLogin() {
       } catch (e) {}
     }
 
-    // fake auth
-    if (email === "staff@example.com" && password === "password") {
-      toast({ title: "Signed in", description: "Welcome back!" });
-      navigate("/my-bookings");
-    } else {
-      toast({ title: "Invalid credentials", description: "Check email and password", variant: "destructive" });
+    setIsSubmitting(true);
+    try {
+      await signIn(email, password);
+      // Redirect will happen via useEffect after role is fetched
+    } catch (error: any) {
+      toast({ 
+        title: "Login failed", 
+        description: error.message || "Invalid credentials", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,7 +95,7 @@ export default function StaffLogin() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" {...register("email", { required: true })} />
+                <Input id="email" type="email" {...register("email", { required: true })} />
               </div>
 
               <div>
@@ -75,12 +108,17 @@ export default function StaffLogin() {
                 <Label htmlFor="remember">Remember me</Label>
               </div>
 
-              <Button type="submit" className="w-full">Sign in</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign in"
+                )}
+              </Button>
             </form>
-
-            <div className="text-sm text-muted-foreground mt-3">
-              Use <strong>staff@example.com</strong> / <strong>password</strong> to sign in (demo).
-            </div>
           </Card>
         </div>
       </main>

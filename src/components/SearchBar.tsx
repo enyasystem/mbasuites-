@@ -17,16 +17,26 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLocation } from "@/context/LocationContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SearchBar = () => {
   const navigate = useNavigate();
-  const { location, setLocation } = useLocation();
+  const { locationId, setLocationId, locations, isLoading } = useLocation();
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
 
   const handleSearch = () => {
-    navigate("/rooms");
+    const params = new URLSearchParams();
+    if (locationId) params.set("location", locationId);
+    if (checkIn) params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
+    if (checkOut) params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
+    if (guests.adults + guests.children > 0) {
+      params.set("guests", String(guests.adults + guests.children));
+    }
+    navigate(`/rooms?${params.toString()}`);
   };
 
   return (
@@ -48,16 +58,22 @@ const SearchBar = () => {
               <MapPin className="h-4 w-4" />
               Location
             </label>
-            <Select value={location} onValueChange={(value) => setLocation(value as any)}>
-              <SelectTrigger className="w-full transition-all hover:border-accent">
-                <SelectValue placeholder="Select location" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border border-border z-50">
-                <SelectItem value="Lagos">Nigeria - Lagos, Lekki</SelectItem>
-                <SelectItem value="USA">Kenya - Nakuru </SelectItem>
-                <SelectItem value="South Africa">USA - ILLINOIS, GEORGIA </SelectItem>
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select value={locationId || ""} onValueChange={setLocationId}>
+                <SelectTrigger className="w-full transition-all hover:border-accent">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border z-50">
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.country} - {loc.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </motion.div>
 
           {/* Check-in date */}
@@ -70,7 +86,7 @@ const SearchBar = () => {
               <Calendar className="h-4 w-4" />
               Check-in
             </label>
-            <Popover>
+            <Popover open={checkInOpen} onOpenChange={setCheckInOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -87,7 +103,14 @@ const SearchBar = () => {
                 <CalendarComponent
                   mode="single"
                   selected={checkIn}
-                  onSelect={setCheckIn}
+                  onSelect={(date) => {
+                    setCheckIn(date);
+                    // close check-in popover then open check-out so user can pick checkout next
+                    setTimeout(() => {
+                      setCheckInOpen(false);
+                      setCheckOutOpen(true);
+                    }, 150);
+                  }}
                   disabled={(date) => date < new Date()}
                   initialFocus
                   className="pointer-events-auto"
@@ -106,7 +129,7 @@ const SearchBar = () => {
               <Calendar className="h-4 w-4" />
               Check-out
             </label>
-            <Popover>
+            <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -123,7 +146,11 @@ const SearchBar = () => {
                 <CalendarComponent
                   mode="single"
                   selected={checkOut}
-                  onSelect={setCheckOut}
+                  onSelect={(date) => {
+                    setCheckOut(date);
+                    // close checkout after selection
+                    setTimeout(() => setCheckOutOpen(false), 100);
+                  }}
                   disabled={(date) => date < (checkIn || new Date())}
                   initialFocus
                   className="pointer-events-auto"

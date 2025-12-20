@@ -2,6 +2,40 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+type GuestInfo = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  specialRequests?: string;
+};
+
+type RoomSummary = {
+  name: string;
+  category: string;
+  bedType: string;
+  images: string[];
+  price: number;
+};
+
+type BookingData = {
+  room: RoomSummary;
+  checkIn: string | Date;
+  checkOut: string | Date;
+  nights: number;
+  guests: { adults: number; children: number };
+  totalPrice: number;
+};
+
+type LocationState = {
+  bookingReference?: string;
+  guestInfo?: GuestInfo;
+  bookingData?: BookingData;
+  isRestored?: boolean;
+};
+
+type PDFWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -13,7 +47,9 @@ import { toast } from "@/hooks/use-toast";
 export default function Confirmation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { bookingReference, guestInfo, bookingData } = location.state || {};
+  const state = (location.state || {}) as LocationState;
+  const { bookingReference, guestInfo, bookingData } = state;
+  const isRestored = state?.isRestored;
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -27,7 +63,7 @@ export default function Confirmation() {
     doc.text("BOOKING INVOICE", 105, 20, { align: "center" });
     
     doc.setFontSize(12);
-    doc.text("Luxury Hotel Booking System", 105, 30, { align: "center" });
+    doc.text("MBA Suites Booking System", 105, 30, { align: "center" });
     
     // Reset text color
     doc.setTextColor(0, 0, 0);
@@ -85,7 +121,7 @@ export default function Confirmation() {
     });
     
     // Price Breakdown
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = (((doc as unknown) as PDFWithAutoTable).lastAutoTable?.finalY ?? 0) + 10;
     
     doc.setFont(undefined, "bold");
     doc.setFontSize(14);
@@ -109,7 +145,7 @@ export default function Confirmation() {
     
     // Special Requests
     if (guestInfo.specialRequests) {
-      const footerY = (doc as any).lastAutoTable.finalY + 10;
+      const footerY = (((doc as unknown) as PDFWithAutoTable).lastAutoTable?.finalY ?? 0) + 10;
       doc.setFont(undefined, "bold");
       doc.setFontSize(12);
       doc.text("Special Requests", 20, footerY);
@@ -168,9 +204,12 @@ export default function Confirmation() {
               <CheckCircle className="h-16 w-16 text-green-600" />
             </div>
             <h1 className="text-4xl font-bold mb-2">Booking Confirmed!</h1>
-            <p className="text-muted-foreground">
-              Your reservation has been successfully confirmed
-            </p>
+            <p className="text-muted-foreground">Your reservation has been successfully confirmed</p>
+            {isRestored && (
+              <div className="mt-4 inline-block bg-green-50 border border-green-200 text-green-800 px-3 py-1 rounded-lg text-sm">
+                Restored your previous booking details after sign-in.
+              </div>
+            )}
           </div>
 
           {/* Booking Reference Card */}

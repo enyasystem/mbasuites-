@@ -1,1 +1,7 @@
 project_id = "vedsoyletjvbjfrcbasy"
+
+[functions.sync-calendars]
+verify_jwt = false
+
+[functions.send-booking-email]
+verify_jwt = false

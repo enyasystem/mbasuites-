@@ -29,6 +29,7 @@ type CurrencyContextType = {
   rates: Rates;
   setRates: (r: Rates) => void;
   formatPrice: (amountUsd: number) => string;
+  formatLocalPrice: (amount: number) => string; // Format without conversion
   convertUsdTo: (amountUsd: number, to?: Currency) => number;
   convertToUsd: (amount: number, from?: Currency) => number;
 };
@@ -79,12 +80,27 @@ export const CurrencyProvider: React.FC<React.PropsWithChildren<{}>> = ({ childr
     }
   }, [convertUsdTo, currency]);
 
+  // Format price without conversion (for prices already in local currency)
+  const formatLocalPrice = React.useCallback((amount: number) => {
+    const formatter = new Intl.NumberFormat(localeMap[currency], {
+      style: "currency",
+      currency: currency === "USD" ? "USD" : currency === "NGN" ? "NGN" : "GBP",
+      maximumFractionDigits: 0,
+    });
+    try {
+      return formatter.format(amount);
+    } catch (e) {
+      return `${symbolMap[currency]}${amount.toFixed(0)}`;
+    }
+  }, [currency]);
+
   const value: CurrencyContextType = {
     currency,
     setCurrency,
     rates,
     setRates,
     formatPrice,
+    formatLocalPrice,
     convertUsdTo,
     convertToUsd,
   };

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
+import { logActivityEvent } from "@/hooks/useActivityLog";
 
 interface AuthContextType {
   user: User | null;
@@ -53,6 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Success!",
         description: "Account created successfully. Please check your email to verify your account.",
       });
+
+      await logActivityEvent({
+        action: 'user_signup',
+        entityType: 'user',
+        details: { email }
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -75,6 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Welcome back!",
         description: "You've successfully logged in.",
+      });
+
+      await logActivityEvent({
+        action: 'user_login',
+        entityType: 'user',
+        details: { email }
       });
     } catch (error: any) {
       toast({
@@ -150,6 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      await logActivityEvent({
+        action: 'user_logout',
+        entityType: 'user',
+        userId: user?.id
+      });
+
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 

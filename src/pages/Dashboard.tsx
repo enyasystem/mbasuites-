@@ -17,6 +17,7 @@ import { Calendar, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { useUserBookings } from "@/hooks/useUserBookings";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,15 +27,6 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-interface MockBooking {
-  id: string;
-  roomName: string;
-  checkIn: string;
-  checkOut: string;
-  status: "upcoming" | "completed" | "cancelled";
-  totalPrice: number;
-  guests: number;
-}
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
@@ -52,27 +44,8 @@ const Dashboard = () => {
     mode: "onChange",
   });
 
-  // Mock data - in real app, fetch from database
-  const [bookings] = useState<MockBooking[]>([
-    {
-      id: "1",
-      roomName: "Deluxe King Room",
-      checkIn: "2024-12-15",
-      checkOut: "2024-12-18",
-      status: "upcoming",
-      totalPrice: 567,
-      guests: 2,
-    },
-    {
-      id: "2",
-      roomName: "Executive Suite",
-      checkIn: "2024-11-10",
-      checkOut: "2024-11-13",
-      status: "completed",
-      totalPrice: 1047,
-      guests: 3,
-    },
-  ]);
+  // Fetch bookings for the signed-in user
+  const { bookings, isLoading } = useUserBookings();
 
   const loyaltyPoints = 2750; // Mock loyalty points
   const tier = loyaltyPoints >= 5000 ? "Platinum" : loyaltyPoints >= 2500 ? "Gold" : loyaltyPoints >= 1000 ? "Silver" : "Bronze";
@@ -125,8 +98,8 @@ const Dashboard = () => {
     return null;
   }
 
-  const upcomingBookings = bookings.filter((b) => b.status === "upcoming");
-  const pastBookings = bookings.filter((b) => b.status === "completed");
+  const upcomingBookings = (bookings || []).filter((b) => b.status === "pending" || b.status === "confirmed");
+  const pastBookings = (bookings || []).filter((b) => b.status === "completed");
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,7 +127,11 @@ const Dashboard = () => {
             <TabsContent value="bookings" className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold mb-4">Upcoming Bookings</h2>
-                {upcomingBookings.length === 0 ? (
+                {isLoading ? (
+                  <Card>
+                    <CardContent className="p-6 text-center">Loading bookings...</CardContent>
+                  </Card>
+                ) : upcomingBookings.length === 0 ? (
                   <Card>
                     <CardContent className="p-6 text-center">
                       <p className="text-muted-foreground mb-4">No upcoming bookings</p>
@@ -168,10 +145,10 @@ const Dashboard = () => {
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div>
-                              <CardTitle>{booking.roomName}</CardTitle>
+                              <CardTitle>{booking.room?.title || "Room"}</CardTitle>
                               <CardDescription>Booking ID: {booking.id}</CardDescription>
                             </div>
-                            <Badge variant="secondary">Upcoming</Badge>
+                            <Badge variant="secondary">{booking.status === "pending" ? "Pending" : "Upcoming"}</Badge>
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -179,12 +156,12 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
                               <span>
-                                {format(new Date(booking.checkIn), "MMM dd, yyyy")} - {format(new Date(booking.checkOut), "MMM dd, yyyy")}
+                                {format(new Date(booking.check_in_date), "MMM dd, yyyy")} - {format(new Date(booking.check_out_date), "MMM dd, yyyy")}
                               </span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">{booking.guests} guests</span>
-                              <span className="font-semibold">${booking.totalPrice}</span>
+                              <span className="text-muted-foreground">{booking.num_guests} guests</span>
+                              <span className="font-semibold">${booking.total_amount}</span>
                             </div>
                           </div>
                         </CardContent>
@@ -196,7 +173,11 @@ const Dashboard = () => {
 
               <div>
                 <h2 className="text-xl font-semibold mb-4">Past Bookings</h2>
-                {pastBookings.length === 0 ? (
+                {isLoading ? (
+                  <Card>
+                    <CardContent className="p-6 text-center">Loading bookings...</CardContent>
+                  </Card>
+                ) : pastBookings.length === 0 ? (
                   <Card>
                     <CardContent className="p-6 text-center text-muted-foreground">
                       No past bookings
@@ -209,7 +190,7 @@ const Dashboard = () => {
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div>
-                              <CardTitle>{booking.roomName}</CardTitle>
+                              <CardTitle>{booking.room?.title || "Room"}</CardTitle>
                               <CardDescription>Booking ID: {booking.id}</CardDescription>
                             </div>
                             <Badge>Completed</Badge>
@@ -220,12 +201,12 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
                               <span>
-                                {format(new Date(booking.checkIn), "MMM dd, yyyy")} - {format(new Date(booking.checkOut), "MMM dd, yyyy")}
+                                {format(new Date(booking.check_in_date), "MMM dd, yyyy")} - {format(new Date(booking.check_out_date), "MMM dd, yyyy")}
                               </span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">{booking.guests} guests</span>
-                              <span className="font-semibold">${booking.totalPrice}</span>
+                              <span className="text-muted-foreground">{booking.num_guests} guests</span>
+                              <span className="font-semibold">${booking.total_amount}</span>
                             </div>
                           </div>
                         </CardContent>

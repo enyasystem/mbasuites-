@@ -8,67 +8,31 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useCurrency } from "@/context/CurrencyContext";
 import { toast } from "@/hooks/use-toast";
-import { Search, CalendarX } from "lucide-react";
+import { Search, CalendarX, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-type BookingStatus = "pending" | "confirmed" | "cancelled";
+type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
 type Booking = {
   id: string;
   guestName: string;
+  guestEmail: string;
+  guestPhone: string | null;
   roomName: string;
+  roomId: string;
   checkIn: string;
   checkOut: string;
   status: BookingStatus;
-  amountUsd: number;
+  amount: number;
+  currency: string;
   createdAt: string;
+  notes: string | null;
 };
-
-const sampleBookings: Booking[] = [
-  {
-    id: "BKG-1001",
-    guestName: "Amina Olu",
-    roomName: "Executive Suite",
-    checkIn: "2025-12-08",
-    checkOut: "2025-12-12",
-    status: "confirmed",
-    amountUsd: 1396,
-    createdAt: "2025-11-01",
-  },
-  {
-    id: "BKG-1002",
-    guestName: "John Doe",
-    roomName: "Standard Double Room",
-    checkIn: "2025-11-25",
-    checkOut: "2025-11-27",
-    status: "pending",
-    amountUsd: 258,
-    createdAt: "2025-11-20",
-  },
-  {
-    id: "BKG-1003",
-    guestName: "Mary Smith",
-    roomName: "Deluxe King Room",
-    checkIn: "2026-01-05",
-    checkOut: "2026-01-09",
-    status: "confirmed",
-    amountUsd: 756,
-    createdAt: "2025-10-11",
-  },
-  {
-    id: "BKG-1004",
-    guestName: "Peter Obi",
-    roomName: "Standard Single Room",
-    checkIn: "2025-12-20",
-    checkOut: "2025-12-22",
-    status: "cancelled",
-    amountUsd: 178,
-    createdAt: "2025-11-02",
-  },
-];
 
 export default function BookingsManager() {
   const { formatPrice } = useCurrency();
-  const [bookings, setBookings] = React.useState<Booking[]>(sampleBookings);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<BookingStatus | "all">("all");
   const [fromDate, setFromDate] = React.useState("");
@@ -77,19 +41,73 @@ export default function BookingsManager() {
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc");
   const [selected, setSelected] = React.useState<Booking | null>(null);
   const [editOpen, setEditOpen] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch bookings from database
+  const { data: bookings = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin-bookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          guest_name,
+          guest_email,
+          guest_phone,
+          room_id,
+          check_in_date,
+          check_out_date,
+          status,
+          total_amount,
+          currency,
+          created_at,
+          notes,
+          rooms (
+            title
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map((b: any) => ({
+        id: b.id,
+        guestName: b.guest_name,
+        guestEmail: b.guest_email,
+        guestPhone: b.guest_phone,
+        roomName: b.rooms?.title || 'Unknown Room',
+        roomId: b.room_id,
+        checkIn: b.check_in_date,
+        checkOut: b.check_out_date,
+        status: b.status as BookingStatus,
+        amount: b.total_amount,
+        currency: b.currency,
+        createdAt: b.created_at,
+        notes: b.notes,
+      }));
+    },
+  });
+
+  // Update booking status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+    },
+  });
 
   const filtered = React.useMemo(() => {
     return bookings.filter((b) => {
       const matchesSearch =
         b.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         b.roomName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.guestEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
         b.id.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (!matchesSearch) return false;
@@ -127,17 +145,33 @@ export default function BookingsManager() {
   };
 
   function handleCancel(id: string) {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: "cancelled" as BookingStatus } : b))
+    updateStatusMutation.mutate(
+      { id, status: "cancelled" },
+      {
+        onSuccess: () => {
+          toast({ title: "Booking cancelled", description: "The booking has been cancelled." });
+          setEditOpen(false);
+        },
+        onError: (error) => {
+          toast({ title: "Error", description: "Failed to cancel booking.", variant: "destructive" });
+        },
+      }
     );
-    toast({ title: "Booking cancelled", description: "The booking has been cancelled." });
   }
 
   function handleConfirm(id: string) {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: "confirmed" as BookingStatus } : b))
+    updateStatusMutation.mutate(
+      { id, status: "confirmed" },
+      {
+        onSuccess: () => {
+          toast({ title: "Booking confirmed", description: "The booking has been confirmed." });
+          setEditOpen(false);
+        },
+        onError: (error) => {
+          toast({ title: "Error", description: "Failed to confirm booking.", variant: "destructive" });
+        },
+      }
     );
-    toast({ title: "Booking confirmed", description: "The booking has been confirmed." });
   }
 
   if (isLoading) {
@@ -167,18 +201,24 @@ export default function BookingsManager() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Bookings Management</h2>
-        <p className="text-muted-foreground">
-          View, filter, and manage all hotel bookings
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Bookings Management</h2>
+          <p className="text-muted-foreground">
+            View, filter, and manage all hotel bookings ({bookings.length} total)
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by guest name, room, or booking ID..."
+            placeholder="Search by guest name, email, room, or booking ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -192,6 +232,7 @@ export default function BookingsManager() {
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
@@ -253,7 +294,7 @@ export default function BookingsManager() {
                   <TableHead onClick={() => toggleSort("checkOut")} className="cursor-pointer">
                     Check-out
                   </TableHead>
-                  <TableHead onClick={() => toggleSort("amountUsd")} className="cursor-pointer">
+                  <TableHead onClick={() => toggleSort("amount")} className="cursor-pointer">
                     Amount
                   </TableHead>
                   <TableHead onClick={() => toggleSort("status")} className="cursor-pointer">
@@ -265,12 +306,22 @@ export default function BookingsManager() {
               <TableBody>
                 {sorted.map((b) => (
                   <TableRow key={b.id}>
-                    <TableCell className="font-medium">{b.id}</TableCell>
-                    <TableCell>{b.guestName}</TableCell>
+                    <TableCell className="font-medium font-mono text-xs">
+                      {b.id.slice(0, 8).toUpperCase()}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{b.guestName}</div>
+                        <div className="text-xs text-muted-foreground">{b.guestEmail}</div>
+                      </div>
+                    </TableCell>
                     <TableCell>{b.roomName}</TableCell>
                     <TableCell>{b.checkIn}</TableCell>
                     <TableCell>{b.checkOut}</TableCell>
-                    <TableCell className="font-semibold">{formatPrice(b.amountUsd)}</TableCell>
+                    <TableCell className="font-semibold">
+                      {b.currency === 'NGN' ? '₦' : b.currency === 'USD' ? '$' : b.currency}
+                      {b.amount.toLocaleString()}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
@@ -278,6 +329,8 @@ export default function BookingsManager() {
                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                             : b.status === "pending"
                             ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : b.status === "completed"
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                             : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                         }`}
                       >
@@ -308,13 +361,23 @@ export default function BookingsManager() {
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
-                            <DialogTitle>Booking {b.id}</DialogTitle>
+                            <DialogTitle>Booking {b.id.slice(0, 8).toUpperCase()}</DialogTitle>
                             <DialogDescription>
                               <div className="space-y-3 pt-4">
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Guest:</span>
                                   <span className="font-medium">{b.guestName}</span>
                                 </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Email:</span>
+                                  <span className="font-medium">{b.guestEmail}</span>
+                                </div>
+                                {b.guestPhone && (
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Phone:</span>
+                                    <span className="font-medium">{b.guestPhone}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Room:</span>
                                   <span className="font-medium">{b.roomName}</span>
@@ -329,20 +392,38 @@ export default function BookingsManager() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Amount:</span>
-                                  <span className="font-medium">{formatPrice(b.amountUsd)}</span>
+                                  <span className="font-medium">
+                                    {b.currency === 'NGN' ? '₦' : b.currency === 'USD' ? '$' : b.currency}
+                                    {b.amount.toLocaleString()}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Status:</span>
                                   <span className="font-medium capitalize">{b.status}</span>
                                 </div>
+                                {b.notes && (
+                                  <div className="pt-2 border-t">
+                                    <span className="text-muted-foreground block mb-1">Notes:</span>
+                                    <span className="text-sm">{b.notes}</span>
+                                  </div>
+                                )}
                               </div>
                             </DialogDescription>
                             <DialogFooter className="flex gap-2">
                               {b.status === "pending" && (
-                                <Button onClick={() => handleConfirm(b.id)}>Confirm</Button>
+                                <Button 
+                                  onClick={() => handleConfirm(b.id)}
+                                  disabled={updateStatusMutation.isPending}
+                                >
+                                  Confirm
+                                </Button>
                               )}
-                              {b.status !== "cancelled" && (
-                                <Button variant="destructive" onClick={() => handleCancel(b.id)}>
+                              {b.status !== "cancelled" && b.status !== "completed" && (
+                                <Button 
+                                  variant="destructive" 
+                                  onClick={() => handleCancel(b.id)}
+                                  disabled={updateStatusMutation.isPending}
+                                >
                                   Cancel Booking
                                 </Button>
                               )}

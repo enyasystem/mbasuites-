@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,8 +19,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useBooking } from "@/contexts/BookingContext";
 import { useLocation } from "@/context/LocationContext";
+import { useLocation as useRouterLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Wallet, Upload, X, FileImage, Loader2, Copy } from "lucide-react";
+import { usePaymentSettings } from "@/hooks/usePaymentSettings";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Form,
   FormControl,
@@ -46,20 +50,32 @@ type FormData = z.infer<typeof formSchema>;
 // Initialize Stripe (test mode)
 const stripePromise = loadStripe("pk_test_51PXxxxxxxxxxxxxxYourStripeKeyHere");
 
-type PaymentMethod = "paystack" | "stripe";
+type PaymentMethod = "paystack" | "stripe" | "bank";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { bookingData } = useBooking();
-  const { location } = useLocation();
+  const { bookingData, clearBooking } = useBooking();
+  const { selectedLocation } = useLocation();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isNigeria = selectedLocation?.country === "Nigeria";
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    location === "Lagos" ? "paystack" : "stripe"
+    isNigeria ? "paystack" : "stripe"
   );
+
+  const routerLocation = useRouterLocation();
+
+  type RouterState = { formValues?: Partial<FormData> } | null;
+  const incomingFormValues = (routerLocation.state as unknown as RouterState)?.formValues;
+  const restoredFromLogin = !!incomingFormValues;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: incomingFormValues || {
       firstName: "",
       lastName: "",
       email: "",
@@ -71,8 +87,8 @@ export default function Checkout() {
 
   // Update suggested payment method when location changes
   useEffect(() => {
-    setPaymentMethod(location === "Lagos" ? "paystack" : "stripe");
-  }, [location]);
+    setPaymentMethod(isNigeria ? "paystack" : "stripe");
+  }, [isNigeria]);
   // Paystack configuration - TEST MODE
   const paystackConfig = {
     reference: `booking_${new Date().getTime()}`,
@@ -83,6 +99,19 @@ export default function Checkout() {
 
   // Initialize Paystack payment hook unconditionally to satisfy Hooks rules
   const initializePayment = usePaystackPayment(paystackConfig);
+
+  // Payment settings from admin
+  const { settings: paymentSettings, loading: paymentSettingsLoading, hasRows: paymentSettingsHasRows } = usePaymentSettings();
+
+  // Determine if any payment methods are enabled from settings (only meaningful if rows exist)
+  const anyPaymentEnabled = Boolean(
+    paymentSettingsHasRows && (
+      paymentSettings.paystack_enabled || paymentSettings.stripe_enabled || paymentSettings.bank_enabled
+    )
+  );
+
+  // Show fallback options only when settings have been loaded but no rows exist in the table
+  const showFallbackPaymentOptions = !paymentSettingsLoading && !paymentSettingsHasRows;
 
   // Redirect if no booking data
   if (!bookingData.room || !bookingData.checkIn || !bookingData.checkOut) {
@@ -96,6 +125,28 @@ export default function Checkout() {
           </p>
           <Button onClick={() => navigate("/rooms")}>Browse Rooms</Button>
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Require authentication before allowing booking
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-20 text-center">
+          <Card className="max-w-lg mx-auto p-8">
+            <h2 className="text-2xl font-semibold mb-4">Login Required</h2>
+            <p className="text-muted-foreground mb-6">
+              You must be logged in to complete a booking. Please sign in or create an account to continue.
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              <Button onClick={() => navigate('/login', { state: { returnTo: routerLocation.pathname + (routerLocation.search || ''), bookingData, formValues: form.getValues() } })}>Sign In / Sign Up</Button>
+              <Button variant="ghost" onClick={() => navigate('/rooms')}>Browse Rooms</Button>
+            </div>
+          </Card>
+        </main>
         <Footer />
       </div>
     );
@@ -115,6 +166,7 @@ export default function Checkout() {
         bookingReference: reference.reference,
         guestInfo: form.getValues(),
         bookingData,
+        isRestored: restoredFromLogin,
       },
     });
   };
@@ -149,6 +201,7 @@ export default function Checkout() {
             bookingReference: bookingRef,
             guestInfo: data,
             bookingData,
+            isRestored: restoredFromLogin,
           },
         });
       }, 2000);
@@ -162,12 +215,183 @@ export default function Checkout() {
     }
   };
 
+  // Handle file selection for payment proof
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image or PDF file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setPaymentProofFile(file);
+      // Create preview for images
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPaymentProofPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPaymentProofPreview(null);
+      }
+    }
+  };
+
+  const removePaymentProof = () => {
+    setPaymentProofFile(null);
+    setPaymentProofPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleBankTransferSubmit = async (data: FormData) => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to complete your booking.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
+    if (!paymentProofFile) {
+      toast({
+        title: "Payment Proof Required",
+        description: "Please upload your payment proof before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Upload payment proof
+      const fileExt = paymentProofFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, paymentProofFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('payment-proofs')
+        .getPublicUrl(fileName);
+
+      const proofUrl = urlData.publicUrl;
+
+      // Create booking
+      const { data: bookingResult, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          room_id: bookingData.room!.id,
+          check_in_date: format(bookingData.checkIn!, 'yyyy-MM-dd'),
+          check_out_date: format(bookingData.checkOut!, 'yyyy-MM-dd'),
+          num_guests: bookingData.guests.adults + bookingData.guests.children,
+          total_amount: bookingData.totalPrice,
+          status: 'pending',
+          guest_name: `${data.firstName} ${data.lastName}`,
+          guest_email: data.email,
+          guest_phone: data.phone,
+          currency: selectedLocation?.currency || 'NGN',
+          notes: data.specialRequests || null,
+        })
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Create bank payment request with proof
+      const { error: paymentRequestError } = await supabase
+        .from('bank_payment_requests')
+        .insert({
+          booking_id: bookingResult.id,
+          amount: bookingData.totalPrice,
+          guest_name: `${data.firstName} ${data.lastName}`,
+          guest_email: data.email,
+          currency: selectedLocation?.currency || 'NGN',
+          proof_url: proofUrl,
+          status: 'pending',
+        });
+
+      if (paymentRequestError) throw paymentRequestError;
+
+      // Clear booking data and navigate to confirmation
+      clearBooking();
+      
+      toast({
+        title: "Booking Submitted!",
+        description: "Your booking is pending admin verification.",
+      });
+
+      navigate("/confirmation", {
+        state: {
+          bookingReference: `BANK-${bookingResult.id.slice(0, 8).toUpperCase()}`,
+          guestInfo: data,
+          bookingData,
+          isPendingVerification: true,
+          isRestored: restoredFromLogin,
+        },
+      });
+    } catch (error: unknown) {
+      console.error('Bank transfer submission error:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      toast({
+        title: "Submission Failed",
+        description: msg || "There was an error submitting your booking.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      setIsProcessing(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, label?: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: label ? `${label} copied` : "Copied",
+        description: "Copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = (data: FormData) => {
     setIsProcessing(true);
     
     if (paymentMethod === "paystack") {
       // Update Paystack config with the submitted email
       initializePayment({ onSuccess, onClose });
+    } else if (paymentMethod === "stripe") {
+      handleStripePayment(data);
+    } else if (paymentMethod === "bank") {
+      handleBankTransferSubmit(data);
     } else {
       handleStripePayment(data);
     }
@@ -335,44 +559,198 @@ export default function Checkout() {
                       onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
                       className="grid grid-cols-2 gap-4"
                     >
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Label
-                          htmlFor="paystack"
-                          className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
-                            paymentMethod === "paystack"
-                              ? "border-primary bg-primary/5"
-                              : "border-muted hover:border-muted-foreground/50"
-                          }`}
-                        >
-                          <RadioGroupItem value="paystack" id="paystack" className="sr-only" />
-                          <Wallet className="h-8 w-8 mb-2" />
-                          <span className="font-semibold">Paystack</span>
-                          <span className="text-xs text-muted-foreground mt-1">
-                            Recommended for Nigeria
-                          </span>
-                        </Label>
-                      </motion.div>
+                        {(paymentSettings?.paystack_enabled || showFallbackPaymentOptions) && (
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Label
+                              htmlFor="paystack"
+                              className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
+                                paymentMethod === "paystack"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted hover:border-muted-foreground/50"
+                              }`}
+                            >
+                              <RadioGroupItem value="paystack" id="paystack" className="sr-only" />
+                              <Wallet className="h-8 w-8 mb-2" />
+                              <span className="font-semibold">Paystack</span>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                Recommended for Nigeria
+                              </span>
+                            </Label>
+                          </motion.div>
+                        )}
 
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Label
-                          htmlFor="stripe"
-                          className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
-                            paymentMethod === "stripe"
-                              ? "border-primary bg-primary/5"
-                              : "border-muted hover:border-muted-foreground/50"
-                          }`}
-                        >
-                          <RadioGroupItem value="stripe" id="stripe" className="sr-only" />
-                          <CreditCard className="h-8 w-8 mb-2" />
-                          <span className="font-semibold">Stripe</span>
-                          <span className="text-xs text-muted-foreground mt-1">
-                            International cards
-                          </span>
-                        </Label>
-                      </motion.div>
+                        {(paymentSettings?.stripe_enabled || showFallbackPaymentOptions) && (
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Label
+                              htmlFor="stripe"
+                              className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
+                                paymentMethod === "stripe"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted hover:border-muted-foreground/50"
+                              }`}
+                            >
+                              <RadioGroupItem value="stripe" id="stripe" className="sr-only" />
+                              <CreditCard className="h-8 w-8 mb-2" />
+                              <span className="font-semibold">Stripe</span>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                International cards
+                              </span>
+                            </Label>
+                          </motion.div>
+                        )}
+
+                        {(paymentSettings?.bank_enabled || showFallbackPaymentOptions) && (
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Label
+                              htmlFor="bank"
+                              className={`flex flex-col items-center justify-center rounded-lg border-2 cursor-pointer transition-all p-4 ${
+                                paymentMethod === "bank"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted hover:border-muted-foreground/50"
+                              }`}
+                            >
+                              <RadioGroupItem value="bank" id="bank" className="sr-only" />
+                              <Wallet className="h-8 w-8 mb-2" />
+                              <span className="font-semibold">Bank Transfer</span>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                Manual bank transfer
+                              </span>
+                            </Label>
+                          </motion.div>
+                        )}
                     </RadioGroup>
                   </motion.div>
 
+                  {/* Payment Proof Upload for Bank Transfer */}
+                  {paymentMethod === "bank" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4"
+                    >
+                      {/* Show bank account details here so users see where to transfer before uploading proof */}
+                      {paymentSettings?.bank_enabled && (
+                        <div className="mb-4 bg-background/50 p-4 rounded border">
+                          <h4 className="font-semibold mb-2">Bank Transfer Details</h4>
+                          <div className="space-y-1 text-sm">
+                            {paymentSettings.bank_name && (
+                              <div>
+                                <span className="text-muted-foreground">Bank:</span>{" "}
+                                <span className="font-medium">{paymentSettings.bank_name}</span>
+                              </div>
+                            )}
+                            {paymentSettings.bank_account_name && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Account Name:</span>{" "}
+                                <span className="font-medium">{paymentSettings.bank_account_name}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => copyToClipboard(paymentSettings.bank_account_name || "", "Account name")}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                            {paymentSettings.bank_account_number && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Account Number:</span>{" "}
+                                <span className="font-medium">{paymentSettings.bank_account_number}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => copyToClipboard(paymentSettings.bank_account_number || "", "Account number")}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                            {paymentSettings.bank_sort_code && (
+                              <div>
+                                <span className="text-muted-foreground">Sort Code / Routing:</span>{" "}
+                                <span className="font-medium">{paymentSettings.bank_sort_code}</span>
+                              </div>
+                            )}
+                            {paymentSettings.bank_swift_code && (
+                              <div>
+                                <span className="text-muted-foreground">SWIFT/BIC:</span>{" "}
+                                <span className="font-medium">{paymentSettings.bank_swift_code}</span>
+                              </div>
+                            )}
+                            {paymentSettings.bank_instructions && (
+                              <div className="pt-2 text-xs text-muted-foreground">
+                                {paymentSettings.bank_instructions}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="bg-muted/30 border border-dashed border-muted-foreground/30 rounded-lg p-6">
+                        <label className="text-sm font-medium block mb-2">
+                          Upload Payment Proof <span className="text-destructive">*</span>
+                        </label>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          Please upload a screenshot or receipt of your bank transfer. Accepted formats: Image (JPG, PNG) or PDF. Max size: 5MB.
+                        </p>
+                        
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          id="payment-proof"
+                        />
+                        
+                        {!paymentProofFile ? (
+                          <motion.label
+                            htmlFor="payment-proof"
+                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-all"
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                          >
+                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-sm text-muted-foreground">
+                              Click to upload payment proof
+                            </span>
+                          </motion.label>
+                        ) : (
+                          <div className="flex items-center gap-4 p-4 bg-background rounded-lg border">
+                            {paymentProofPreview ? (
+                              <img
+                                src={paymentProofPreview}
+                                alt="Payment proof preview"
+                                className="h-16 w-16 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="h-16 w-16 flex items-center justify-center bg-muted rounded">
+                                <FileImage className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {paymentProofFile.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {(paymentProofFile.size / 1024).toFixed(1)} KB
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={removePaymentProof}
+                              className="shrink-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
                   <FormField
                     control={form.control}
                     name="agreeToTerms"
@@ -402,17 +780,24 @@ export default function Checkout() {
                       type="submit"
                       className="w-full relative overflow-hidden"
                       size="lg"
-                      disabled={isProcessing}
+                      disabled={isProcessing || isUploading || (paymentMethod === "bank" && !paymentProofFile)}
                     >
-                      {isProcessing && (
+                      {(isProcessing || isUploading) && (
                         <motion.div
                           className="absolute inset-0 bg-accent/20"
                           animate={{ x: ["-100%", "100%"] }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         />
                       )}
-                      <span className="relative">
-                        {isProcessing ? "Processing..." : "Proceed to Payment"}
+                      <span className="relative flex items-center justify-center gap-2">
+                        {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {isProcessing || isUploading
+                          ? "Processing..."
+                          : paymentMethod === "bank"
+                          ? paymentProofFile
+                            ? "Submit Booking"
+                            : "Upload Payment Proof First"
+                          : "Proceed to Payment"}
                       </span>
                     </Button>
                   </motion.div>
@@ -487,12 +872,14 @@ export default function Checkout() {
                   <span>₦{bookingData.totalPrice.toLocaleString()}</span>
                 </div>
 
-                <div className="bg-muted/50 p-3 rounded-lg mt-4">
+                {/* <div className="bg-muted/50 p-3 rounded-lg mt-4">
                   <p className="text-xs text-muted-foreground">
                     💳 Payment is processed securely via{" "}
-                    {paymentMethod === "paystack" ? "Paystack" : "Stripe"} (Test Mode)
+                    {paymentMethod === "paystack" ? "Paystack" : paymentMethod === "stripe" ? "Stripe" : "Manual Bank Transfer"} (Test Mode)
                   </p>
-                </div>
+                </div> */}
+
+               
               </div>
             </Card>
           </div>
