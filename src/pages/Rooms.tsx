@@ -128,7 +128,7 @@ const Rooms = () => {
   }, [dbRooms]);
 
   const filteredAndSortedRooms = useMemo(() => {
-    let filtered = rooms.filter((room) => {
+    const filtered = rooms.filter((room) => {
       // Price filter
       if (room.price < filters.priceRange[0] || room.price > filters.priceRange[1]) {
         return false;
@@ -261,7 +261,7 @@ const Rooms = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const removeAppliedFilter = (type: "amenity" | "bed" | "category" | "minSize" | "priceRange", value?: any) => {
+  const removeAppliedFilter = (type: "amenity" | "bed" | "category" | "minSize" | "priceRange", value?: string) => {
     const removeFrom = (f: RoomFilters) => {
       const copy = { ...f } as RoomFilters;
       if (type === 'amenity' && typeof value === 'string') copy.amenities = copy.amenities.filter(a => a !== value);
@@ -541,7 +541,7 @@ const Rooms = () => {
               </p>
               <Select
                 value={filters.sortBy}
-                onValueChange={(value: any) =>
+                onValueChange={(value: RoomFilters['sortBy']) =>
                   setFilters((prev) => ({ ...prev, sortBy: value }))
                 }
               >
