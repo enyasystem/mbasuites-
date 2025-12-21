@@ -18,7 +18,7 @@ export default function DashboardStats({
   occupancyRate,
   isLoading = false,
 }: DashboardStatsProps) {
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
 
   const stats = [
     {
