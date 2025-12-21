@@ -90,7 +90,7 @@ export default function RoomsManager() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
 
   const form = useForm<RoomFormData>({
     resolver: zodResolver(roomSchema),
@@ -502,7 +502,7 @@ export default function RoomsManager() {
                       <TableCell>{room.room_number}</TableCell>
                       <TableCell className="capitalize">{room.room_type}</TableCell>
                       <TableCell>{room.location_name}</TableCell>
-                      <TableCell className="font-semibold">{formatPrice(room.price_per_night)}</TableCell>
+                      <TableCell className="font-semibold">{formatLocalPrice(room.price_per_night)}</TableCell>
                       <TableCell>{room.max_guests}</TableCell>
                       <TableCell>
                         <Button variant={room.is_available ? "default" : "secondary"} size="sm" onClick={() => handleToggleAvailability(room)}>

@@ -33,7 +33,7 @@ export default function MyBookings() {
   const [selectedBooking, setSelectedBooking] = useState<UserBooking | null>(null);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
   const { bookings, isLoading, error } = useUserBookings();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
 
   const filteredBookings = bookings.filter((booking) => {
     const now = new Date();
@@ -220,7 +220,7 @@ export default function MyBookings() {
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">Total Price</p>
                           <p className="text-2xl font-bold">
-                            {formatPrice(booking.total_amount)}
+                            {formatLocalPrice(booking.total_amount)}
                           </p>
                         </div>
 
@@ -349,12 +349,12 @@ export default function MyBookings() {
                                       <span className="text-muted-foreground">
                                         Room rate × {getNights(selectedBooking.check_in_date, selectedBooking.check_out_date)} nights
                                       </span>
-                                      <span>{formatPrice(selectedBooking.total_amount)}</span>
+                                      <span>{formatLocalPrice(selectedBooking.total_amount)}</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between font-semibold">
                                       <span>Total</span>
-                                      <span>{formatPrice(selectedBooking.total_amount)}</span>
+                                      <span>{formatLocalPrice(selectedBooking.total_amount)}</span>
                                     </div>
                                   </div>
                                 </div>

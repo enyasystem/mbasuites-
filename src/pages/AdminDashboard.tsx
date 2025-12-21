@@ -34,7 +34,7 @@ type RecentBooking = {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
   const { isAdmin, isLoading: roleLoading, role } = useRoleCheck();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                           <div className="text-xs text-muted-foreground mt-1">{booking.check_in_date} → {booking.check_out_date}</div>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">{formatPrice(booking.total_amount)}</div>
+                          <div className="font-semibold">{formatLocalPrice(booking.total_amount)}</div>
                           <div className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${
                             booking.status === "confirmed" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                             : booking.status === "pending" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"

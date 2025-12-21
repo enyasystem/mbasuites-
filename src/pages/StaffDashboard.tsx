@@ -41,7 +41,7 @@ interface StaffLocation {
 const StaffDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
   const { locations: allLocations } = useLocations();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -310,7 +310,7 @@ const StaffDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Revenue</p>
-                  <p className="text-2xl font-bold">{formatPrice(stats.revenue)}</p>
+                  <p className="text-2xl font-bold">{formatLocalPrice(stats.revenue)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -382,7 +382,7 @@ const StaffDashboard = () => {
                             {booking.num_guests}
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium">{formatPrice(booking.total_amount)}</TableCell>
+                        <TableCell className="font-medium">{formatLocalPrice(booking.total_amount)}</TableCell>
                         <TableCell>{getStatusBadge(booking.status)}</TableCell>
                         <TableCell>
                           <Select
