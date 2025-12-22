@@ -39,10 +39,12 @@ const Navbar = () => {
   }, []);
 
   // Auto-detect hero/background to set initial navbar theme (dark/light)
+  const [heroAtTop, setHeroAtTop] = useState<boolean>(false);
   useEffect(() => {
     const el = document.querySelector(".hero") as HTMLElement | null;
     if (!el) {
       setHeroVisible(false);
+      setHeroAtTop(false);
       return;
     }
     const observer = new IntersectionObserver(
@@ -52,12 +54,31 @@ const Navbar = () => {
       { root: null, threshold: 0.1 }
     );
     observer.observe(el);
+
     // set initial state based on bounding rect
     try {
       const r = el.getBoundingClientRect();
       setHeroVisible(r.bottom > 0 && r.top < window.innerHeight);
+      // consider the hero 'at top' when its top is very near the viewport top
+      setHeroAtTop(r.top <= 8);
     } catch (e) { /* ignore measurement errors */ }
-    return () => observer.disconnect();
+
+    // keep heroAtTop updated if the hero's layout changes
+    let ro: ResizeObserver | null = null;
+    try {
+      ro = new ResizeObserver(() => {
+        try {
+          const r = el.getBoundingClientRect();
+          setHeroAtTop(r.top <= 8);
+        } catch (err) { /* ignore */ }
+      });
+      ro.observe(el);
+    } catch (e) { /* ResizeObserver not available, skip */ }
+
+    return () => {
+      observer.disconnect();
+      try { ro?.disconnect(); } catch (e) { /* ignore */ }
+    };
   }, []);
 
   // visualScrolled controls the nav visual theme: opaque/dark text when true
@@ -242,7 +263,13 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <span>{current.symbol} {current.code}</span>
+                  <span className="bg-accent text-accent-foreground text-sm font-semibold px-3 py-1 rounded-full inline-flex items-center gap-3">
+                    <span className="text-xs">{current.symbol}</span>
+                    <span className="flex items-baseline gap-2">
+                      <span className="font-semibold">{current.code}</span>
+                      <span className="text-xs font-normal">{current.name}</span>
+                    </span>
+                  </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -349,7 +376,13 @@ const Navbar = () => {
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="w-full gap-2 mb-3">
                           <DollarSign className="h-4 w-4" />
-                          <span>{current.symbol} {current.code}</span>
+                          <span className="bg-accent text-accent-foreground text-sm font-semibold px-3 py-1 rounded-full inline-flex items-center gap-3">
+                            <span className="text-xs">{current.symbol}</span>
+                            <span className="flex items-baseline gap-2">
+                              <span className="font-semibold">{current.code}</span>
+                              <span className="text-sm font-normal">{current.name}</span>
+                            </span>
+                          </span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-full">
@@ -453,7 +486,8 @@ const Navbar = () => {
         </AnimatePresence>
       </div>
     </motion.nav>
-    <div aria-hidden="true" className="h-14 md:h-16 lg:h-20" />
+    {/* spacer to prevent nav from covering page content on non-hero pages */}
+    {!heroAtTop && <div aria-hidden="true" className="h-14 md:h-16 lg:h-20" />}
   </>
   );
 };

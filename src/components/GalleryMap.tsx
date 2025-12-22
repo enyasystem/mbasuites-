@@ -117,7 +117,7 @@ const GalleryMap = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
             >
               <p className="font-semibold text-foreground mb-1">MBA Suites</p>
-              <p>Located in prime areas across Lagos(Nigeria) ,Nakuru(Kenya, Illinois (Georgia)) , Nigeria</p>
+              <p>Located in prime areas across Lagos (Nigeria), Nakuru (Kenya), Illinois (Georgia - USA)</p>
               <p className="mt-2">
                 <a href="tel:+2347736570134" className="text-accent hover:underline">
                   +234 773 657 0134
