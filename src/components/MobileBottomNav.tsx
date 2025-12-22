@@ -14,7 +14,7 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-4 left-0 right-0 z-[9999] flex justify-center md:hidden pointer-events-auto">
+    <nav data-mba-init="1" className="fixed bottom-4 left-0 right-0 z-[9999] flex justify-center md:hidden pointer-events-auto">
       <div className="bg-background/95 backdrop-blur-sm shadow-lg rounded-full px-3 py-1 max-w-md w-[92%] sm:w-[88%] flex items-center justify-between">
         {navItems.map((item) => {
           const Icon = item.icon;
