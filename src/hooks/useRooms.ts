@@ -39,11 +39,20 @@ export function useRooms(options: UseRoomsOptions = {}) {
     // If no explicit location is provided and locations are still loading, wait until we have a context location
     if (!options.locationId && locationsLoading) return;
 
+    // Prevent race conditions from earlier/slower fetches overwriting newer results
+    // Use a local increasing fetch id and ignore stale responses
+    let cancelled = false;
+    let didSetThisFetch = false;
+    const thisFetchId = Date.now() + Math.floor(Math.random() * 1000);
+
     const fetchRooms = async () => {
+      // Mark loading for this fetch
       setIsLoading(true);
       setError(null);
 
       try {
+        console.debug('[useRooms] fetch start', { effectiveLocationId, options });
+
         let query = supabase
           .from("rooms")
           .select("*")
@@ -96,16 +105,33 @@ export function useRooms(options: UseRoomsOptions = {}) {
             .map(({ room }) => room);
         }
 
+        // If this effect has been superseded or cancelled, ignore the results
+        if (cancelled) {
+          console.debug('[useRooms] fetch ignored (stale)', { thisFetchId, effectiveLocationId, count: (availableRooms || []).length });
+          return;
+        }
+
+        // Apply results
+        console.debug('[useRooms] fetch success', { thisFetchId, effectiveLocationId, count: (availableRooms || []).length });
+        didSetThisFetch = true;
         setRooms(availableRooms);
       } catch (err) {
+        if (cancelled) return;
         const apiError = handleApiError(err, "fetching rooms");
+        console.error('[useRooms] fetch error', apiError);
         setError(apiError.message);
       } finally {
-        setIsLoading(false);
+        if (!cancelled && didSetThisFetch) setIsLoading(false);
+        else if (!cancelled && !didSetThisFetch) setIsLoading(false); // ensure loading resets even if nothing changed
       }
     };
 
     fetchRooms();
+
+    return () => {
+      // mark this fetch as cancelled so any in-flight promises know to ignore results
+      cancelled = true;
+    };
   }, [effectiveLocationId, locationsLoading, options.roomType, options.maxGuests, options.checkIn, options.checkOut]);
 
   const refetch = useCallback(() => {
