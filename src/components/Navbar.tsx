@@ -24,10 +24,18 @@ const currencies: { code: Currency; symbol: string; name: string }[] = [
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { currency, setCurrency } = useCurrency();
   const { user, signOut } = useAuth();
   const { isAdmin, isStaff } = useRoleCheck();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const current = currencies.find(c => c.code === currency) ?? currencies[0];
 
@@ -38,33 +46,25 @@ const Navbar = () => {
 
   return (
     <motion.nav 
-      className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border"
+      className="sticky top-4 z-50 px-4"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <motion.div 
-            className="flex items-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-          >
+      <div className="mx-auto max-w-6xl px-4">
+        <div className={`w-full rounded-full flex items-center gap-6 justify-between px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-black/95 text-white shadow-xl border border-black/20' : 'bg-transparent text-slate-800'}`}>
+          {/* Left - Circular Logo */}
+          <div className="flex items-center gap-4">
             <Link to="/" aria-label="Home">
-              <motion.div 
-                className="rounded-lg overflow-hidden bg-transparent"
-                whileHover={{ rotate: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <img src="/logo.png" alt="MBA Suites" className="h-10 w-auto block" />
-              </motion.div>
+              <div className="bg-white rounded-full p-2 shadow-sm">
+                <img src="/logo.png" alt="MBA Suites" className="h-8 w-auto block" />
+              </div>
             </Link>
-          </motion.div>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {["Home", "Rooms", "Help", "My Bookings"].map((item, index) => (
+          {/* Center - Links (centered) */}
+          <div className="hidden md:flex flex-1 justify-center items-center gap-8">
+            {['Home', 'Rooms', 'Help', 'My Bookings'].map((item, index) => (
               <motion.div
                 key={item}
                 initial={{ opacity: 0, y: -10 }}
@@ -74,7 +74,7 @@ const Navbar = () => {
               >
                 <Link 
                   to={item === "Home" ? "/" : `/${item.toLowerCase().replace(" ", "-")}`} 
-                  className={`${item === "Home" ? "text-foreground font-medium" : "text-muted-foreground"} hover:text-accent transition-colors`}
+                  className={`${item === "Home" ? "font-medium" : ""} hover:text-accent transition-colors ${scrolled ? (item === 'Home' ? 'text-white' : 'text-white/80') : (item === 'Home' ? 'text-foreground font-medium' : 'text-muted-foreground')}`}
                 >
                   {item}
                 </Link>
@@ -82,87 +82,96 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Right Section */}
-          <motion.div 
-            className="hidden md:flex items-center gap-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            {user && <NotificationCenter />}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <span>{current.symbol} {current.code}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {currencies.map((curr) => (
-                  <DropdownMenuItem
-                    key={curr.code}
-                    onClick={() => setCurrency(curr.code)}
-                    className="cursor-pointer"
-                  >
-                    {curr.symbol} {curr.code} - {curr.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {user ? (
+          {/* Right - actions + pill CTA */}
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3" aria-hidden={true}>
+              {user && <NotificationCenter />}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span>{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
+                    <span>{current.symbol} {current.code}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="cursor-pointer">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </DropdownMenuItem>
-                  {isStaff && (
-                    <DropdownMenuItem onClick={() => navigate("/staff")} className="cursor-pointer">
-                      <Users className="h-4 w-4 mr-2" />
-                      Staff Portal
+                  {currencies.map((curr) => (
+                    <DropdownMenuItem
+                      key={curr.code}
+                      onClick={() => setCurrency(curr.code)}
+                      className="cursor-pointer"
+                    >
+                      {curr.symbol} {curr.code} - {curr.name}
                     </DropdownMenuItem>
-                  )}
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Panel
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/login")}>
-                  <User className="h-4 w-4" />
-                  <span>Sign In</span>
-                </Button>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button 
-                    size="sm" 
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    onClick={() => navigate("/signup")}
-                  >
-                    Register
+
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className="cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    {isStaff && (
+                      <DropdownMenuItem onClick={() => navigate("/staff")} className="cursor-pointer">
+                        <Users className="h-4 w-4 mr-2" />
+                        Staff Portal
+                      </DropdownMenuItem>
+                    )}
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/login")}>
+                    <User className="h-4 w-4" />
+                    <span>Sign In</span>
                   </Button>
-                </motion.div>
-              </>
-            )}
-          </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button 
+                      size="sm" 
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                      onClick={() => navigate("/signup")}
+                    >
+                      Register
+                    </Button>
+                  </motion.div>
+                </>
+              )}
+            </div>
+
+            {/* Right pill CTA (desktop) */}
+            <div className="hidden md:flex items-center">
+              {user ? (
+                <div className="bg-white text-black rounded-full px-4 py-2 font-medium shadow-sm">
+                  {user.email ?? (user.user_metadata?.full_name || 'Account')}
+                </div>
+              ) : (
+                <Button size="sm" className="rounded-full bg-white text-black px-4 py-2" onClick={() => navigate('/signup')}>
+                  Register
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* Mobile Menu Button */}
           <motion.button

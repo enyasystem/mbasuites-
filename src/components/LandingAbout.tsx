@@ -22,7 +22,7 @@ const LandingAbout = () => {
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
       >
-        <Card className="p-8 md:p-12 shadow-lg border-border/50 hover:shadow-xl transition-shadow duration-300" role="region">
+        <Card className="mt-6 p-6 md:p-12 shadow-lg border-border/50 hover:shadow-xl transition-shadow duration-300" role="region">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -36,10 +36,10 @@ const LandingAbout = () => {
               >
                 About Us
               </motion.div>
-              <h2 id="landing-about-title" className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+              <h2 id="landing-about-title" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 Welcome to <span className="text-accent">MBA Suites</span>
               </h2>
-              <p className="text-muted-foreground leading-relaxed mb-6 text-lg">
+              <p className="text-muted-foreground leading-relaxed mb-6 text-base sm:text-lg">
                 Premium serviced apartments combining modern design with thoughtful amenities
                 and attentive local service — ideal for both business and leisure stays in Lagos.
               </p>
@@ -90,7 +90,7 @@ const LandingAbout = () => {
                   src={roomDeluxe}
                   alt="Deluxe King Room interior with city view at MBA Suites"
                   loading="lazy"
-                  className="w-full h-[400px] object-cover block"
+                  className="w-full h-56 sm:h-72 md:h-[400px] object-cover block"
                   style={{ y: imageY }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.4 }}
