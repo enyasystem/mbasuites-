@@ -327,7 +327,7 @@ const Navbar = () => {
                   {user.email ?? (user.user_metadata?.full_name || 'Account')}
                 </div>
               ) : (
-                <Button size="sm" className="rounded-full bg-blue-300 text-black px-4 py-2" onClick={() => navigate('/signup')}>
+                <Button size="sm" className="rounded-full bg-blue-300 text-black px-4 py-2" onClick={() => navigate('/rooms')}>
                   Book Now
                 </Button>
               )}
