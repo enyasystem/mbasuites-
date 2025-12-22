@@ -46,13 +46,13 @@ const Navbar = () => {
 
   return (
     <motion.nav 
-      className="sticky top-4 z-50 px-4"
+      className="sticky top-0 z-50 px-4"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className={`w-full rounded-full flex items-center gap-6 justify-between px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-black/95 text-white shadow-xl border border-black/20' : 'bg-transparent text-slate-800'}`}>
+        <div className={`w-full rounded-full flex items-center gap-6 justify-between px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-white text-slate-800 shadow-xl border border-gray-200' : 'bg-white text-slate-800'}`}>
           {/* Left - Circular Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" aria-label="Home">
