@@ -57,7 +57,7 @@ const Hero = () => {
   const titleLines = titleText.split("\n");
 
   return (
-    <section ref={ref} className="relative min-h-[520px] md:min-h-[680px] lg:min-h-[760px] pt-12 sm:pt-16 md:pt-20 lg:pt-24 pb-12 md:pb-16 lg:pb-24 overflow-hidden" aria-labelledby="hero-heading">
+    <section ref={ref} className="hero relative min-h-[520px] md:min-h-[680px] lg:min-h-[760px] pt-12 sm:pt-16 md:pt-20 lg:pt-24 pb-12 md:pb-16 lg:pb-24 overflow-hidden" aria-labelledby="hero-heading">
       {/* Full-bleed background image */}
       <motion.img
         src={imageSrc || heroImage}

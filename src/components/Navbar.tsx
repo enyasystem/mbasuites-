@@ -25,16 +25,157 @@ const currencies: { code: Currency; symbol: string; name: string }[] = [
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [heroVisible, setHeroVisible] = useState<boolean>(false);
   const { currency, setCurrency } = useCurrency();
   const { user, signOut } = useAuth();
   const { isAdmin, isStaff } = useRoleCheck();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Auto-detect hero/background to set initial navbar theme (dark/light)
+  useEffect(() => {
+    const el = document.querySelector(".hero") as HTMLElement | null;
+    if (!el) {
+      setHeroVisible(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => setHeroVisible(entry.isIntersecting));
+      },
+      { root: null, threshold: 0.1 }
+    );
+    observer.observe(el);
+    // set initial state based on bounding rect
+    try {
+      const r = el.getBoundingClientRect();
+      setHeroVisible(r.bottom > 0 && r.top < window.innerHeight);
+    } catch (e) { /* ignore measurement errors */ }
+    return () => observer.disconnect();
+  }, []);
+
+  // visualScrolled controls the nav visual theme: opaque/dark text when true
+  const visualScrolled = scrolled || !heroVisible;
+
+  // Hide any other top-positioned <nav> elements that might be leftover duplicates
+  useEffect(() => {
+    const self = document.getElementById("mba-navbar");
+    if (!self) return;
+    const navs = Array.from(document.querySelectorAll("nav")) as HTMLElement[];
+    navs.forEach((n) => {
+      if (n === self) return;
+      try {
+        const r = n.getBoundingClientRect();
+        // only hide navs that are positioned at the top of the viewport (likely duplicates)
+        if (r.top >= -1 && r.top <= 1 && r.height > 0) {
+          n.style.display = "none";
+          n.setAttribute("data-mba-hidden", "1");
+        }
+      } catch (e) {
+        // ignore cross-origin or measurement errors
+      }
+    });
+  }, []);
+
+  // More aggressive: continuously watch and hide any element near the top containing the main nav links; log details for debugging.
+  useEffect(() => {
+    const self = document.getElementById("mba-navbar");
+    if (!self) return;
+
+    // Repair any elements we accidentally hid previously (e.g., the main React root)
+    const repairHiddenRoot = () => {
+      const hidden = Array.from(document.querySelectorAll('[data-mba-hidden-aggressive="top-body-child"], [data-mba-hidden="1"]')) as HTMLElement[];
+      hidden.forEach((el) => {
+        if (!el) return;
+        try {
+          const r = el.getBoundingClientRect();
+          if (el.id === 'root' || (el.id && el.id.toLowerCase().includes('root')) || r.height > 1000) {
+            el.style.display = '';
+            el.removeAttribute('data-mba-hidden-aggressive');
+            el.removeAttribute('data-mba-hidden');
+            console.log('[MBA Navbar] repaired mistakenly hidden element:', el);
+          }
+        } catch (e) { /* ignore cross-origin or measurement errors */ }
+      });
+    };
+    repairHiddenRoot();
+
+    const linkTexts = ["Home", "Rooms", "Help", "My Bookings", "Register", "Sign In", "Book Now"];
+
+    const hideElement = (el: HTMLElement | null, reason: string) => {
+      if (!el || el === self || self.contains(el)) return false;
+      // never hide document or body or html
+      if (el === document.body || el === document.documentElement) return false;
+      // never hide the main app root by id or any element with 'root' in id
+      if ((el.id && el.id.toLowerCase().includes('root'))) return false;
+      try {
+        const r = el.getBoundingClientRect();
+        if (r.height === 0) return false;
+        if (r.top < -10 || r.top > 80) return false; // only top elements
+        // avoid hiding tiny elements that are unlikely to be navs and avoid hiding very large app roots
+        if (r.height < 24 || r.width < 100 || r.height > 800) return false;
+        el.style.display = "none";
+        el.setAttribute("data-mba-hidden-aggressive", reason);
+        console.log("[MBA Navbar] hid duplicate header:", el, reason, "rect:", r.top, r.height);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const scan = () => {
+      try {
+        const anchors = Array.from(document.querySelectorAll("a, button")) as HTMLElement[];
+        const candidates = new Set<HTMLElement>();
+
+        anchors.forEach((a) => {
+          const txt = (a.textContent || "").trim();
+          if (!txt) return;
+          if (linkTexts.some(t => txt.toLowerCase().includes(t.toLowerCase()))) {
+            const parent = a.closest("nav, header, [role='navigation'], div") as HTMLElement | null;
+            if (parent) candidates.add(parent);
+          }
+        });
+
+        candidates.forEach((c) => hideElement(c, "matched-links"));
+
+        Array.from(document.body.children).forEach((child) => {
+          const el = child as HTMLElement;
+          if (!el) return;
+          const tag = el.tagName?.toLowerCase();
+          const role = el.getAttribute && el.getAttribute('role');
+          const r = el.getBoundingClientRect();
+          const containsLinks = linkTexts.some(t => (el.textContent || "").toLowerCase().includes(t.toLowerCase()));
+          // Only consider nav/header-like elements or ones containing the main link texts, ensure they're a reasonable header size, and skip app root ids
+          if ((tag === 'nav' || tag === 'header' || role === 'navigation' || containsLinks) && r.top >= -1 && r.top <= 80 && r.height > 24 && r.width > 100 && r.height < 800 && !(el.id && el.id.toLowerCase().includes('root'))) {
+            hideElement(el, "top-body-child");
+          }
+        });
+      } catch (e) {
+        /* ignore DOM measurement or traversal errors */
+      }
+    };
+
+    // Run scan repeatedly for a short period (covers late-rendered duplicates)
+    scan();
+    const interval = setInterval(scan, 250);
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+    // Also observe DOM changes and re-scan
+    const mo = new MutationObserver(() => scan());
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+      mo.disconnect();
+    };
   }, []);
 
   const current = currencies.find(c => c.code === currency) ?? currencies[0];
@@ -46,13 +187,14 @@ const Navbar = () => {
 
   return (
     <motion.nav 
-      className="sticky top-0 z-50 px-4"
+      id="mba-navbar"
+      className="fixed top-0 left-0 w-full z-50 px-4 pointer-events-none"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className={`w-full rounded-full flex items-center gap-6 justify-between px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-white text-slate-800 shadow-xl border border-gray-200' : 'bg-white text-slate-800'}`}>
+        <div className={`mx-auto mt-3 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
           {/* Left - Circular Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" aria-label="Home">
@@ -74,7 +216,7 @@ const Navbar = () => {
               >
                 <Link 
                   to={item === "Home" ? "/" : `/${item.toLowerCase().replace(" ", "-")}`} 
-                  className={`${item === "Home" ? "font-medium" : ""} hover:text-accent transition-colors ${scrolled ? (item === 'Home' ? 'text-white' : 'text-white/80') : (item === 'Home' ? 'text-foreground font-medium' : 'text-muted-foreground')}`}
+                  className={`${item === "Home" ? "font-medium" : ""} hover:text-accent transition-colors ${scrolled ? (item === 'Home' ? 'text-slate-900 font-medium' : 'text-slate-700') : (item === 'Home' ? 'text-foreground font-medium' : 'text-muted-foreground')}`}
                 >
                   {item}
                 </Link>
@@ -137,26 +279,7 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/login")}>
-                    <User className="h-4 w-4" />
-                    <span>Sign In</span>
-                  </Button>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button 
-                      size="sm" 
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                      onClick={() => navigate("/signup")}
-                    >
-                      Register
-                    </Button>
-                  </motion.div>
-                </>
-              )}
+              ) : null }
             </div>
 
             {/* Right pill CTA (desktop) */}
@@ -166,8 +289,8 @@ const Navbar = () => {
                   {user.email ?? (user.user_metadata?.full_name || 'Account')}
                 </div>
               ) : (
-                <Button size="sm" className="rounded-full bg-white text-black px-4 py-2" onClick={() => navigate('/signup')}>
-                  Register
+                <Button size="sm" className="rounded-full bg-blue-300 text-black px-4 py-2" onClick={() => navigate('/signup')}>
+                  Book Now
                 </Button>
               )}
             </div>
