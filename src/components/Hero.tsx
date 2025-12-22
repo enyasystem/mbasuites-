@@ -80,13 +80,13 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="space-y-5 max-w-4xl pt-2 sm:pt-4 md:pt-6"
+          className="space-y-5 max-w-4xl pt-14 sm:pt-16 md:pt-16 lg:pt-20"
           style={{ y: yForeground }}
         >
           <div className="bg-black/30 sm:bg-transparent backdrop-blur-sm rounded-xl p-4 sm:p-0">
             <div className="inline-flex items-center gap-3 bg-coral/10 backdrop-blur-sm border border-coral/20 rounded-full px-4 py-2 mx-auto">
               <span className="h-2 w-2 bg-coral rounded-full" />
-              <span className="text-sm font-medium text-white sm:text-navy">Premium Serviced Apartments</span>
+              <span className="text-sm font-medium text-white sm:text-white">Premium Serviced Apartments</span>
             </div>
 
             <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-cream/95 leading-tight md:leading-snug tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.65)]">

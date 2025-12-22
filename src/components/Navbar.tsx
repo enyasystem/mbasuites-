@@ -39,7 +39,8 @@ const Navbar = () => {
   }, []);
 
   // Auto-detect hero/background to set initial navbar theme (dark/light)
-  const [heroAtTop, setHeroAtTop] = useState<boolean>(false);
+  // Start optimistic (true) so we don't render the spacer briefly before measurements run
+  const [heroAtTop, setHeroAtTop] = useState<boolean>(true);
   useEffect(() => {
     const el = document.querySelector(".hero") as HTMLElement | null;
     if (!el) {
@@ -228,13 +229,14 @@ const Navbar = () => {
     <>
       <motion.nav 
         id="mba-navbar"
+        data-mba-init="1"
         className={`fixed top-0 left-0 w-full z-50 px-4 ${mobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        initial={{ y: -100 }}
+        initial={false}
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
       >
       <div className="mx-auto max-w-6xl px-4">
-        <div className={`mx-auto mt-3 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
+        <div className={`mx-auto mt-0 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
           {/* Left - Circular Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" aria-label="Home">
@@ -330,11 +332,7 @@ const Navbar = () => {
 
             {/* Right pill CTA (desktop) */}
             <div className="hidden md:flex items-center">
-              {user ? (
-                <div className="bg-white text-black rounded-full px-4 py-2 font-medium shadow-sm">
-                  {user.email ?? (user.user_metadata?.full_name || 'Account')}
-                </div>
-              ) : (
+              {user ? null : (
                 <Button size="sm" className="rounded-full bg-blue-300 text-black px-4 py-2" onClick={() => navigate('/rooms')}>
                   Book Now
                 </Button>

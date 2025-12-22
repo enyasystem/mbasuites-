@@ -40,7 +40,7 @@ const AnimatedRoutes = () => {
 
   useEffect(() => {
     // Ensure browser is scrolled to top on route change so new pages render from the top
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
   return (
     <>
