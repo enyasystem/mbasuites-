@@ -136,6 +136,30 @@ const Navbar = () => {
     };
     repairHiddenRoot();
 
+    // Secondary repair pass: unhide any elements we hid that contain clear page content (forms, headings) or are inside the app root
+    const repairHiddenContent = () => {
+      const hidden = Array.from(document.querySelectorAll('[data-mba-hidden-aggressive]')) as HTMLElement[];
+      hidden.forEach((el) => {
+        if (!el) return;
+        try {
+          if (el.closest && el.closest('#root')) {
+            el.style.display = '';
+            el.removeAttribute('data-mba-hidden-aggressive');
+            el.removeAttribute('data-mba-hidden');
+            console.log('[MBA Navbar] repaired mistakenly hidden element (inside #root):', el);
+            return;
+          }
+          if (el.querySelector && (el.querySelector('form') || el.querySelector('h1') || el.querySelector('main'))) {
+            el.style.display = '';
+            el.removeAttribute('data-mba-hidden-aggressive');
+            el.removeAttribute('data-mba-hidden');
+            console.log('[MBA Navbar] repaired mistakenly hidden content element:', el);
+          }
+        } catch (e) { /* ignore */ }
+      });
+    };
+    repairHiddenContent();
+
     const linkTexts = ["Home", "Rooms", "Help", "My Bookings", "Register", "Sign In", "Book Now"];
 
     const hideElement = (el: HTMLElement | null, reason: string) => {
@@ -145,6 +169,8 @@ const Navbar = () => {
       // never hide the main app root by id or any element with 'root' in id
       if ((el.id && el.id.toLowerCase().includes('root'))) return false;
       try {
+        // don't hide obvious page content containers
+        if (el.querySelector && (el.querySelector('form') || el.querySelector('h1') || el.querySelector('main'))) return false;
         const r = el.getBoundingClientRect();
         if (r.height === 0) return false;
         if (r.top < -10 || r.top > 80) return false; // only top elements
@@ -168,7 +194,8 @@ const Navbar = () => {
           const txt = (a.textContent || "").trim();
           if (!txt) return;
           if (linkTexts.some(t => txt.toLowerCase().includes(t.toLowerCase()))) {
-            const parent = a.closest("nav, header, [role='navigation'], div") as HTMLElement | null;
+            // only consider semantic nav/header elements as parents — don't climb to arbitrary divs
+            const parent = a.closest("nav, header, [role='navigation']") as HTMLElement | null;
             if (parent) candidates.add(parent);
           }
         });
@@ -181,9 +208,8 @@ const Navbar = () => {
           const tag = el.tagName?.toLowerCase();
           const role = el.getAttribute && el.getAttribute('role');
           const r = el.getBoundingClientRect();
-          const containsLinks = linkTexts.some(t => (el.textContent || "").toLowerCase().includes(t.toLowerCase()));
-          // Only consider nav/header-like elements or ones containing the main link texts, ensure they're a reasonable header size, and skip app root ids
-          if ((tag === 'nav' || tag === 'header' || role === 'navigation' || containsLinks) && r.top >= -1 && r.top <= 80 && r.height > 24 && r.width > 100 && r.height < 800 && !(el.id && el.id.toLowerCase().includes('root'))) {
+          // Only consider actual nav/header elements at the very top of the page, ensure they're a reasonable header size, and skip app root ids
+          if ((tag === 'nav' || tag === 'header' || role === 'navigation') && r.top >= -1 && r.top <= 80 && r.height > 24 && r.width > 100 && r.height < 800 && !(el.id && el.id.toLowerCase().includes('root'))) {
             hideElement(el, "top-body-child");
           }
         });
