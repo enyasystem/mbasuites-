@@ -47,6 +47,19 @@ const Navbar = () => {
       setHeroAtTop(false);
       return;
     }
+
+    const navEl = document.getElementById("mba-navbar");
+
+    const updateHeroMetrics = () => {
+      try {
+        const r = el.getBoundingClientRect();
+        const navH = navEl?.getBoundingClientRect().height ?? 0;
+        setHeroVisible(r.bottom > 0 && r.top < window.innerHeight);
+        // consider the hero at top when its top is at or above the navbar bottom (no visible gap)
+        setHeroAtTop(r.top <= navH + 4);
+      } catch (e) { /* ignore measurement errors */ }
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => setHeroVisible(entry.isIntersecting));
@@ -55,29 +68,24 @@ const Navbar = () => {
     );
     observer.observe(el);
 
-    // set initial state based on bounding rect
-    try {
-      const r = el.getBoundingClientRect();
-      setHeroVisible(r.bottom > 0 && r.top < window.innerHeight);
-      // consider the hero 'at top' when its top is very near the viewport top
-      setHeroAtTop(r.top <= 8);
-    } catch (e) { /* ignore measurement errors */ }
+    // set initial metrics
+    updateHeroMetrics();
 
     // keep heroAtTop updated if the hero's layout changes
     let ro: ResizeObserver | null = null;
     try {
-      ro = new ResizeObserver(() => {
-        try {
-          const r = el.getBoundingClientRect();
-          setHeroAtTop(r.top <= 8);
-        } catch (err) { /* ignore */ }
-      });
+      ro = new ResizeObserver(updateHeroMetrics);
       ro.observe(el);
     } catch (e) { /* ResizeObserver not available, skip */ }
+
+    // also update on scroll so the metric accounts for the navbar height and scrolling
+    const onScroll = () => updateHeroMetrics();
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       observer.disconnect();
       try { ro?.disconnect(); } catch (e) { /* ignore */ }
+      window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
