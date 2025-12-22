@@ -126,7 +126,7 @@ const SpecialOffers = () => {
         </div>
       </div>
       {/* Info / Offers Section (moved below featured rooms) */}
-      <div className="mt-10">
+      {/* <div className="mt-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { icon: Tag, title: "Special savings", desc: "Compare packages, get great prices and find a deal that's right for you" },
@@ -194,7 +194,7 @@ const SpecialOffers = () => {
             </Card>
           </motion.div>
         </div>
-      </div>
+      </div> */}
 
     </section>
   );
