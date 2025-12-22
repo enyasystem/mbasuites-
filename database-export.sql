@@ -481,7 +481,7 @@ CREATE POLICY "Staff can view all payment proofs" ON storage.objects FOR SELECT 
 
 -- Insert locations
 INSERT INTO public.locations (id, name, country, city, address, currency, is_active) VALUES
-  ('8599d552-8c3a-45d8-99db-5651da5fdee6', 'MBA Suites Lagos', 'Nigeria', 'Lagos, Lekki', 'Lekki Phase 1, Lagos, Nigeria', 'NGN', true),
+  ('8599d552-8c3a-45d8-99db-5651da5fdee6', 'MBA Suites Lagos', 'Nigeria', 'Lekki, Lagos', 'Emcel Garden Estate, Orchid, Lekki, Lagos, Nigeria', 'NGN', true),
   ('9e1f4b78-9312-4015-b238-837d0a4af41c', 'MBA Suites Kenya', 'Kenya', 'Nakuru', 'Nakuru City, Kenya', 'KES', true),
   ('f2595695-5e03-476c-8803-755cba453d67', 'MBA Suites USA', 'USA', 'Illinois, Georgia', 'Illinois & Georgia, United States', 'USD', true);
 

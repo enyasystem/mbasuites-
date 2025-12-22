@@ -47,7 +47,8 @@ const Footer = () => {
                 <strong>Phone:</strong> <a href="tel:+2348091234567" className="hover:text-accent transition-colors">+234 809 123 4567</a>
               </li>
               <li>
-                <strong>Address:</strong> 12B Kofo Abayomi Street, Victoria Island, Lagos, Nigeria
+                <strong>Address:</strong> Emcel Garden Estate<br />
+                Orchid, Lekki, Lagos
               </li>
             </ul>
           </div>

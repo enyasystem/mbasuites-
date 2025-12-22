@@ -162,7 +162,7 @@ export default function Confirmation() {
     doc.text("Thank you for choosing our hotel!", 105, pageHeight - 20, {
       align: "center",
     });
-    doc.text("For inquiries, contact: reservations@hotel.com", 105, pageHeight - 15, {
+    doc.text("For inquiries, contact: reservations@mbasuites.com", 105, pageHeight - 15, {
       align: "center",
     });
     
@@ -362,7 +362,7 @@ export default function Confirmation() {
               <li className="flex gap-3">
                 <span className="text-primary">✓</span>
                 <span>
-                  Contact us at reservations@hotel.com if you need to modify your
+                  Contact us at reservations@mbasuites.com if you need to modify your
                   booking
                 </span>
               </li>

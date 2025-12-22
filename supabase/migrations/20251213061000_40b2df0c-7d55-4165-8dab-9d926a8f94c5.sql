@@ -16,7 +16,7 @@ CREATE TABLE public.locations (
 
 -- Insert the three branches
 INSERT INTO public.locations (name, country, city, address, currency) VALUES
-  ('MBA Suites Lagos', 'Nigeria', 'Lagos, Lekki', 'Lekki Phase 1, Lagos, Nigeria', 'NGN'),
+  ('MBA Suites Lagos', 'Nigeria', 'Lekki, Lagos', 'Emcel Garden Estate, Orchid, Lekki, Lagos, Nigeria', 'NGN'),
   ('MBA Suites Kenya', 'Kenya', 'Nakuru', 'Nakuru City, Kenya', 'KES'),
   ('MBA Suites USA', 'USA', 'Illinois, Georgia', 'Illinois & Georgia, United States', 'USD');
 

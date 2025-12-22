@@ -119,9 +119,9 @@ export function ContactForm() {
               <div>
                 <h4 className="font-medium">Address</h4>
                 <p className="text-sm text-muted-foreground">
-                  123 Luxury Hotel Street<br />
-                  Downtown, City 12345<br />
-                  United States
+                  Emcel Garden Estate<br />
+                  Orchid, Lekki, Lagos<br />
+                  Nigeria
                 </p>
               </div>
             </div>

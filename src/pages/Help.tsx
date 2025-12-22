@@ -26,7 +26,7 @@ const Help = () => {
         },
         {
           q: "Can I modify or cancel my booking?",
-          a: "Yes, you can modify or cancel your booking through your dashboard. Cancellation policies vary by rate - please check your booking confirmation for specific details.",
+          a: "Not yet for now, only admin can cancel your booking through the admin dashboard. Cancellation policies vary by rate - please check your booking confirmation for specific details.",
         },
         {
           q: "What is your cancellation policy?",
@@ -184,8 +184,8 @@ const Help = () => {
               <div className="space-y-2 text-sm">
                 <p>
                   <strong>Email:</strong>{" "}
-                  <a href="mailto:support@hotel.com" className="text-accent hover:underline">
-                    support@hotel.com
+                  <a href="mailto:support@mbasuites.com" className="text-accent hover:underline">
+                    support@mbasuites.com
                   </a>
                 </p>
                 <p>
