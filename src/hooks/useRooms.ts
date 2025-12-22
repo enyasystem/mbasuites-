@@ -31,11 +31,14 @@ export function useRooms(options: UseRoomsOptions = {}) {
   const [rooms, setRooms] = useState<DatabaseRoom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { locationId: contextLocationId } = useLocation();
+  const { locationId: contextLocationId, isLoading: locationsLoading } = useLocation();
 
   const effectiveLocationId = options.locationId ?? contextLocationId;
 
   useEffect(() => {
+    // If no explicit location is provided and locations are still loading, wait until we have a context location
+    if (!options.locationId && locationsLoading) return;
+
     const fetchRooms = async () => {
       setIsLoading(true);
       setError(null);
@@ -103,7 +106,7 @@ export function useRooms(options: UseRoomsOptions = {}) {
     };
 
     fetchRooms();
-  }, [effectiveLocationId, options.roomType, options.maxGuests, options.checkIn, options.checkOut]);
+  }, [effectiveLocationId, locationsLoading, options.roomType, options.maxGuests, options.checkIn, options.checkOut]);
 
   const refetch = useCallback(() => {
     setIsLoading(true);

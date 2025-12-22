@@ -41,9 +41,9 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
         
         setLocations(data || []);
-        // Prefer 'Kenya - Nakuru' as default if present, otherwise set the first location
+        // Prefer 'Lagos' as default if present (case-insensitive on city), otherwise fall back to first active location
         if (data && data.length > 0 && !locationId) {
-          const preferred = (data || []).find((l: any) => l.country === 'Kenya' && l.city === 'Nakuru');
+          const preferred = (data || []).find((l: any) => (l.city && l.city.toLowerCase() === 'lagos') || (l.name && l.name.toLowerCase().includes('lagos')));
           setLocationId(preferred ? preferred.id : data[0].id);
         }
       } catch (error) {

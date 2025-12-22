@@ -442,7 +442,7 @@ const Rooms = () => {
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               <Select
-                value={urlLocationId || "all"}
+                value={urlLocationId || locationId || "all"}
                 onValueChange={handleLocationChange}
               >
                 <SelectTrigger className="w-[220px]">

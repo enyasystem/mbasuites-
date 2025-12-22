@@ -1,4 +1,4 @@
-import { Hotel, Menu, User, DollarSign, LogOut, LayoutDashboard, Shield, Users } from "lucide-react";
+import { Hotel, Menu, X, User, DollarSign, LogOut, LayoutDashboard, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -185,14 +185,25 @@ const Navbar = () => {
     navigate("/");
   };
 
+  const menuVariants = {
+    open: { opacity: 1, y: 0, transition: { when: 'beforeChildren', staggerChildren: 0.06, duration: 0.42 } },
+    closed: { opacity: 0, y: -10, transition: { when: 'afterChildren', duration: 0.25 } },
+  };
+
+  const itemVariants = {
+    open: { opacity: 1, y: 0, transition: { duration: 0.32 } },
+    closed: { opacity: 0, y: -6, transition: { duration: 0.18 } },
+  };
+
   return (
-    <motion.nav 
-      id="mba-navbar"
-      className="fixed top-0 left-0 w-full z-50 px-4 pointer-events-none"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <>
+      <motion.nav 
+        id="mba-navbar"
+        className={`fixed top-0 left-0 w-full z-50 px-4 ${mobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
       <div className="mx-auto max-w-6xl px-4">
         <div className={`mx-auto mt-3 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
           {/* Left - Circular Logo */}
@@ -298,144 +309,152 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="md:hidden p-2 text-foreground"
+            className={`md:hidden p-2 transition-colors duration-200 ease-in-out ${mobileMenuOpen ? 'bg-white/95 text-slate-900 rounded-full shadow border border-accent/20' : 'text-foreground hover:bg-white/10'}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
+            aria-expanded={mobileMenuOpen}
+            aria-label="Toggle menu"
           >
-            <Menu className="h-6 w-6" />
+            <AnimatePresence initial={false} mode="wait">
+              {mobileMenuOpen ? (
+                <motion.div key="x" initial={{ rotate: -90, scale: 0.9, opacity: 0 }} animate={{ rotate: 0, scale: 1, opacity: 1 }} exit={{ rotate: 90, scale: 0.9, opacity: 0 }} transition={{ duration: 0.18 }}>
+                  <X className="h-6 w-6" />
+                </motion.div>
+              ) : (
+                <motion.div key="menu" initial={{ rotate: 90, scale: 0.9, opacity: 0 }} animate={{ rotate: 0, scale: 1, opacity: 1 }} exit={{ rotate: -90, scale: 0.9, opacity: 0 }} transition={{ duration: 0.18 }}>
+                  <Menu className="h-6 w-6" />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.button>
         </div>
 
         {/* Mobile Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div 
-              className="md:hidden py-4 border-t border-border"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex flex-col gap-4">
-                <Link to="/" className="text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>
-                  Home
-                </Link>
-                <Link to="/rooms" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>
-                  Rooms
-                </Link>
-                <Link to="/my-bookings" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>
-                  My Bookings
-                </Link>
-                <Link to="/help" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>
-                  Help
-                </Link>
-                <div className="pt-4 border-t border-border">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 mb-3">
-                        <DollarSign className="h-4 w-4" />
-                        <span>{current.symbol} {current.code}</span>
+            <>
+              <motion.div key="overlay" className="fixed inset-0 z-40 bg-black/20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} onClick={() => setMobileMenuOpen(false)} />
+
+              <motion.div key="mobile-menu" className="md:hidden fixed left-0 right-0 top-14 md:top-16 lg:top-20 py-4 border border-border bg-white/95 text-slate-900 shadow-xl rounded-xl mx-auto mt-0 overflow-hidden origin-top pointer-events-auto z-50 max-w-3xl px-4"
+                initial="closed" animate="open" exit="closed" variants={menuVariants}
+              >
+                <motion.div className="flex flex-col gap-2 p-2" role="menu" aria-orientation="vertical">
+                  <motion.div variants={itemVariants}><Link to="/" className="block px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent transition-colors" onClick={() => setMobileMenuOpen(false)}>Home</Link></motion.div>
+                  <motion.div variants={itemVariants}><Link to="/rooms" className="block px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent transition-colors" onClick={() => setMobileMenuOpen(false)}>Rooms</Link></motion.div>
+                  <motion.div variants={itemVariants}><Link to="/my-bookings" className="block px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent transition-colors" onClick={() => setMobileMenuOpen(false)}>My Bookings</Link></motion.div>
+                  <motion.div variants={itemVariants}><Link to="/help" className="block px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent transition-colors" onClick={() => setMobileMenuOpen(false)}>Help</Link></motion.div>
+
+                  <div className="pt-4 border-t border-border">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full gap-2 mb-3">
+                          <DollarSign className="h-4 w-4" />
+                          <span>{current.symbol} {current.code}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        {currencies.map((curr) => (
+                          <DropdownMenuItem
+                            key={curr.code}
+                            onClick={() => setCurrency(curr.code)}
+                            className="cursor-pointer"
+                          >
+                            {curr.symbol} {curr.code} - {curr.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {user ? (
+                    <motion.div variants={itemVariants} className="space-y-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          navigate("/dashboard");
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {currencies.map((curr) => (
-                        <DropdownMenuItem
-                          key={curr.code}
-                          onClick={() => setCurrency(curr.code)}
-                          className="cursor-pointer"
+                      {isStaff && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => {
+                            navigate("/staff");
+                            setMobileMenuOpen(false);
+                          }}
                         >
-                          {curr.symbol} {curr.code} - {curr.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                {user ? (
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => {
-                        navigate("/dashboard");
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </Button>
-                    {isStaff && (
+                          <Users className="h-4 w-4 mr-2" />
+                          Staff Portal
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => {
+                            navigate("/admin");
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
+                        className="w-full text-destructive"
                         onClick={() => {
-                          navigate("/staff");
+                          handleSignOut();
                           setMobileMenuOpen(false);
                         }}
                       >
-                        <Users className="h-4 w-4 mr-2" />
-                        Staff Portal
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
                       </Button>
-                    )}
-                    {isAdmin && (
+                    </motion.div>
+                  ) : (
+                    <motion.div variants={itemVariants} className="flex gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
+                        className="flex-1"
                         onClick={() => {
-                          navigate("/admin");
+                          navigate("/login");
                           setMobileMenuOpen(false);
                         }}
                       >
-                        <Shield className="h-4 w-4 mr-2" />
-                        Admin Panel
+                        Sign In
                       </Button>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full text-destructive"
-                      onClick={() => {
-                        handleSignOut();
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => {
-                        navigate("/login");
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      Sign In
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-                      onClick={() => {
-                        navigate("/signup");
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      Register
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                        onClick={() => {
+                          navigate("/signup");
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        Register
+                      </Button>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
     </motion.nav>
+    <div aria-hidden="true" className="h-14 md:h-16 lg:h-20" />
+  </>
   );
 };
 
