@@ -54,157 +54,73 @@ const Hero = () => {
     return () => { mounted = false; };
   }, []);
 
+  const titleLines = titleText.split("\n");
+
   return (
-    <section ref={ref} className="relative h-[600px] md:h-[700px] overflow-hidden">
-      {/* Background Image with Enhanced Parallax */}
-      <motion.div 
-        className="absolute inset-0"
-        style={{ y: yBackground }}
-      >
-        <motion.img
-          src={imageSrc || heroImage}
-          alt="Premium serviced apartments at MBA Suites"
-          className="w-full h-[120%] object-cover"
-          style={{ scale }}
-          initial={{ scale: 1.2 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-        />
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-navy/90 via-navy/75 to-navy/60"
-          style={{ y: yMidground }}
-        />
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-tr from-accent/20 via-transparent to-transparent"
-          style={{ y: yMidground }}
-        />
-      </motion.div>
-
-      {/* Animated Floating Elements */}
-      <motion.div
-        className="absolute bottom-0 right-0 w-40 h-40 md:w-64 md:h-64 bg-accent/20 rounded-tl-full blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3]
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div
-        className="absolute top-20 right-20 w-32 h-32 bg-gold/10 rounded-full blur-2xl"
-        animate={{
-          y: [0, -20, 0],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
+    <section ref={ref} className="relative min-h-[520px] md:min-h-[680px] lg:min-h-[760px] pt-12 sm:pt-16 md:pt-20 lg:pt-24 pb-12 md:pb-16 lg:pb-24 overflow-hidden" aria-labelledby="hero-heading">
+      {/* Full-bleed background image */}
+      <motion.img
+        src={imageSrc || heroImage}
+        alt="Stylish apartment living room"
+        className="absolute inset-0 w-full h-full object-cover brightness-95"
+        style={{ scale }}
+        initial={{ scale: 1.02 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
       />
 
-      {/* Content with Staggered Animations and Parallax */}
-      <motion.div 
-        className="relative container mx-auto px-4 h-full flex flex-col justify-center"
-        style={{ opacity, y: yForeground }}
-      >
-        <div className="max-w-4xl">
-          {/* Badge */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-accent/10 backdrop-blur-sm border border-accent/20 rounded-full px-4 py-2 mb-6"
-            whileHover={{ scale: 1.05 }}
-          >
-            <motion.span 
-              className="h-2 w-2 bg-accent rounded-full"
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            <span className="text-sm font-medium text-white">Premium Serviced Apartments</span>
-          </motion.div>
-          
-          {/* Title with Letter Animation */}
-          <motion.h1 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
-          >
-            {titleText.split('\n').map((line, i) => (
-              <span key={i}>
-                {i > 0 && <br />}
-                {line}
-              </span>
-            ))}
-            <motion.span 
-              className="text-accent inline-block"
-              animate={{ 
-                textShadow: [
-                  "0 0 20px rgba(255, 107, 107, 0.5)",
-                  "0 0 40px rgba(255, 107, 107, 0.8)",
-                  "0 0 20px rgba(255, 107, 107, 0.5)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              Home
-            </motion.span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl font-light leading-relaxed"
-          >
-            {subtitleText}
-          </motion.p>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                onClick={() => window.location.href = '/rooms'}
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-accent text-lg px-8 py-6 h-auto relative overflow-hidden group"
+      {/* Subtle overlays for legibility and depth (stronger on small screens for contrast) */}
+      <div className="absolute inset-0 bg-gradient-to-b md:from-white/10 md:via-white/20 md:to-white/40 from-white/30 via-white/40 to-white/60 mix-blend-multiply" />
+      <div className="absolute inset-0 bg-black/20 md:bg-black/10" />
+      {/* pattern only on larger screens */}
+      <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-20 mix-blend-overlay hidden sm:block" />
+
+      <div className="container mx-auto px-6 sm:px-4 relative z-10 flex flex-col items-center text-center justify-center h-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="space-y-5 max-w-4xl pt-6 sm:pt-8 md:pt-12"
+          style={{ y: yForeground }}
+        >
+          <div className="bg-black/30 sm:bg-transparent backdrop-blur-sm rounded-xl p-4 sm:p-0">
+            <div className="inline-flex items-center gap-3 bg-coral/10 backdrop-blur-sm border border-coral/20 rounded-full px-4 py-2 mx-auto">
+              <span className="h-2 w-2 bg-coral rounded-full" />
+              <span className="text-sm font-medium text-white sm:text-navy">Premium Serviced Apartments</span>
+            </div>
+
+            <h1 id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-cream/95 leading-tight md:leading-snug tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.65)]">
+              {titleLines.map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i !== titleLines.length - 1 && <br />}
+                </span>
+              ))}
+            </h1>
+
+            <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-2xl mx-auto font-light leading-relaxed">
+              Experience fully furnished, modern apartments tailored for business trips, short stays, and long-term comfort.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 mt-4">
+              <Button
+                onClick={() => window.location.href = "/rooms"}
+                className="bg-gradient-to-r from-accent to-coral text-accent-foreground shadow-accent px-6 sm:px-8 py-3 rounded-[35px] text-base sm:text-lg hover:shadow-xl w-full sm:w-auto"
               >
-                <motion.span
-                  className="absolute inset-0 bg-white/20"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.5 }}
-                />
-                <span className="relative">Explore Apartments</span>
+                View Available Apartments
               </Button>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                onClick={() => window.location.href = '/contact'}
-                size="lg"
+
+              <Button
+                onClick={() => window.location.href = "/contact"}
                 variant="outline"
-                className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white text-lg px-8 py-6 h-auto backdrop-blur-sm"
+                className="px-6 py-3 rounded-[35px] text-base border-gray-200 bg-white/70 hover:bg-white/80 w-full sm:w-auto"
               >
-                Get in Touch
+                Talk to Us
               </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 };

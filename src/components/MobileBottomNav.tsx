@@ -14,8 +14,8 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-4 left-0 right-0 z-[9999] flex justify-center md:hidden pointer-events-auto">
+      <div className="bg-background/95 backdrop-blur-sm shadow-lg rounded-full px-3 py-1 max-w-md w-[92%] sm:w-[88%] flex items-center justify-between">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -24,23 +24,16 @@ export function MobileBottomNav() {
             <Link
               key={item.path}
               to={item.path}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                "flex flex-col items-center justify-center w-full h-full relative",
-                "transition-colors touch-manipulation",
+                "flex flex-col items-center justify-center px-3 py-1 rounded-full touch-manipulation transition-colors",
                 isActive ? "text-accent" : "text-muted-foreground"
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-accent rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-              <Icon className={cn("h-5 w-5 mb-1", isActive && "text-accent")} />
-              <span className={cn("text-xs", isActive && "font-medium")}>
-                {item.label}
-              </span>
+              <div className={cn("rounded-full flex items-center justify-center", isActive ? "bg-accent text-white p-1.5" : "p-1.5 text-muted-foreground")}> 
+                <Icon className="h-4 w-4" />
+              </div>
+              <span className={cn("text-xs mt-1", isActive ? "text-accent font-medium" : "text-muted-foreground")}>{item.label}</span>
             </Link>
           );
         })}

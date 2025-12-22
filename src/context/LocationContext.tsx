@@ -41,9 +41,10 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
         
         setLocations(data || []);
-        // Set first location as default if none selected
+        // Prefer 'Kenya - Nakuru' as default if present, otherwise set the first location
         if (data && data.length > 0 && !locationId) {
-          setLocationId(data[0].id);
+          const preferred = (data || []).find((l: any) => l.country === 'Kenya' && l.city === 'Nakuru');
+          setLocationId(preferred ? preferred.id : data[0].id);
         }
       } catch (error) {
         console.error('Error fetching locations:', error);

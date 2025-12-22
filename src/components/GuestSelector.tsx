@@ -50,7 +50,7 @@ export default function GuestSelector({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("w-full justify-start text-left font-normal")}
+          className={cn("w-full justify-start text-left font-normal h-12 rounded-[35px]")}
         >
           <Users className="mr-2 h-4 w-4" />
           <span className={adults || children || rooms ? "" : "text-muted-foreground"}>{label}</span>

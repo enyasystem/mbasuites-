@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -41,6 +41,27 @@ const RoomDetails = () => {
   const [checkInOpenMobile, setCheckInOpenMobile] = useState(false);
   const [checkOutOpenMobile, setCheckOutOpenMobile] = useState(false);
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
+
+  const checkInRefMobile = useRef<HTMLDivElement | null>(null);
+  const checkOutRefMobile = useRef<HTMLDivElement | null>(null);
+  const checkInRef = useRef<HTMLDivElement | null>(null);
+  const checkOutRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (checkInOpenMobile) checkInRefMobile.current?.focus();
+  }, [checkInOpenMobile]);
+
+  useEffect(() => {
+    if (checkOutOpenMobile) checkOutRefMobile.current?.focus();
+  }, [checkOutOpenMobile]);
+
+  useEffect(() => {
+    if (checkInOpen) checkInRef.current?.focus();
+  }, [checkInOpen]);
+
+  useEffect(() => {
+    if (checkOutOpen) checkOutRef.current?.focus();
+  }, [checkOutOpen]);
   const { formatPrice, formatLocalPrice } = useCurrency();
 
   // Mock reviews data - in real app, fetch from database
@@ -229,20 +250,22 @@ const RoomDetails = () => {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <CalendarComponent
-                              mode="single"
-                              selected={checkIn}
-                              onSelect={(date) => {
-                                  setCheckIn(date as Date);
-                                  // Delay closing slightly to ensure DayPicker selection finishes,
-                                  // then auto-open the check-out popover for the next selection.
-                                  setTimeout(() => {
-                                    setCheckInOpenMobile(false);
-                                    setTimeout(() => setCheckOutOpenMobile(true), 100);
-                                  }, 150);
-                              }}
-                              disabled={(date) => date < new Date()}
-                            />
+                            <div ref={checkInRefMobile} tabIndex={-1}>
+                              <CalendarComponent
+                                mode="single"
+                                selected={checkIn}
+                                onSelect={(date) => {
+                                    setCheckIn(date as Date);
+                                    // Delay closing slightly to ensure DayPicker selection finishes,
+                                    // then auto-open the check-out popover for the next selection.
+                                    setTimeout(() => {
+                                      setCheckInOpenMobile(false);
+                                      setTimeout(() => setCheckOutOpenMobile(true), 100);
+                                    }, 150);
+                                }}
+                                disabled={(date) => date < new Date()}
+                              />
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -256,16 +279,18 @@ const RoomDetails = () => {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <CalendarComponent
-                              mode="single"
-                              selected={checkOut}
-                              onSelect={(date) => {
-                                setCheckOut(date as Date);
-                                // Delay closing slightly to ensure DayPicker selection finishes
-                                setTimeout(() => setCheckOutOpenMobile(false), 150);
-                              }}
-                              disabled={(date) => date < (checkIn || new Date())}
-                            />
+                            <div ref={checkOutRefMobile} tabIndex={-1}>
+                              <CalendarComponent
+                                mode="single"
+                                selected={checkOut}
+                                onSelect={(date) => {
+                                  setCheckOut(date as Date);
+                                  // Delay closing slightly to ensure DayPicker selection finishes
+                                  setTimeout(() => setCheckOutOpenMobile(false), 150);
+                                }}
+                                disabled={(date) => date < (checkIn || new Date())}
+                              />
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -360,20 +385,22 @@ const RoomDetails = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={checkIn}
-                        onSelect={(date) => {
-                          setCheckIn(date as Date);
-                          // Delay closing slightly to ensure DayPicker selection finishes,
-                          // then auto-open the desktop check-out popover.
-                          setTimeout(() => {
-                            setCheckInOpen(false);
-                            setTimeout(() => setCheckOutOpen(true), 100);
-                          }, 150);
-                        }}
-                        disabled={(date) => date < new Date()}
-                      />
+                      <div ref={checkInRef} tabIndex={-1}>
+                        <CalendarComponent
+                          mode="single"
+                          selected={checkIn}
+                          onSelect={(date) => {
+                            setCheckIn(date as Date);
+                            // Delay closing slightly to ensure DayPicker selection finishes,
+                            // then auto-open the desktop check-out popover.
+                            setTimeout(() => {
+                              setCheckInOpen(false);
+                              setTimeout(() => setCheckOutOpen(true), 100);
+                            }, 150);
+                          }}
+                          disabled={(date) => date < new Date()}
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -387,16 +414,18 @@ const RoomDetails = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={checkOut}
-                        onSelect={(date) => {
-                          setCheckOut(date as Date);
-                          // Delay closing slightly to ensure DayPicker selection finishes
-                          setTimeout(() => setCheckOutOpen(false), 150);
-                        }}
-                        disabled={(date) => date < (checkIn || new Date())}
-                      />
+                      <div ref={checkOutRef} tabIndex={-1}>
+                        <CalendarComponent
+                          mode="single"
+                          selected={checkOut}
+                          onSelect={(date) => {
+                            setCheckOut(date as Date);
+                            // Delay closing slightly to ensure DayPicker selection finishes
+                            setTimeout(() => setCheckOutOpen(false), 150);
+                          }}
+                          disabled={(date) => date < (checkIn || new Date())}
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
