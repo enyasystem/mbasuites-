@@ -262,15 +262,22 @@ const Navbar = () => {
         transition={{ duration: 0.3 }}
       >
       <div className="mx-auto max-w-6xl px-4 relative">
-        {/* Floating logo to the left - consistent circular badge (always scrolled style) */}
-        <Link to="/" aria-label="Home" className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-50">
+        {/* Floating logo to the left - consistent circular badge (desktop only) */}
+        <Link to="/" aria-label="Home" className="hidden md:block absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-50">
           <div className={`rounded-full overflow-hidden w-9 h-9 md:w-10 md:h-10 flex items-center justify-center transition-all duration-200 bg-white shadow-md border border-accent/20 p-1`}>
             <img src="/mba_suites_logo.png" alt="MBA Suites" className="w-full h-full object-contain" />
           </div>
         </Link>
 
         <div className={`mx-auto mt-0 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
-
+          {/* Mobile: logo inside pill for proper fit */}
+          <div className="md:hidden flex items-center -ml-1">
+            <Link to="/" aria-label="Home" className="inline-block">
+              <div className="rounded-full overflow-hidden w-9 h-9 flex items-center justify-center bg-white shadow-md border border-accent/20 p-1">
+                <img src="/mba_suites_logo.png" alt="MBA Suites" className="w-full h-full object-contain" />
+              </div>
+            </Link>
+          </div>
 
           {/* Center - Links (centered) */}
           <div className="hidden md:flex flex-1 justify-center items-center gap-8">
