@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Photos from "@/pages/Photos";
 import { useEffect } from "react";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -49,6 +50,8 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/rooms" element={<PageTransition><Rooms /></PageTransition>} />
           <Route path="/rooms/:id" element={<PageTransition><RoomDetails /></PageTransition>} />
+          <Route path="/rooms/:id/photos" element={<PageTransition><Photos /></PageTransition>} />
+          <Route path="/photos" element={<PageTransition><Photos /></PageTransition>} />
           <Route path="/checkout" element={<PageTransition><Checkout /></PageTransition>} />
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
           <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />

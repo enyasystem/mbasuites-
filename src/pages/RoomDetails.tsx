@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import GuestSelector from "@/components/GuestSelector";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList, Review } from "@/components/ReviewsList";
+import PhotoTour from "@/components/PhotoTour";
 import { format, differenceInCalendarDays } from "date-fns";
 import { Star, Loader2 } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -185,11 +186,19 @@ const RoomDetails = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <div className="relative">
+                <div className="absolute right-4 top-4 z-10">
+                  <button className="bg-background/80 px-3 py-1 rounded shadow-sm text-sm" onClick={() => navigate(`/rooms/${room.id}/photos`)}>View photos</button>
+                </div>
                 <Carousel>
                   <CarouselContent className="h-80">
                     {images.map((src, i) => (
                       <CarouselItem key={i}>
-                        <img src={src} alt={`${room.title} ${i + 1}`} className="w-full h-80 object-cover rounded" />
+                        <img
+                          src={src}
+                          alt={`${room.title} ${i + 1}`}
+                          className="w-full h-80 object-cover rounded cursor-pointer"
+                          onClick={() => navigate(`/rooms/${room.id}/photos`, { state: { startIndex: i } })}
+                        />
                       </CarouselItem>
                     ))}
                   </CarouselContent>
