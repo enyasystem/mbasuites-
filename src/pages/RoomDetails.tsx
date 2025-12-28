@@ -19,6 +19,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GuestSelector from "@/components/GuestSelector";
 import { ReviewForm } from "@/components/ReviewForm";
+import { useRoomReviews } from "@/hooks/useRoomReviews";
 import { ReviewsList, Review } from "@/components/ReviewsList";
 import PhotoTour from "@/components/PhotoTour";
 import { format, differenceInCalendarDays } from "date-fns";
@@ -98,37 +99,12 @@ const RoomDetails = () => {
   }, [checkOutOpen]);
   const { formatPrice, formatLocalPrice } = useCurrency();
 
-  // Mock reviews data - in real app, fetch from database
-  const [reviews] = useState<Review[]>([
-    {
-      id: "1",
-      userId: "user1",
-      userName: "Jane Doe",
-      rating: 5,
-      comment: "Amazing stay! The room was spotless and the staff were incredibly friendly. Will definitely come back!",
-      createdAt: "2024-11-20",
-    },
-    {
-      id: "2",
-      userId: "user2",
-      userName: "Mark Smith",
-      rating: 4,
-      comment: "Great location and comfortable room. The amenities exceeded my expectations.",
-      createdAt: "2024-11-15",
-    },
-    {
-      id: "3",
-      userId: "user3",
-      userName: "Sarah Johnson",
-      rating: 5,
-      comment: "Absolutely loved it! Beautiful views and excellent service throughout my stay.",
-      createdAt: "2024-11-10",
-    },
-  ]);
+  // Fetch reviews for this room from the database
+  const { reviews, loading: reviewsLoading, error: reviewsError, refetch: refetchReviews } = useRoomReviews(room?.id);
 
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 4.5;
+    : undefined;
 
   if (isLoading) {
     return (
@@ -331,7 +307,7 @@ const RoomDetails = () => {
                       </div>
                       <div className="text-right">
                         <div className="text-sm">Rating</div>
-                        <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
+                        <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating !== undefined ? averageRating.toFixed(1) : '—'}</div>
                       </div>
                     </div>
 
@@ -434,6 +410,9 @@ const RoomDetails = () => {
                 </div>
 
                 <ReviewsList reviews={reviews} averageRating={averageRating} />
+                {reviewsError && (
+                  <p className="text-sm text-destructive mt-2">Unable to load reviews.</p>
+                )}
               </div>
 
               {user && (
@@ -442,7 +421,8 @@ const RoomDetails = () => {
                     roomId={room.id}
                     roomName={room.title}
                     onReviewSubmitted={() => {
-                      console.log("Review submitted");
+                      // Refresh reviews after a successful submission
+                      refetchReviews();
                     }}
                   />
                 </div>
@@ -478,7 +458,7 @@ const RoomDetails = () => {
                 <div className="text-right">
                   <div className="flex items-center gap-2">
                     <div className="text-sm">Rating</div>
-                    <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
+                    <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating !== undefined ? averageRating.toFixed(1) : '—'}</div>
                     {/* Availability badge */}
                     {isAvailableForSelectedDates === false ? (
                       <Badge variant="destructive">Not available for selected dates</Badge>

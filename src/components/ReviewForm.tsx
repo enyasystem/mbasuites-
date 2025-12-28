@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,6 +38,8 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
     mode: "onChange",
   });
 
+  const { user } = useAuth();
+
   const onSubmit = async (data: ReviewFormData) => {
     if (rating === 0) {
       toast({
@@ -46,23 +50,54 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "You must be logged in to submit a review.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
-    // Simulate API call - in real implementation, this would save to database
-    setTimeout(() => {
+    try {
+      const userName = (user?.user_metadata as any)?.full_name || user?.email || "Guest";
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- supabase client types don't include 'reviews' table yet
+      const { data: insertData, error } = await (supabase as any)
+        .from("reviews")
+        .insert({
+          room_id: roomId,
+          user_id: user.id,
+          user_name: userName,
+          rating,
+          comment: data.comment,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       toast({
         title: "Review submitted!",
-        description: "Thank you for your feedback. You earned 50 loyalty points!",
+        description: "Thanks for your feedback.",
       });
-      
+
       setRating(0);
       reset();
+
+      if (onReviewSubmitted) onReviewSubmitted();
+    } catch (err: any) {
+      console.error("Error submitting review:", err);
+      toast({
+        title: "Failed to submit review",
+        description: err?.message || String(err),
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-      
-      if (onReviewSubmitted) {
-        onReviewSubmitted();
-      }
-    }, 1000);
+    }
   };
 
   return (

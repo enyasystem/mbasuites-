@@ -59,7 +59,7 @@ export function ReviewsList({ reviews, averageRating }: ReviewsListProps) {
                 <div className="flex items-start gap-3">
                   <Avatar>
                     <AvatarFallback className="bg-accent text-accent-foreground">
-                      {review.userName.charAt(0).toUpperCase()}
+                      {(review.userName && review.userName.charAt(0)) ? review.userName.charAt(0).toUpperCase() : "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-2">
