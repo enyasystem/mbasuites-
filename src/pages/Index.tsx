@@ -16,8 +16,8 @@ const Index = () => {
       <Navbar />
       <Hero />
       <SearchBar />
-      <LandingAbout />
       <SpecialOffers />
+      <LandingAbout />
       <GalleryMap />
       <LandingContact />
       <FAQ />
