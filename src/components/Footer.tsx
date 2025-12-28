@@ -13,7 +13,7 @@ const Footer = () => {
               </Link>
             </div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
-              Your premium serviced apartments in Lagos, Nigeria.
+              Your premium serviced apartments in Lagos (Nigeria), Nakuru (Kenya), Illinois (Georgia - USA).
             </p>
           </div>
 
@@ -48,14 +48,14 @@ const Footer = () => {
               </li>
               <li>
                 <strong>Address:</strong> Emcel Garden Estate<br />
-                Orchid, Lekki, Lagos
+                Orchid, Lekki Phase 2 Lagos
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-primary-foreground/20 mt-12 pt-8 text-center text-sm text-primary-foreground/70">
-          <p>© 2025 MBA Suites. All rights reserved. Located in Lagos, Nigeria.</p>
+          <p>© 2025 MBA Suites. All rights reserved.</p>
         </div>
       </div>
     </footer>
