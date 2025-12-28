@@ -203,7 +203,7 @@ const RoomDetails = () => {
     IconLeft: (props: React.SVGProps<SVGSVGElement>) => <ChevronLeft className="h-4 w-4" {...props} />,
     IconRight: (props: React.SVGProps<SVGSVGElement>) => <ChevronRight className="h-4 w-4" {...props} />,
     DayContent: ({ date }: { date: Date }) => {
-      const title = isUnavailableDate(date) ? 'Booked' : date < new Date() ? 'Past date' : undefined;
+      const title = isUnavailableDate(date) ? 'Room booked (unavailable)' : date < new Date() ? 'Past date' : undefined;
       return <div title={title}>{date.getDate()}</div>;
     },
   };
@@ -363,7 +363,7 @@ const RoomDetails = () => {
                               />
                               <div className="flex items-center gap-3 mt-2">
                                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                                <span className="text-sm text-muted-foreground">Booked</span>
+                                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
                               </div>
                             </div>
                           </PopoverContent>
@@ -393,7 +393,7 @@ const RoomDetails = () => {
                               />
                               <div className="flex items-center gap-3 mt-2">
                                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                                <span className="text-sm text-muted-foreground">Booked</span>
+                                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
                               </div>
                             </div>
                           </PopoverContent>
@@ -483,7 +483,7 @@ const RoomDetails = () => {
                     {isAvailableForSelectedDates === false ? (
                       <Badge variant="destructive">Not available for selected dates</Badge>
                     ) : (!checkIn && isDateUnavailable(new Date()) ? (
-                      <Badge variant="destructive">Booked Today</Badge>
+                      <Badge variant="destructive">Room booked today</Badge>
                     ) : (!room.is_available ? (
                       <Badge variant="secondary">Unavailable</Badge>
                     ) : null))}
@@ -519,7 +519,7 @@ const RoomDetails = () => {
                         />
                         <div className="flex items-center gap-3 mt-2">
                           <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                          <span className="text-sm text-muted-foreground">Booked</span>
+                          <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
                         </div>
                       </div>
                     </PopoverContent>
@@ -593,7 +593,7 @@ const RoomDetails = () => {
               <CalendarComponent mode="single" components={calendarComponents} disabled={(date) => date < new Date() || isUnavailableDate(date)} />
               <div className="flex items-center gap-3 mt-3">
                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                <span className="text-sm text-muted-foreground">Booked</span>
+                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
               </div>
             </Card>
           </aside>
