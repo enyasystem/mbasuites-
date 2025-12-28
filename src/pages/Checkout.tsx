@@ -484,7 +484,7 @@ export default function Checkout() {
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Input 
-                                  placeholder="John" 
+                                  placeholder="Femi" 
                                   className="transition-all focus:ring-2 focus:ring-accent" 
                                   {...field} 
                                 />
@@ -510,7 +510,7 @@ export default function Checkout() {
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Input 
-                                  placeholder="Doe" 
+                                  placeholder="Olumide" 
                                   className="transition-all focus:ring-2 focus:ring-accent" 
                                   {...field} 
                                 />
@@ -538,7 +538,7 @@ export default function Checkout() {
                             <motion.div whileFocus={{ scale: 1.01 }}>
                               <Input 
                                 type="email" 
-                                placeholder="john.doe@example.com" 
+                                placeholder="femi@example.com" 
                                 className="transition-all focus:ring-2 focus:ring-accent" 
                                 {...field} 
                               />
