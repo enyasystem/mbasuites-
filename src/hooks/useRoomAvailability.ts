@@ -44,8 +44,10 @@ export const useRoomAvailability = (roomId: string | undefined) => {
           const start = new Date(startStr);
           const end = new Date(endStr);
           const current = new Date(start);
-          
-          while (current < end) {
+
+          // Make the range inclusive of the end date so the check-out date is
+          // treated as unavailable as well (per product requirement).
+          while (current <= end) {
             allDates.push(new Date(current));
             current.setDate(current.getDate() + 1);
           }

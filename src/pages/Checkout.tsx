@@ -354,7 +354,32 @@ export default function Checkout() {
       });
     } catch (error: unknown) {
       console.error('Bank transfer submission error:', error);
-      const msg = error instanceof Error ? error.message : String(error);
+      let msg = "There was an error submitting your booking.";
+      if (error instanceof Error) {
+        msg = error.message;
+      } else if (error && typeof error === 'object') {
+        const obj = error as Record<string, unknown>;
+        const maybeMessage = obj['message'];
+        const maybeError = obj['error'];
+        const maybeDetails = obj['details'];
+
+        if (typeof maybeMessage === 'string') {
+          msg = maybeMessage;
+        } else if (typeof maybeError === 'string') {
+          msg = maybeError;
+        } else if (typeof maybeDetails === 'string') {
+          msg = maybeDetails;
+        } else {
+          try {
+            msg = JSON.stringify(obj);
+          } catch {
+            msg = String(obj);
+          }
+        }
+      } else {
+        msg = String(error);
+      }
+
       toast({
         title: "Submission Failed",
         description: msg || "There was an error submitting your booking.",
@@ -382,9 +407,41 @@ export default function Checkout() {
     }
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setIsProcessing(true);
-    
+
+    // Server-side availability check to avoid race conditions where the room
+    // becomes unavailable after the user selected dates but before submitting.
+    try {
+      const { data: availOk, error: availErr } = await supabase.rpc('check_room_availability', {
+        p_room_id: bookingData.room!.id,
+        p_check_in: bookingData.checkIn!.toISOString().split('T')[0],
+        p_check_out: bookingData.checkOut!.toISOString().split('T')[0],
+      });
+
+      if (availErr) throw availErr;
+
+      // RPC returns truthy when available
+      if (!availOk) {
+        setIsProcessing(false);
+        toast({
+          title: "Room Unavailable",
+          description: "The selected room is no longer available for the chosen dates. Please pick different dates or a different room.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('Availability check failed:', err);
+      setIsProcessing(false);
+      toast({
+        title: "Availability Check Failed",
+        description: err instanceof Error ? err.message : JSON.stringify(err),
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (paymentMethod === "paystack") {
       // Update Paystack config with the submitted email
       initializePayment({ onSuccess, onClose });

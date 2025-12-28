@@ -22,9 +22,11 @@ import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList, Review } from "@/components/ReviewsList";
 import PhotoTour from "@/components/PhotoTour";
 import { format, differenceInCalendarDays } from "date-fns";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRoomAvailability } from "@/hooks/useRoomAvailability";
+import { toast } from "sonner";
 
 const RoomDetails = () => {
   const { id } = useParams();
@@ -37,6 +39,11 @@ const RoomDetails = () => {
   const [checkOut, setCheckOut] = useState<Date | undefined>();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
+
+  // availability checks
+  const { unavailableDates, isLoading: availabilityLoading, checkAvailability, isDateUnavailable } = useRoomAvailability(room?.id);
+  const [isAvailableForSelectedDates, setIsAvailableForSelectedDates] = useState<boolean | null>(null);
+  const [checkingSelection, setCheckingSelection] = useState(false);
   // Separate open states for mobile compact booking card so hidden desktop popovers
   // don't render their portals when mobile popovers are opened.
   const [checkInOpenMobile, setCheckInOpenMobile] = useState(false);
@@ -59,6 +66,32 @@ const RoomDetails = () => {
   useEffect(() => {
     if (checkInOpen) checkInRef.current?.focus();
   }, [checkInOpen]);
+
+  // Re-check availability for selected dates when dates change
+  useEffect(() => {
+    let cancelled = false;
+    if (!checkIn || !checkOut) {
+      setIsAvailableForSelectedDates(null);
+      return;
+    }
+
+    const doCheck = async () => {
+      setCheckingSelection(true);
+      try {
+        const res = await checkAvailability(checkIn, checkOut);
+        if (!cancelled) setIsAvailableForSelectedDates(res.available);
+      } catch (err) {
+        console.error('Availability check failed', err);
+        if (!cancelled) setIsAvailableForSelectedDates(null);
+      } finally {
+        if (!cancelled) setCheckingSelection(false);
+      }
+    };
+
+    doCheck();
+
+    return () => { cancelled = true; };
+  }, [checkIn, checkOut, checkAvailability]);
 
   useEffect(() => {
     if (checkOutOpen) checkOutRef.current?.focus();
@@ -143,39 +176,90 @@ const RoomDetails = () => {
   const nights = checkIn && checkOut ? Math.max(1, differenceInCalendarDays(checkOut, checkIn)) : 0;
   const totalPrice = nights * room.price_per_night * guests.rooms;
 
-  const handleBooking = () => {
+  // Helpers for date disabling using unavailable dates from the availability hook
+  const isUnavailableDate = (d: Date) => isDateUnavailable(d);
+
+  const isCheckOutDisabled = (d: Date) => {
+    // Don't allow selecting past dates
+    if (d < new Date()) return true;
+    // If no check-in is selected, fallback to standard behavior
+    if (!checkIn) return d < new Date();
+    // Prevent selecting check-out earlier than check-in
+    if (d < checkIn) return true;
+
+    // Check if any unavailable date falls between check-in (inclusive) and the candidate check-out (inclusive)
+    const checkInTime = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate()).getTime();
+    const candidateTime = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+    return unavailableDates.some(u => {
+      const ut = new Date(u.getFullYear(), u.getMonth(), u.getDate()).getTime();
+      // inclusive comparison so booking end date is also considered unavailable
+      return ut >= checkInTime && ut <= candidateTime;
+    });
+  };
+
+  // Calendar components to show a tooltip on booked / past dates and preserve nav icons
+  const calendarComponents = {
+    IconLeft: (props: React.SVGProps<SVGSVGElement>) => <ChevronLeft className="h-4 w-4" {...props} />,
+    IconRight: (props: React.SVGProps<SVGSVGElement>) => <ChevronRight className="h-4 w-4" {...props} />,
+    DayContent: ({ date }: { date: Date }) => {
+      const title = isUnavailableDate(date) ? 'Booked' : date < new Date() ? 'Past date' : undefined;
+      return <div title={title}>{date.getDate()}</div>;
+    },
+  };
+
+  const handleBooking = async () => {
     if (!checkIn || !checkOut) {
       alert('Please select check-in and check-out dates.');
       return;
     }
-    
-    // Transform database room to booking format
-    const bookingRoom = {
-      id: room.id,
-      name: room.title,
-      description: room.description || "",
-      price: room.price_per_night,
-      images: images,
-      amenities: room.amenities || [],
-      capacity: { adults: room.max_guests, children: 0 },
-      size: 30,
-      bedType: "King Bed",
-      rating: averageRating,
-      category: room.room_type as "standard" | "deluxe" | "executive" | "presidential",
-      type: "king" as const,
-      available: room.is_available,
-    };
-    
-    setBookingData({
-      room: bookingRoom,
-      checkIn,
-      checkOut,
-      guests,
-      nights,
-      totalPrice,
-    });
-    
-    navigate('/checkout');
+
+    try {
+      // If we already checked availability for the selected dates, use cached result.
+      let available: boolean | null = isAvailableForSelectedDates;
+      if (available === null) {
+        const res = await checkAvailability(checkIn, checkOut);
+        available = res.available;
+      }
+
+      if (!available) {
+        toast.error('Those dates are not available for booking for this room.');
+        return;
+      }
+
+      // Transform database room to booking format
+      const bookingRoom = {
+        id: room.id,
+        name: room.title,
+        description: room.description || "",
+        price: room.price_per_night,
+        images: images,
+        amenities: room.amenities || [],
+        capacity: { adults: room.max_guests, children: 0 },
+        size: 30,
+        bedType: "King Bed",
+        rating: averageRating,
+        category: room.room_type as "standard" | "deluxe" | "executive" | "presidential",
+        type: "king" as const,
+        available: room.is_available,
+      };
+
+      setBookingData({
+        room: bookingRoom,
+        checkIn,
+        checkOut,
+        guests,
+        nights,
+        totalPrice,
+      });
+      
+      navigate('/checkout');
+    } catch (err) {
+      console.error('Failed to check availability before booking', err);
+      toast.error('Unable to verify availability. Try again.');
+    }
+
+
   };
 
   return (
@@ -264,6 +348,7 @@ const RoomDetails = () => {
                             <div ref={checkInRefMobile} tabIndex={-1}>
                               <CalendarComponent
                                 mode="single"
+                                components={calendarComponents}
                                 selected={checkIn}
                                 onSelect={(date) => {
                                     setCheckIn(date as Date);
@@ -274,8 +359,12 @@ const RoomDetails = () => {
                                       setTimeout(() => setCheckOutOpenMobile(true), 100);
                                     }, 150);
                                 }}
-                                disabled={(date) => date < new Date()}
+                                disabled={(date) => date < new Date() || isUnavailableDate(date)}
                               />
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
+                                <span className="text-sm text-muted-foreground">Booked</span>
+                              </div>
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -293,14 +382,19 @@ const RoomDetails = () => {
                             <div ref={checkOutRefMobile} tabIndex={-1}>
                               <CalendarComponent
                                 mode="single"
+                                components={calendarComponents}
                                 selected={checkOut}
                                 onSelect={(date) => {
                                   setCheckOut(date as Date);
                                   // Delay closing slightly to ensure DayPicker selection finishes
                                   setTimeout(() => setCheckOutOpenMobile(false), 150);
                                 }}
-                                disabled={(date) => date < (checkIn || new Date())}
+                                disabled={(date) => isCheckOutDisabled(date)}
                               />
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
+                                <span className="text-sm text-muted-foreground">Booked</span>
+                              </div>
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -330,8 +424,9 @@ const RoomDetails = () => {
                         <Button
                           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                           onClick={handleBooking}
+                          disabled={(isAvailableForSelectedDates === false) || !room.is_available}
                         >
-                          Book now
+                          {checkingSelection ? "Checking..." : "Book now"}
                         </Button>
                       </div>
                     </div>
@@ -381,8 +476,18 @@ const RoomDetails = () => {
                   <div className="text-2xl font-bold">{formatLocalPrice(room.price_per_night)} <span className="text-sm text-muted-foreground">/ night</span></div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm">Rating</div>
-                  <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm">Rating</div>
+                    <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
+                    {/* Availability badge */}
+                    {isAvailableForSelectedDates === false ? (
+                      <Badge variant="destructive">Not available for selected dates</Badge>
+                    ) : (!checkIn && isDateUnavailable(new Date()) ? (
+                      <Badge variant="destructive">Booked Today</Badge>
+                    ) : (!room.is_available ? (
+                      <Badge variant="secondary">Unavailable</Badge>
+                    ) : null))}
+                  </div>
                 </div>
               </div>
 
@@ -399,6 +504,7 @@ const RoomDetails = () => {
                       <div ref={checkInRef} tabIndex={-1}>
                         <CalendarComponent
                           mode="single"
+                          components={calendarComponents}
                           selected={checkIn}
                           onSelect={(date) => {
                             setCheckIn(date as Date);
@@ -409,8 +515,12 @@ const RoomDetails = () => {
                               setTimeout(() => setCheckOutOpen(true), 100);
                             }, 150);
                           }}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date < new Date() || isUnavailableDate(date)}
                         />
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
+                          <span className="text-sm text-muted-foreground">Booked</span>
+                        </div>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -428,14 +538,19 @@ const RoomDetails = () => {
                       <div ref={checkOutRef} tabIndex={-1}>
                         <CalendarComponent
                           mode="single"
+                          components={calendarComponents}
                           selected={checkOut}
                           onSelect={(date) => {
                             setCheckOut(date as Date);
                             // Delay closing slightly to ensure DayPicker selection finishes
                             setTimeout(() => setCheckOutOpen(false), 150);
                           }}
-                          disabled={(date) => date < (checkIn || new Date())}
+                          disabled={(date) => isCheckOutDisabled(date)}
                         />
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
+                          <span className="text-sm text-muted-foreground">Booked</span>
+                        </div>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -465,8 +580,9 @@ const RoomDetails = () => {
                   <Button
                     className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                     onClick={handleBooking}
+                    disabled={(isAvailableForSelectedDates === false) || !room.is_available}
                   >
-                    Book now
+                    {checkingSelection ? "Checking..." : "Book now"}
                   </Button>
                 </div>
               </div>
@@ -474,7 +590,11 @@ const RoomDetails = () => {
 
             <Card className="p-4">
               <h4 className="text-sm font-semibold mb-2">Availability</h4>
-              <CalendarComponent mode="single" disabled={(date) => date < new Date()} />
+              <CalendarComponent mode="single" components={calendarComponents} disabled={(date) => date < new Date() || isUnavailableDate(date)} />
+              <div className="flex items-center gap-3 mt-3">
+                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
+                <span className="text-sm text-muted-foreground">Booked</span>
+              </div>
             </Card>
           </aside>
         </div>
