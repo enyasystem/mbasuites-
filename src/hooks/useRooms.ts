@@ -56,7 +56,8 @@ export function useRooms(options: UseRoomsOptions = {}) {
 
         let query = supabase
           .from("rooms")
-          .select("*")
+          // include related room images
+          .select("*, room_images(id, url, is_primary, ordering)")
           .eq("is_available", true);
 
         // Filter by location if provided
@@ -83,7 +84,18 @@ export function useRooms(options: UseRoomsOptions = {}) {
         }
 
         // If check-in/check-out dates are provided, filter by availability
-        let availableRooms = data || [];
+        let availableRooms = (data || []).map((r: any) => {
+          // build images array from related room_images (primary first, then ordering)
+          const imgs = (r.room_images || [])
+            .slice()
+            .sort((a: any, b: any) => {
+              if (a.is_primary && !b.is_primary) return -1;
+              if (!a.is_primary && b.is_primary) return 1;
+              return (a.ordering || 0) - (b.ordering || 0);
+            })
+            .map((ri: any) => ri.url);
+          return { ...r, images: imgs, image_url: r.image_url || imgs[0] || null };
+        });
         
         if (options.checkIn && options.checkOut && availableRooms.length > 0) {
           // Check availability for each room

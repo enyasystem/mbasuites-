@@ -119,7 +119,7 @@ const Rooms = () => {
       capacity: { adults: room.max_guests, children: 0 },
       bedType: room.room_type === "suite" ? "King Bed" : room.room_type === "deluxe" ? "Queen Bed" : "Double Bed",
       amenities: room.amenities || [],
-      images: [room.image_url || (room.room_type === "suite" ? roomSuite : roomDeluxe)],
+      images: room.images && room.images.length > 0 ? room.images : [room.image_url || (room.room_type === "suite" ? roomSuite : roomDeluxe)],
       description: room.description || "",
       rating: 4.5, // Default rating as not in DB
       available: room.is_available,
