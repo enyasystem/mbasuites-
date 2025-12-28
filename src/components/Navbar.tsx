@@ -262,10 +262,10 @@ const Navbar = () => {
         transition={{ duration: 0.3 }}
       >
       <div className="mx-auto max-w-6xl px-4 relative">
-        {/* Floating logo to the left */}
-        <Link to="/" aria-label="Home" className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50">
-          <div className={visualScrolled ? 'bg-white rounded-full p-2 shadow-sm' : ''}>
-            <img src={visualScrolled ? '/mba_suites_logo.png' : '/mba_suites_logo_transparent.png'} alt="MBA Suites" className="h-8 w-auto block" />
+        {/* Floating logo to the left - consistent circular badge (always scrolled style) */}
+        <Link to="/" aria-label="Home" className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-50">
+          <div className={`rounded-full overflow-hidden w-9 h-9 md:w-10 md:h-10 flex items-center justify-center transition-all duration-200 bg-white shadow-md border border-accent/20 p-1`}>
+            <img src="/mba_suites_logo.png" alt="MBA Suites" className="w-full h-full object-contain" />
           </div>
         </Link>
 
