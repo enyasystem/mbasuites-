@@ -261,16 +261,16 @@ const Navbar = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
       >
-      <div className="mx-auto max-w-6xl px-4">
-        <div className={`mx-auto mt-0 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
-          {/* Left - Circular Logo */}
-          <div className="flex items-center gap-4">
-            <Link to="/" aria-label="Home">
-              <div className={visualScrolled ? 'bg-white rounded-full p-2 shadow-sm' : ''}>
-                <img src={visualScrolled ? '/mba_suites_logo.png' : '/mba_suites_logo_transparent.png'} alt="MBA Suites" className="h-8 w-auto block" />
-              </div>
-            </Link>
+      <div className="mx-auto max-w-6xl px-4 relative">
+        {/* Floating logo to the left */}
+        <Link to="/" aria-label="Home" className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50">
+          <div className={visualScrolled ? 'bg-white rounded-full p-2 shadow-sm' : ''}>
+            <img src={visualScrolled ? '/mba_suites_logo.png' : '/mba_suites_logo_transparent.png'} alt="MBA Suites" className="h-8 w-auto block" />
           </div>
+        </Link>
+
+        <div className={`mx-auto mt-0 w-full max-w-3xl rounded-full flex items-center gap-6 justify-between px-6 py-2 transition-colors duration-300 pointer-events-auto ${visualScrolled ? 'bg-white/95 text-slate-900 shadow-lg border border-accent/40 backdrop-blur-sm' : 'bg-white/10 border border-white/20 text-white/90 backdrop-blur-sm'}`}>
+
 
           {/* Center - Links (centered) */}
           <div className="hidden md:flex flex-1 justify-center items-center gap-8">
