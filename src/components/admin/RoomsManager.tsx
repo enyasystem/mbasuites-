@@ -192,7 +192,8 @@ export default function RoomsManager() {
       toast({ title: "Room Deleted", description: `${selectedRoom.title} has been deleted.`, variant: "destructive" });
       setSelectedRoom(null);
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete room", variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Failed to delete room";
+      toast({ title: "Error", description: message, variant: "destructive" });
     }
   };
 

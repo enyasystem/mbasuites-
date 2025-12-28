@@ -77,6 +77,19 @@ export function useAdminRooms() {
   };
 
   const deleteRoom = async (id: string) => {
+    // Prevent deletion if there are active (non-cancelled) bookings referencing this room
+    const { data: bookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("room_id", id)
+      .neq("status", "cancelled")
+      .limit(1);
+
+    if (bookingsError) throw bookingsError;
+    if (bookings && bookings.length > 0) {
+      throw new Error("Cannot delete room: there are active bookings for this room. Cancel or remove bookings before deleting the room.");
+    }
+
     const { error } = await supabase.from("rooms").delete().eq("id", id);
     if (error) throw error;
     await fetchRooms();
