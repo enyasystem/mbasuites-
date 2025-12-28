@@ -266,8 +266,8 @@ const Navbar = () => {
           {/* Left - Circular Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" aria-label="Home">
-              <div className="bg-white rounded-full p-2 shadow-sm">
-                <img src="/logo.png" alt="MBA Suites" className="h-8 w-auto block" />
+              <div className={visualScrolled ? 'bg-white rounded-full p-2 shadow-sm' : ''}>
+                <img src={visualScrolled ? '/mba_suites_logo.png' : '/mba_suites_logo_transparent.png'} alt="MBA Suites" className="h-8 w-auto block" />
               </div>
             </Link>
           </div>
