@@ -8,6 +8,8 @@ export function useRoom(roomId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let channel: any | null = null;
+
     const fetchRoom = async () => {
       if (!roomId) {
         setIsLoading(false);
@@ -21,7 +23,7 @@ export function useRoom(roomId: string | undefined) {
       try {
         const { data, error: fetchError } = await supabase
           .from("rooms")
-          .select("*")
+          .select("*, room_images(id, url, is_primary, ordering), locations(name)")
           .eq("id", roomId)
           .maybeSingle();
 
@@ -33,7 +35,18 @@ export function useRoom(roomId: string | undefined) {
           setError("Room not found");
           setRoom(null);
         } else {
-          setRoom(data);
+          // Build images array (ordered, prefer is_primary)
+          const imgs = (data.room_images || [])
+            .slice()
+            .sort((a: any, b: any) => {
+              if (a.is_primary && !b.is_primary) return -1;
+              if (!a.is_primary && b.is_primary) return 1;
+              return (a.ordering || 0) - (b.ordering || 0);
+            })
+            .map((r: any) => r.url);
+
+          const roomWithImages = { ...data, images: imgs, image_url: data.image_url || imgs[0] || null };
+          setRoom(roomWithImages as DatabaseRoom);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch room");
@@ -43,6 +56,41 @@ export function useRoom(roomId: string | undefined) {
     };
 
     fetchRoom();
+
+    // Subscribe to changes on room_images for this room so UI updates in real-time
+    try {
+      channel = supabase
+        .channel(`room_images:room_id=eq.${roomId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'room_images', filter: `room_id=eq.${roomId}` }, (payload: any) => {
+          // Re-fetch room to get updated images
+          fetchRoom();
+        })
+        .subscribe();
+    } catch (err) {
+      // Fallback for clients using the older Realtime API
+      try {
+        const subscription = supabase
+          .from(`room_images:room_id=eq.${roomId}`)
+          .on('*', () => fetchRoom())
+          .subscribe();
+        // store in channel variable so we can remove later
+        channel = subscription as any;
+      } catch (err2) {
+        // ignore subscription errors
+        console.warn('Realtime subscription for room images failed', err2);
+      }
+    }
+
+    return () => {
+      try {
+        if (channel && typeof channel.unsubscribe === 'function') channel.unsubscribe();
+        // supabase.removeChannel for newer SDKs may be necessary, attempt if available
+        // @ts-ignore
+        if (channel && channel.name && (supabase as any).removeChannel) (supabase as any).removeChannel(channel);
+      } catch (e) {
+        // ignore cleanup errors
+      }
+    };
   }, [roomId]);
 
   return { room, isLoading, error };

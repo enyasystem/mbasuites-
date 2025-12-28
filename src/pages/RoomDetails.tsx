@@ -133,10 +133,12 @@ const RoomDetails = () => {
     );
   }
 
-  // Create images array - use image_url or fallback
-  const images = room.image_url 
-    ? [room.image_url] 
-    : ["https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800"];
+  // Create images array - prefer room.images (from room_images), fallback to image_url or a placeholder
+  const images = room && room.images && room.images.length > 0
+    ? room.images
+    : room && room.image_url
+      ? [room.image_url]
+      : ["https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800"];
 
   const nights = checkIn && checkOut ? Math.max(1, differenceInCalendarDays(checkOut, checkIn)) : 0;
   const totalPrice = nights * room.price_per_night * guests.rooms;

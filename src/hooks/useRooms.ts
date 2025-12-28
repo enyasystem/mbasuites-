@@ -13,6 +13,7 @@ export interface DatabaseRoom {
   max_guests: number;
   amenities: string[] | null;
   image_url: string | null;
+  images?: string[];
   is_available: boolean;
   location_id: string | null;
   created_at: string;

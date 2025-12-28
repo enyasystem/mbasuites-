@@ -30,7 +30,8 @@ const Photos = () => {
 
   let images: string[] = [];
 
-  if (room && room.image_url) images = [room.image_url];
+  if (room && room.images && room.images.length > 0) images = room.images;
+  else if (room && room.image_url) images = [room.image_url];
   else if (state.images && Array.isArray(state.images)) images = state.images;
   else images = galleryImages.map((g) => g.src);
 
