@@ -46,6 +46,7 @@ import { toast } from "@/hooks/use-toast";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAdminRooms, DatabaseRoom } from "@/hooks/useAdminRooms";
 import { useLocations } from "@/hooks/useLocations";
+import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -80,7 +81,7 @@ const roomSchema = z.object({
 type RoomFormData = z.infer<typeof roomSchema>;
 
 export default function RoomsManager() {
-  const { rooms, isLoading, addRoom, updateRoom, deleteRoom, toggleAvailability } = useAdminRooms();
+  const { rooms, isLoading, addRoom, updateRoom, deleteRoom, toggleAvailability, addRoomImages, removeRoomImage } = useAdminRooms();
   const { locations } = useLocations();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,6 +91,9 @@ export default function RoomsManager() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newFilePreviews, setNewFilePreviews] = useState<string[]>([]);
+  const newFileInputRef = useRef<HTMLInputElement>(null);
   const { formatPrice, formatLocalPrice } = useCurrency();
 
   const form = useForm<RoomFormData>({
@@ -133,6 +137,12 @@ export default function RoomsManager() {
   const handleAddRoom = async (data: RoomFormData) => {
     setIsSaving(true);
     try {
+      // upload any new files first to get public URLs
+      let uploadedUrls: string[] = [];
+      if (newFiles.length > 0) {
+        uploadedUrls = await uploadFiles(newFiles);
+      }
+
       await addRoom({
         title: data.title,
         room_number: data.room_number,
@@ -144,12 +154,17 @@ export default function RoomsManager() {
         description: data.description,
         is_available: data.is_available,
         location_id: data.location_id || null,
+        image_urls: uploadedUrls,
       });
       setViewMode("list");
       form.reset();
       setImagePreview("");
+      setNewFiles([]);
+      setNewFilePreviews([]);
+      if (newFileInputRef.current) newFileInputRef.current.value = "";
       toast({ title: "Room Added", description: `${data.title} has been successfully added.` });
     } catch (error) {
+      console.error(error);
       toast({ title: "Error", description: "Failed to add room", variant: "destructive" });
     } finally {
       setIsSaving(false);
@@ -160,6 +175,12 @@ export default function RoomsManager() {
     if (!selectedRoom) return;
     setIsSaving(true);
     try {
+      // Upload new files first so we can pass their URLs to updateRoom in one operation
+      let uploadedUrls: string[] = [];
+      if (newFiles.length > 0) {
+        uploadedUrls = await uploadFiles(newFiles);
+      }
+
       await updateRoom(selectedRoom.id, {
         title: data.title,
         room_number: data.room_number,
@@ -171,14 +192,21 @@ export default function RoomsManager() {
         description: data.description,
         is_available: data.is_available,
         location_id: data.location_id || null,
+        ...(uploadedUrls.length > 0 ? { image_urls: uploadedUrls } : {}),
       });
+
       setViewMode("list");
       setSelectedRoom(null);
       form.reset();
       setImagePreview("");
+      setNewFiles([]);
+      setNewFilePreviews([]);
+      if (newFileInputRef.current) newFileInputRef.current.value = "";
       toast({ title: "Room Updated", description: `${data.title} has been successfully updated.` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update room", variant: "destructive" });
+      console.error(error);
+      const message = error instanceof Error ? error.message : String(error);
+      toast({ title: "Error", description: message || "Failed to update room", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -213,6 +241,9 @@ export default function RoomsManager() {
     form.reset();
     setImagePreview("");
     setSelectedRoom(null);
+    setNewFiles([]);
+    setNewFilePreviews([]);
+    if (newFileInputRef.current) newFileInputRef.current.value = "";
     setViewMode("add");
   };
 
@@ -231,6 +262,9 @@ export default function RoomsManager() {
       is_available: room.is_available,
       location_id: room.location_id || "",
     });
+    setNewFiles([]);
+    setNewFilePreviews([]);
+    if (newFileInputRef.current) newFileInputRef.current.value = "";
     setViewMode("edit");
   };
 
@@ -254,6 +288,51 @@ export default function RoomsManager() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // Multi-file handlers
+  const handleNewFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const accepted: File[] = [];
+    const previews: string[] = [];
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: `${file.name} is larger than 5MB and was skipped.`, variant: "destructive" });
+        continue;
+      }
+      accepted.push(file);
+    }
+    if (accepted.length === 0) return;
+    // generate previews
+    accepted.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewFilePreviews((p) => [...p, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+    setNewFiles((prev) => [...prev, ...accepted]);
+    // clear the input so same files can be re-selected later
+    if (newFileInputRef.current) newFileInputRef.current.value = "";
+  };
+
+  const removeNewFile = (index: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewFilePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (!files || files.length === 0) return [];
+    const urls: string[] = [];
+    for (const file of files) {
+      // ensure file path does not redundantly include the bucket id
+      const filePath = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
+      const { error: uploadError } = await supabase.storage.from("room-images").upload(filePath, file, { cacheControl: "3600", upsert: false });
+      if (uploadError) throw uploadError;
+      const { data: publicUrlData } = supabase.storage.from("room-images").getPublicUrl(filePath);
+      urls.push(publicUrlData.publicUrl);
+    }
+    return urls;
   };
 
   const handleRemoveImage = () => {
@@ -400,28 +479,53 @@ export default function RoomsManager() {
 
               <FormField control={form.control} name="image_url" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Room Image</FormLabel>
+                  <FormLabel>Room Images</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
-                      {imagePreview ? (
-                        <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border border-border">
-                          <img src={imagePreview} alt="Room preview" className="h-full w-full object-cover" />
-                          <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={handleRemoveImage}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-3 max-w-md">
-                          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/50 p-8 text-center hover:bg-muted/80 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                            <div className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</div>
-                            <div className="text-xs text-muted-foreground">PNG, JPG, WEBP (max 5MB)</div>
+
+                      {/* Existing images (edit mode) */}
+                      {viewMode === "edit" && selectedRoom?.images && selectedRoom.images.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-sm text-muted-foreground">Current Images</div>
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedRoom.images.map((img) => (
+                              <div key={img.id} className="relative rounded overflow-hidden border border-border">
+                                <img src={img.url} alt="Room image" className="h-24 w-full object-cover" />
+                                <div className="absolute top-2 right-2 flex space-x-2">
+                                  <Button size="sm" variant="destructive" onClick={async () => { try { setIsSaving(true); await removeRoomImage(img.id); toast({ title: "Image removed" }); } catch (err) { toast({ title: "Error", description: "Failed to remove image", variant: "destructive" }); } finally { setIsSaving(false); }}}><X className="h-3 w-3" /></Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="text-center text-sm text-muted-foreground">or</div>
-                          <Input placeholder="Enter image URL" value={field.value} onChange={(e) => { field.onChange(e.target.value); if (e.target.value) setImagePreview(e.target.value); }} />
                         </div>
                       )}
-                      <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" className="hidden" onChange={handleImageUpload} />
+
+                      {/* New uploads previews */}
+                      {newFilePreviews.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-sm text-muted-foreground">New Images</div>
+                          <div className="grid grid-cols-3 gap-3">
+                            {newFilePreviews.map((p, i) => (
+                              <div key={i} className="relative rounded overflow-hidden border border-border">
+                                <img src={p} alt={`Preview ${i}`} className="h-24 w-full object-cover" />
+                                <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => { removeNewFile(i); }}><X className="h-3 w-3" /></Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-3 max-w-md">
+                        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center hover:bg-muted/80 transition-colors cursor-pointer" onClick={() => newFileInputRef.current?.click()}>
+                          <Upload className="h-6 w-6 text-muted-foreground" />
+                          <div className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</div>
+                          <div className="text-xs text-muted-foreground">PNG, JPG, WEBP (max 5MB) — You can add multiple images</div>
+                        </div>
+                        <div className="text-center text-sm text-muted-foreground">or</div>
+                        <Input placeholder="Enter image URL (one per line)" value={field.value} onChange={(e) => field.onChange(e.target.value)} />
+                      </div>
+
+                      <input ref={newFileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" multiple className="hidden" onChange={handleNewFilesSelected} />
                     </div>
                   </FormControl>
                   <FormMessage />
