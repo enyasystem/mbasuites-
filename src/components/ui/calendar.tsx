@@ -8,6 +8,17 @@ import { buttonVariants } from "@/components/ui/buttonVariants";
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+  // Provide a sensible default for `modifiersClassNames` so callers can pass a
+  // `booked` modifier and have it visually highlighted.
+  const defaultModifiersClassNames = {
+    booked: "bg-destructive text-destructive-foreground",
+  } as Record<string, string>;
+
+  const mergedModifiersClassNames = {
+    ...defaultModifiersClassNames,
+    ...(props.modifiersClassNames || {}),
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -41,6 +52,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         day_hidden: "invisible",
         ...classNames,
       }}
+      modifiersClassNames={mergedModifiersClassNames}
       components={{
         IconLeft: (props) => <ChevronLeft className="h-4 w-4" {...props} />,
         IconRight: (props) => <ChevronRight className="h-4 w-4" {...props} />,

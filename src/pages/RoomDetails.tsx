@@ -337,6 +337,7 @@ const RoomDetails = () => {
                                 mode="single"
                                 components={calendarComponents}
                                 selected={checkIn}
+                                modifiers={{ booked: disabledDays }}
                                 onSelect={(date) => {
                                     setCheckIn(date as Date);
                                     // Delay closing slightly to ensure DayPicker selection finishes,
@@ -497,10 +498,11 @@ const RoomDetails = () => {
                           mode="single"
                           components={calendarComponents}
                           selected={checkIn}
+                          modifiers={{ booked: disabledDays }}
                           onSelect={(date) => {
                             setCheckIn(date as Date);
                             // Delay closing slightly to ensure DayPicker selection finishes,
-                            // then auto-open the desktop check-out popover.
+                            // then auto-open the check-out popover for the next selection.
                             setTimeout(() => {
                               setCheckInOpen(false);
                               setTimeout(() => setCheckOutOpen(true), 100);
@@ -581,7 +583,7 @@ const RoomDetails = () => {
 
             <Card className="p-4">
               <h4 className="text-sm font-semibold mb-2">Availability</h4>
-              <CalendarComponent mode="single" components={calendarComponents} disabled={[{ before: new Date() }, ...disabledDays]} />
+              <CalendarComponent mode="single" components={calendarComponents} modifiers={{ booked: disabledDays }} disabled={[{ before: new Date() }, ...disabledDays]} />
               <div className="flex items-center gap-3 mt-3">
                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
                 <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
