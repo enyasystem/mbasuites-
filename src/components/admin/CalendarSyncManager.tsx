@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -53,13 +53,20 @@ export default function CalendarSyncManager() {
     ical_url: "",
   });
 
-  const supabaseUrl = "https://vedsoyletjvbjfrcbasy.supabase.co";
-
-  useEffect(() => {
-    fetchData();
+  // Helper to convert unknown errors to readable string (stable reference)
+  const getErrorMessage = useCallback((err: unknown) => {
+    if (!err) return 'Unknown error';
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'object' && err) {
+      const obj = err as Record<string, unknown>;
+      if (typeof obj['message'] === 'string') return obj['message'] as string;
+    }
+    return String(err);
   }, []);
 
-  const fetchData = async () => {
+  const supabaseUrl = "https://vedsoyletjvbjfrcbasy.supabase.co";
+
+  const fetchData = useCallback(async () => {
     try {
       const [calendarsRes, roomsRes] = await Promise.all([
         supabase.from('external_calendars').select('*').order('created_at', { ascending: false }),
@@ -71,17 +78,21 @@ export default function CalendarSyncManager() {
 
       setCalendars(calendarsRes.data || []);
       setRooms(roomsRes.data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching data:', error);
       toast({
         title: "Error",
-        description: "Failed to load calendar data",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getErrorMessage]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAddCalendar = async () => {
     if (!newCalendar.room_id || !newCalendar.ical_url) {
@@ -108,11 +119,11 @@ export default function CalendarSyncManager() {
       setNewCalendar({ room_id: "", platform: "airbnb", ical_url: "" });
       setShowAddForm(false);
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding calendar:', error);
       toast({
         title: "Error",
-        description: "Failed to add calendar",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -133,11 +144,11 @@ export default function CalendarSyncManager() {
       });
 
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting calendar:', error);
       toast({
         title: "Error",
-        description: "Failed to remove calendar",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -155,7 +166,7 @@ export default function CalendarSyncManager() {
       setCalendars(prev =>
         prev.map(c => c.id === id ? { ...c, sync_enabled: enabled } : c)
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling sync:', error);
     }
   };
@@ -163,23 +174,25 @@ export default function CalendarSyncManager() {
   const handleSyncCalendar = async (calendarId: string) => {
     setIsSyncing(calendarId);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-calendars', {
+      const { data, error } = await supabase.functions.invoke<{ eventsImported: number }>('sync-calendars', {
         body: { action: 'sync_one', calendar_id: calendarId },
       });
 
       if (error) throw error;
 
+      const eventsImported = (data as { eventsImported: number } | undefined)?.eventsImported || 0;
+
       toast({
         title: "Sync Complete",
-        description: `Imported ${data.eventsImported} blocked dates`,
+        description: `Imported ${eventsImported} blocked dates`,
       });
 
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing calendar:', error);
       toast({
         title: "Sync Failed",
-        description: error.message || "Failed to sync calendar",
+        description: getErrorMessage(error) || "Failed to sync calendar",
         variant: "destructive",
       });
     } finally {
@@ -190,24 +203,24 @@ export default function CalendarSyncManager() {
   const handleSyncAll = async () => {
     setIsSyncing('all');
     try {
-      const { data, error } = await supabase.functions.invoke('sync-calendars', {
+      const { data, error } = await supabase.functions.invoke<{ results?: Array<{ id: string; success: boolean; error?: string }> }>('sync-calendars', {
         body: { action: 'sync_all' },
       });
 
       if (error) throw error;
 
-      const successful = data.results?.filter((r: any) => r.success).length || 0;
+      const successful = (data as { results?: Array<{ id: string; success: boolean; error?: string }> } | undefined)?.results?.filter(r => r.success).length || 0;
       toast({
         title: "Sync Complete",
         description: `Successfully synced ${successful} calendars`,
       });
 
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing all:', error);
       toast({
         title: "Sync Failed",
-        description: error.message || "Failed to sync calendars",
+        description: getErrorMessage(error) || "Failed to sync calendars",
         variant: "destructive",
       });
     } finally {
