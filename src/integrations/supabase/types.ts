@@ -551,6 +551,22 @@ export type Database = {
           source: string
         }[]
       }
+      get_room_unavailability: {
+        Args: { p_room_id: string }
+        Returns: {
+          start_date: string
+          end_date: string
+          source: string
+        }[]
+      }
+      get_room_blockers: {
+        Args: { p_room_id: string; p_check_in: string; p_check_out: string }
+        Returns: {
+          start_date: string
+          end_date: string
+          source: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

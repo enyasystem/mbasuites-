@@ -62,7 +62,8 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
     setLoading(true);
 
     try {
-      const userName = (user?.user_metadata as any)?.full_name || user?.email || "Guest";
+      const metadata = user?.user_metadata as unknown as Record<string, unknown> | undefined;
+      const userName = typeof metadata?.full_name === 'string' ? metadata.full_name : (user?.email ?? "Guest");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- supabase client types don't include 'reviews' table yet
       const { data: insertData, error } = await (supabase as any)
@@ -88,11 +89,12 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
       reset();
 
       if (onReviewSubmitted) onReviewSubmitted();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error submitting review:", err);
+      const e = err as { message?: string };
       toast({
         title: "Failed to submit review",
-        description: err?.message || String(err),
+        description: e?.message || String(err),
         variant: "destructive",
       });
     } finally {

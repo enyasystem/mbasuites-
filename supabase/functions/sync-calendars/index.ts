@@ -1,6 +1,13 @@
+// The runtime is Deno on Supabase Functions. The TypeScript server in VS Code
+// may not be able to resolve the remote modules; ignore type checking for these imports.
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-ignore: Remote import (Deno runtime)
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// @ts-ignore: Remote import (Deno runtime)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore: Remote import (Deno runtime)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+/* eslint-enable @typescript-eslint/ban-ts-comment */
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -85,18 +92,22 @@ function parseICalDate(dateStr: string): string {
   return dateStr;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => { // typed as Web API Request for clarity
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Deno.env may not be visible to the TypeScript language server; access via globalThis with a narrow helper
+    const denoGet = (globalThis as unknown as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get;
+    if (!denoGet) throw new Error('Deno.env.get is not available in this environment');
+    const supabaseUrl = denoGet('SUPABASE_URL');
+    const supabaseServiceKey = denoGet('SUPABASE_SERVICE_ROLE_KEY');
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    const { action, calendar_id, room_id } = await req.json();
+    const body = await req.json();
+    const { action, calendar_id, room_id } = body as { action?: string; calendar_id?: string; room_id?: string };
     console.log(`[sync-calendars] Action: ${action}, Calendar: ${calendar_id}, Room: ${room_id}`);
 
     if (action === 'sync_all') {
@@ -111,13 +122,14 @@ serve(async (req) => {
       console.log(`[sync-calendars] Found ${calendars?.length || 0} calendars to sync`);
 
       const results = [];
-      for (const calendar of calendars || []) {
+      for (const calendar of (calendars || []) as Array<ExternalCalendarRow>) {
         try {
           const result = await syncCalendar(supabase, calendar);
           results.push({ id: calendar.id, success: true, ...result });
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error(`[sync-calendars] Error syncing calendar ${calendar.id}:`, err);
-          results.push({ id: calendar.id, success: false, error: err.message });
+          const e = err as { message?: string };
+          results.push({ id: calendar.id, success: false, error: e?.message });
         }
       }
 
@@ -157,16 +169,41 @@ serve(async (req) => {
       throw new Error('Invalid action or missing parameters');
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[sync-calendars] Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const e = error as { message?: string };
+    return new Response(JSON.stringify({ error: e?.message || String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
 
-async function syncCalendar(supabase: any, calendar: any) {
+type ExternalCalendarRow = {
+  id: string;
+  ical_url: string;
+  room_id: string;
+  platform?: string;
+};
+
+// Minimal supabase client shape used by this function to avoid importing remote types
+type SupabaseFrom = {
+  select: (...args: unknown[]) => Promise<{ data: unknown; error: unknown }>;
+  delete?: (...args: unknown[]) => Promise<{ error: unknown }>;
+  insert?: (rows: unknown[]) => Promise<{ error: unknown }>;
+  update?: (obj: unknown) => { eq: (col: string, val: unknown) => Promise<unknown> } | Promise<unknown>;
+  eq?: (col: string, val: unknown) => unknown;
+  single?: () => Promise<{ data: unknown; error: unknown }>;
+  gte?: (col: string, val: unknown) => unknown;
+  neq?: (col: string, val: unknown) => unknown;
+};
+
+type SupabaseLike = {
+  from: (table: string) => SupabaseFrom;
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function syncCalendar(supabaseClient: any, calendar: ExternalCalendarRow) {
   console.log(`[sync-calendars] Fetching iCal from: ${calendar.ical_url}`);
   
   // Fetch iCal data
@@ -178,12 +215,16 @@ async function syncCalendar(supabase: any, calendar: any) {
   const icalData = await response.text();
   console.log(`[sync-calendars] Received ${icalData.length} bytes of iCal data`);
   
+  // Defensive: ensure calendar.room_id exists
+  if (!calendar.room_id) {
+    throw new Error('Calendar missing room_id');
+  }  
   // Parse events
   const events = parseICalEvents(icalData);
   console.log(`[sync-calendars] Parsed ${events.length} events`);
   
   // Delete existing blocked dates for this calendar
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await (supabaseClient as any)
     .from('blocked_dates')
     .delete()
     .eq('external_calendar_id', calendar.id);
@@ -201,7 +242,7 @@ async function syncCalendar(supabase: any, calendar: any) {
   }));
   
   if (blockedDates.length > 0) {
-    const { error: insertError } = await supabase
+    const { error: insertError } = await (supabaseClient as any)
       .from('blocked_dates')
       .insert(blockedDates);
     
@@ -209,24 +250,26 @@ async function syncCalendar(supabase: any, calendar: any) {
   }
   
   // Update last synced timestamp
-  await supabase
+  await (supabaseClient as any)
     .from('external_calendars')
     .update({ last_synced_at: new Date().toISOString() })
     .eq('id', calendar.id);
   
   return { eventsImported: events.length };
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
-async function generateICalExport(supabase: any, roomId: string) {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function generateICalExport(supabaseClient: any, roomId: string) {
   // Get room info
-  const { data: room } = await supabase
+  const { data: room } = await (supabaseClient as any)
     .from('rooms')
     .select('title, room_number')
     .eq('id', roomId)
     .single();
   
   // Get bookings for the room
-  const { data: bookings } = await supabase
+  const { data: bookings } = await (supabaseClient as any)
     .from('bookings')
     .select('*')
     .eq('room_id', roomId)
@@ -242,18 +285,18 @@ METHOD:PUBLISH
 X-WR-CALNAME:${room?.title || 'Room'} - ${room?.room_number || roomId}
 `;
 
-  for (const booking of bookings || []) {
-    const uid = `booking-${booking.id}@mbasuites.com`;
-    const created = booking.created_at.replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const dtstart = booking.check_in_date.replace(/-/g, '');
-    const dtend = booking.check_out_date.replace(/-/g, '');
+  for (const booking of (bookings || []) as Array<Record<string, unknown>>) {
+    const uid = `booking-${String(booking['id'])}@mbasuites.com`;
+    const created = (String(booking['created_at'] || '')).replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const dtstart = (String(booking['check_in_date'] || '')).replace(/-/g, '');
+    const dtend = (String(booking['check_out_date'] || '')).replace(/-/g, '');
     
     ical += `BEGIN:VEVENT
 UID:${uid}
 DTSTAMP:${created}
 DTSTART;VALUE=DATE:${dtstart}
 DTEND;VALUE=DATE:${dtend}
-SUMMARY:Booked - ${booking.guest_name || 'Guest'}
+SUMMARY:Booked - ${String(booking['guest_name'] || 'Guest')}
 STATUS:CONFIRMED
 END:VEVENT
 `;
@@ -263,3 +306,4 @@ END:VEVENT
   
   return ical;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

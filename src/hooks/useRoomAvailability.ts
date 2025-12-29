@@ -20,41 +20,27 @@ export const useRoomAvailability = (roomId: string | undefined) => {
     const fetchUnavailableDates = async () => {
       setIsLoading(true);
       try {
-        // Get bookings for this room
-        const { data: bookings, error: bookingsError } = await supabase
-          .from('bookings')
-          .select('check_in_date, check_out_date')
-          .eq('room_id', roomId)
-          .neq('status', 'cancelled');
+        // Use a security-definer RPC to fetch combined booking & blocked date ranges.
+        const { data, error } = await supabase.rpc('get_room_unavailability', { p_room_id: roomId });
+        if (error) throw error;
 
-        if (bookingsError) throw bookingsError;
-
-        // Get blocked dates from external calendars
-        const { data: blocked, error: blockedError } = await supabase
-          .from('blocked_dates')
-          .select('start_date, end_date')
-          .eq('room_id', roomId);
-
-        if (blockedError) throw blockedError;
-
-        // Combine all date ranges and expand to individual dates
         const allDates: Date[] = [];
-        
+
         const addDateRange = (startStr: string, endStr: string) => {
           const start = new Date(startStr);
           const end = new Date(endStr);
           const current = new Date(start);
 
           // Make the range inclusive of the end date so the check-out date is
-          // treated as unavailable as well (per product requirement).
+          // treated as unavailable as well.
           while (current <= end) {
             allDates.push(new Date(current));
             current.setDate(current.getDate() + 1);
           }
         };
 
-        bookings?.forEach(b => addDateRange(b.check_in_date, b.check_out_date));
-        blocked?.forEach(b => addDateRange(b.start_date, b.end_date));
+        const rows = (data as Array<{ start_date: string; end_date: string }>) || [];
+        rows.forEach(r => addDateRange(r.start_date, r.end_date));
 
         setUnavailableDates(allDates);
       } catch (error) {
@@ -75,6 +61,18 @@ export const useRoomAvailability = (roomId: string | undefined) => {
           event: '*',
           schema: 'public',
           table: 'bookings',
+          filter: `room_id=eq.${roomId}`,
+        },
+        () => {
+          fetchUnavailableDates();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'blocked_dates',
           filter: `room_id=eq.${roomId}`,
         },
         () => {
@@ -112,35 +110,21 @@ export const useRoomAvailability = (roomId: string | undefined) => {
         const checkInStr = checkIn.toISOString().split('T')[0];
         const checkOutStr = checkOut.toISOString().split('T')[0];
 
-        // Check bookings
-        const { data: bookings } = await supabase
-          .from('bookings')
-          .select('check_in_date, check_out_date')
-          .eq('room_id', roomId)
-          .neq('status', 'cancelled')
-          .lt('check_in_date', checkOutStr)
-          .gt('check_out_date', checkInStr);
+        // Use a security-definer RPC to fetch blocking ranges so anonymous users
+        // can retrieve blocking details without RLS interfering with direct table reads.
+        const { data: blockers, error: blockersErr } = await supabase.rpc('get_room_blockers', {
+          p_room_id: roomId,
+          p_check_in: checkInStr,
+          p_check_out: checkOutStr,
+        });
 
-        // Check blocked dates
-        const { data: blocked } = await supabase
-          .from('blocked_dates')
-          .select('start_date, end_date, summary')
-          .eq('room_id', roomId)
-          .lt('start_date', checkOutStr)
-          .gt('end_date', checkInStr);
+        if (blockersErr) throw blockersErr;
 
-        blockedDates = [
-          ...(bookings?.map(b => ({
-            start_date: b.check_in_date,
-            end_date: b.check_out_date,
-            source: 'Direct Booking',
-          })) || []),
-          ...(blocked?.map(b => ({
-            start_date: b.start_date,
-            end_date: b.end_date,
-            source: b.summary || 'External Booking',
-          })) || []),
-        ];
+        blockedDates = (blockers || []).map((b: { start_date: string; end_date: string; source?: string }) => ({
+          start_date: b.start_date,
+          end_date: b.end_date,
+          source: b.source ?? 'External Booking',
+        }));
       }
 
       return { available: !!data, blockedDates };
