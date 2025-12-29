@@ -106,8 +106,55 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
     const supabaseServiceKey = denoGet('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    const body = await req.json();
-    const { action, calendar_id, room_id } = body as { action?: string; calendar_id?: string; room_id?: string };
+    // Support GET requests (for external calendar platforms fetching .ics) as well as JSON POST bodies
+    let action: string | undefined;
+    let calendar_id: string | undefined;
+    let room_id: string | undefined;
+
+    // Log request details for diagnostics
+    console.log(`[sync-calendars] Incoming request: method=${req.method}, url=${req.url}, content-type=${req.headers.get('content-type')}`);
+
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      action = url.searchParams.get('action') || undefined;
+      calendar_id = url.searchParams.get('calendar_id') || undefined;
+      room_id = url.searchParams.get('room_id') || undefined;
+
+      // Support a friendly .ics path like /.../sync-calendars/<room_id>.ics
+      const pathname = url.pathname;
+      const m = pathname.match(/\/([^/]+)\.ics$/);
+      if (m && !room_id) {
+        room_id = m[1];
+        action = 'export_ical';
+      }
+    } else {
+      // Only attempt to parse JSON if Content-Type indicates JSON to avoid "Unexpected end of JSON input"
+      const contentType = req.headers.get('content-type') || '';
+      type RequestBody = { action?: string; calendar_id?: string; room_id?: string; [k: string]: unknown };
+      let body: RequestBody = {};
+      if (contentType.includes('application/json')) {
+        try {
+          body = await req.json() as RequestBody;
+        } catch (err) {
+          console.log('[sync-calendars] Failed to parse JSON body:', String(err));
+          body = {};
+        }
+      } else {
+        // As a fallback, try to extract params from the URL (for some proxies that forward POST with query params)
+        try {
+          const url = new URL(req.url);
+          action = action || url.searchParams.get('action') || undefined;
+          calendar_id = calendar_id || url.searchParams.get('calendar_id') || undefined;
+          room_id = room_id || url.searchParams.get('room_id') || undefined;
+        } catch (e) {
+          // ignore
+        }
+      }
+      action = action || body?.action;
+      calendar_id = calendar_id || body?.calendar_id;
+      room_id = room_id || body?.room_id;
+    }
+
     console.log(`[sync-calendars] Action: ${action}, Calendar: ${calendar_id}, Room: ${room_id}`);
 
     if (action === 'sync_all') {

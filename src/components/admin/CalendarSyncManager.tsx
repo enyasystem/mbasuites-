@@ -216,7 +216,10 @@ export default function CalendarSyncManager() {
   };
 
   const copyExportUrl = (roomId: string) => {
-    const url = `${supabaseUrl}/functions/v1/sync-calendars?action=export_ical&room_id=${roomId}`;
+    // Use a friendlier .ics URL that many platforms expect (e.g., Airbnb):
+    // https://<host>/functions/v1/sync-calendars/<roomId>.ics?t=<token>&locale=en
+    // We include a simple token parameter for compatibility (here using roomId as a token placeholder).
+    const url = `${supabaseUrl}/functions/v1/sync-calendars/${roomId}.ics?t=${encodeURIComponent(roomId)}&locale=en`;
     navigator.clipboard.writeText(url);
     toast({
       title: "URL Copied",
