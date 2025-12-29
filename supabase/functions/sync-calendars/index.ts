@@ -105,6 +105,20 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
     // ignore logging errors
   }
 
+  // Health check to confirm deployed code (returns small JSON when ?health=1)
+  try {
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      if (url.searchParams.get('health') === '1') {
+        return new Response(JSON.stringify({ status: 'ok', version: 'sync-calendars-2025-12-29-16-25' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   try {
     // Lightweight early return to handle simple GET debug requests without touching env or DB
     try {
