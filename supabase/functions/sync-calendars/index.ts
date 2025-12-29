@@ -98,6 +98,13 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Log immediately to capture incoming requests even if env setup fails
+  try {
+    console.log(`[sync-calendars] Received request: method=${req.method}, url=${req.url}`);
+  } catch (e) {
+    // ignore logging errors
+  }
+
   try {
     // Deno.env may not be visible to the TypeScript language server; access via globalThis with a narrow helper
     const denoGet = (globalThis as unknown as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get;
@@ -252,8 +259,9 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
 
   } catch (error: unknown) {
     console.error('[sync-calendars] Error:', error);
-    const e = error as { message?: string };
-    return new Response(JSON.stringify({ error: e?.message || String(error) }), {
+    const e = error as { message?: string; stack?: string };
+    // Include stack for debugging; ensure not to leak secrets in production
+    return new Response(JSON.stringify({ error: e?.message || String(error), stack: e?.stack || null }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
