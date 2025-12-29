@@ -9,16 +9,16 @@ AS $$
 BEGIN
   -- Bookings (non-sensitive fields only)
   RETURN QUERY
-  SELECT check_in_date::date, check_out_date::date, 'Direct Booking'::text
-  FROM public.bookings
-  WHERE room_id = p_room_id
-    AND status NOT IN ('cancelled');
+  SELECT b.check_in_date::date, b.check_out_date::date, 'Direct Booking'::text
+  FROM public.bookings b
+  WHERE b.room_id = p_room_id
+    AND b.status NOT IN ('cancelled');
 
   -- External blocked dates
   RETURN QUERY
-  SELECT start_date::date, end_date::date, COALESCE(summary, 'External Booking')::text
-  FROM public.blocked_dates
-  WHERE room_id = p_room_id;
+  SELECT bd.start_date::date, bd.end_date::date, COALESCE(bd.summary, 'External Booking')::text
+  FROM public.blocked_dates bd
+  WHERE bd.room_id = p_room_id;
 
 END;
 $$;

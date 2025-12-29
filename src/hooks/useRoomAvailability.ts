@@ -26,15 +26,21 @@ export const useRoomAvailability = (roomId: string | undefined) => {
 
         const allDates: Date[] = [];
 
+        const parseDateOnly = (s: string) => {
+          // Accept either 'YYYY-MM-DD' or full timestamp strings returned by the DB.
+          const d = new Date(s);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        };
+
         const addDateRange = (startStr: string, endStr: string) => {
-          const start = new Date(startStr);
-          const end = new Date(endStr);
+          const start = parseDateOnly(startStr);
+          const end = parseDateOnly(endStr);
           const current = new Date(start);
 
           // Make the range inclusive of the end date so the check-out date is
           // treated as unavailable as well.
           while (current <= end) {
-            allDates.push(new Date(current));
+            allDates.push(new Date(current.getFullYear(), current.getMonth(), current.getDate()));
             current.setDate(current.getDate() + 1);
           }
         };

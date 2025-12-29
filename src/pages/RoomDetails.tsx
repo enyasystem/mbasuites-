@@ -155,6 +155,17 @@ const RoomDetails = () => {
   // Helpers for date disabling using unavailable dates from the availability hook
   const isUnavailableDate = (d: Date) => isDateUnavailable(d);
 
+  // Normalized list of disabled day-only dates for DayPicker to ensure selection
+  // is prevented (avoids timezone/time component mismatches).
+  const disabledDays = unavailableDates.map(d => new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+  // Debug: log counts and sample values to verify DayPicker receives correct disabled dates
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log('RoomDetails disabledDays count:', disabledDays.length, 'sample:', disabledDays.slice(0, 5));
+    // eslint-disable-next-line no-console
+    console.log('RoomDetails unavailableDates count:', unavailableDates.length, 'sample:', unavailableDates.slice(0,5));
+  }
+
   const isCheckOutDisabled = (d: Date) => {
     // Don't allow selecting past dates
     if (d < new Date()) return true;
@@ -335,7 +346,7 @@ const RoomDetails = () => {
                                       setTimeout(() => setCheckOutOpenMobile(true), 100);
                                     }, 150);
                                 }}
-                                disabled={(date) => date < new Date() || isUnavailableDate(date)}
+                                disabled={[{ before: new Date() }, ...disabledDays]}
                               />
                               <div className="flex items-center gap-3 mt-2">
                                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
@@ -495,7 +506,7 @@ const RoomDetails = () => {
                               setTimeout(() => setCheckOutOpen(true), 100);
                             }, 150);
                           }}
-                          disabled={(date) => date < new Date() || isUnavailableDate(date)}
+                          disabled={[{ before: new Date() }, ...disabledDays]}
                         />
                         <div className="flex items-center gap-3 mt-2">
                           <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
@@ -570,7 +581,7 @@ const RoomDetails = () => {
 
             <Card className="p-4">
               <h4 className="text-sm font-semibold mb-2">Availability</h4>
-              <CalendarComponent mode="single" components={calendarComponents} disabled={(date) => date < new Date() || isUnavailableDate(date)} />
+              <CalendarComponent mode="single" components={calendarComponents} disabled={[{ before: new Date() }, ...disabledDays]} />
               <div className="flex items-center gap-3 mt-3">
                 <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
                 <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
