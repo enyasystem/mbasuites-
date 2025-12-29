@@ -157,6 +157,40 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
 
     console.log(`[sync-calendars] Action: ${action}, Calendar: ${calendar_id}, Room: ${room_id}`);
 
+    // If debug=1 is present, return useful diagnostic info (no secrets)
+    try {
+      const urlObj = new URL(req.url);
+      if (urlObj.searchParams.get('debug') === '1') {
+        const headersObj: Record<string, string> = {};
+        req.headers.forEach((v, k) => {
+          const lk = k.toLowerCase();
+          if (lk === 'authorization' || lk === 'apikey') headersObj[k] = '***';
+          else headersObj[k] = v;
+        });
+
+        let roomCheck: boolean | string | null = null;
+        if (room_id) {
+          try {
+            const { data: room, error: roomError } = await supabase
+              .from('rooms')
+              .select('id')
+              .eq('id', room_id)
+              .single();
+            if (roomError) roomCheck = `error: ${String(roomError)}`;
+            else roomCheck = !!room;
+          } catch (e) {
+            roomCheck = `exception: ${String(e)}`;
+          }
+        }
+
+        return new Response(JSON.stringify({ debug: true, method: req.method, action, room_id, headers: headersObj, roomExists: roomCheck }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } catch (e) {
+      console.log('[sync-calendars] Debug path error:', String(e));
+    }
+
     if (action === 'sync_all') {
       // Sync all enabled calendars
       const { data: calendars, error: calError } = await supabase
