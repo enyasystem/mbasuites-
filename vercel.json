@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/sync-calendars/:roomId.ics", "destination": "https://vedsoyletjvbjfrcbasy.supabase.co/functions/v1/sync-calendars/:roomId.ics" },
+    { "source": "/sync-calendars/:roomId.ics", "destination": "https://ehpdimadogtqzarriuzz.supabase.co/functions/v1/sync-calendars/:roomId.ics" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
