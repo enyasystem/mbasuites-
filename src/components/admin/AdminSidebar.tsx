@@ -65,7 +65,7 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
         <div className="flex items-center gap-2 px-2 py-3">
           <div className="flex items-center justify-center rounded-lg overflow-hidden">
             <Link to="/" aria-label="Home">
-              <img src="/logo.png" alt="MBA" className="h-8 w-auto block" />
+              <img src="/mba_suites_logo.png" alt="MBA" className="h-8 w-auto block" />
             </Link>
           </div>
           {!collapsed && (
