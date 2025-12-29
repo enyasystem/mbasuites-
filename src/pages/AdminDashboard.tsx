@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             <SidebarTrigger />
             <div className="flex items-center gap-4">
               <Link to="/" aria-label="Home">
-                <img src="/logo.png" alt="MBA Suites" className="h-10 w-auto" />
+                <img src="/mba_suites_logo.png" alt="MBA Suites" className="h-10 w-auto" />
               </Link>
               <div>
                 <h1 className="text-lg font-semibold">Admin Dashboard</h1>
