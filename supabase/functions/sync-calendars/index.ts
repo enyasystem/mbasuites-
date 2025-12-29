@@ -106,6 +106,23 @@ serve(async (req: Request) => { // typed as Web API Request for clarity
   }
 
   try {
+    // Lightweight early return to handle simple GET debug requests without touching env or DB
+    try {
+      const urlForDebug = new URL(req.url);
+      if (req.method === 'GET') {
+        const pathname = urlForDebug.pathname;
+        const m = pathname.match(/\/([^/]+)\.ics$/);
+        const room_id_derived = m ? m[1] : urlForDebug.searchParams.get('room_id') || undefined;
+        if (urlForDebug.searchParams.get('debug') === '1') {
+          return new Response(JSON.stringify({ debug: true, method: req.method, room_id: room_id_derived, headers: Object.fromEntries(req.headers) }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    } catch (e) {
+      console.log('[sync-calendars] Early debug handler error:', String(e));
+    }
+
     // Deno.env may not be visible to the TypeScript language server; access via globalThis with a narrow helper
     const denoGet = (globalThis as unknown as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get;
     if (!denoGet) throw new Error('Deno.env.get is not available in this environment');
