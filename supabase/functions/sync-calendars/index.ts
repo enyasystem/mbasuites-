@@ -426,14 +426,14 @@ X-WR-CALNAME:${room?.title || 'Room'} - ${room?.room_number || roomId}
     }
 
     ical += `BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${created}
-DTSTART;VALUE=DATE:${dtstart}
-    DTEND;VALUE=DATE:${dtendForIcal}
-SUMMARY:Booked - ${String(booking['guest_name'] || 'Guest')}
-STATUS:CONFIRMED
-END:VEVENT
-`;
+  UID:${uid}
+  DTSTAMP:${created}
+  DTSTART;VALUE=DATE:${dtstart}
+  DTEND;VALUE=DATE:${dtendForIcal}
+  SUMMARY:Booked - ${String(booking['guest_name'] || 'Guest')}
+  STATUS:CONFIRMED
+  END:VEVENT
+  `;
   }
 
   ical += 'END:VCALENDAR';
