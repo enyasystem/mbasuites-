@@ -409,13 +409,27 @@ X-WR-CALNAME:${room?.title || 'Room'} - ${room?.room_number || roomId}
     const uid = `booking-${String(booking['id'])}@mbasuites.com`;
     const created = (String(booking['created_at'] || '')).replace(/[-:]/g, '').split('.')[0] + 'Z';
     const dtstart = (String(booking['check_in_date'] || '')).replace(/-/g, '');
-    const dtend = (String(booking['check_out_date'] || '')).replace(/-/g, '');
-    
+    // For iCal all-day events, DTEND is exclusive. Add one day to the stored check_out_date
+    // so the exported event covers the guest's last night correctly.
+    const rawCheckOut = (String(booking['check_out_date'] || '')).replace(/-/g, '');
+    let dtendForIcal = rawCheckOut;
+    try {
+      const y = parseInt(rawCheckOut.substring(0, 4), 10);
+      const m = parseInt(rawCheckOut.substring(4, 6), 10) - 1;
+      const d = parseInt(rawCheckOut.substring(6, 8), 10);
+      const date = new Date(Date.UTC(y, m, d));
+      date.setUTCDate(date.getUTCDate() + 1);
+      dtendForIcal = date.toISOString().slice(0, 10).replace(/-/g, '');
+    } catch (e) {
+      // If parsing fails, fall back to the raw value
+      dtendForIcal = rawCheckOut;
+    }
+
     ical += `BEGIN:VEVENT
 UID:${uid}
 DTSTAMP:${created}
 DTSTART;VALUE=DATE:${dtstart}
-DTEND;VALUE=DATE:${dtend}
+    DTEND;VALUE=DATE:${dtendForIcal}
 SUMMARY:Booked - ${String(booking['guest_name'] || 'Guest')}
 STATUS:CONFIRMED
 END:VEVENT
