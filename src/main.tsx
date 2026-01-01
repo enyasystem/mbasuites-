@@ -24,14 +24,19 @@ const queryClient = new QueryClient({
 });
 
 // Persist cache to localStorage so data survives reloads
-let _persister: any = null;
+let _persister: ReturnType<typeof createSyncStoragePersister> | null = null;
 try {
   if (typeof window !== 'undefined' && window.localStorage) {
     _persister = createSyncStoragePersister({ storage: window.localStorage });
-    persistQueryClient({ queryClient, persister: _persister, maxAge: 1000 * 60 * 60 * 24 });
+    // Use a narrow unknown-based wrapper to avoid `any` while still
+    // accommodating minor type mismatches between package versions.
+    const _persist = persistQueryClient as unknown as (
+      opts: { queryClient: QueryClient; persister: unknown; maxAge?: number }
+    ) => void;
+    _persist({ queryClient, persister: _persister, maxAge: 1000 * 60 * 60 * 24 });
   }
 } catch (e) {
-  // ignore persistence errors
+  console.warn('Query cache persistence init failed', e);
 }
 
 // Setup Supabase realtime listeners to invalidate queries when relevant tables change
@@ -59,21 +64,29 @@ try {
 // Wait for persisted cache to restore before rendering so UI can read cached values synchronously
 (async () => {
   try {
-    if (_persister && typeof _persister.restoreClient === 'function') {
+    if (_persister) {
+      // Narrow the persister shape using `unknown` to satisfy eslint no-explicit-any
+      const p = _persister as unknown as {
+        restoreClient?: (qc: QueryClient) => Promise<void>;
+        restore?: (qc: QueryClient) => Promise<void>;
+      };
       try {
-        await _persister.restoreClient(queryClient);
-      } catch (e) {
-        // some persisters expose restore differently; attempt generic call
-        try { await (_persister as any).restore?.(queryClient); } catch (e) {}
+        if (typeof p.restoreClient === 'function') {
+          await p.restoreClient(queryClient);
+        } else if (typeof p.restore === 'function') {
+          await p.restore(queryClient);
+        }
+      } catch (errRestore) {
+        console.warn('Persister restore failed', errRestore);
       }
     }
 
-      // Remove any persisted siteSettings so the UI always shows the DB value (avoid stale hero image)
-      try {
-        queryClient.removeQueries({ queryKey: ['siteSettings'], exact: true });
-      } catch (e) {
-        /* ignore */
-      }
+    // Remove any persisted siteSettings so the UI always shows the DB value (avoid stale hero image)
+    try {
+      queryClient.removeQueries({ queryKey: ['siteSettings'], exact: true });
+    } catch (e) {
+      console.warn('Failed to remove persisted siteSettings', e);
+    }
 
     createRoot(rootEl).render(
       <QueryClientProvider client={queryClient}>
