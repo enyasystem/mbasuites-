@@ -48,9 +48,10 @@ const menuItems = [
 interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  hiddenTabs?: string[];
 }
 
-export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+export default function AdminSidebar({ activeTab, onTabChange, hiddenTabs }: AdminSidebarProps) {
   const { state } = useSidebar();
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -84,18 +85,20 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
-                  <SidebarMenuButton
-                    onClick={() => onTabChange(item.value)}
-                    isActive={activeTab === item.value}
-                    tooltip={item.title}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems
+                .filter((item) => !hiddenTabs || !hiddenTabs.includes(item.value))
+                .map((item) => (
+                  <SidebarMenuItem key={item.value}>
+                    <SidebarMenuButton
+                      onClick={() => onTabChange(item.value)}
+                      isActive={activeTab === item.value}
+                      tooltip={item.title}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

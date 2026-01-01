@@ -30,7 +30,7 @@ type Booking = {
   notes: string | null;
 };
 
-export default function BookingsManager() {
+export default function BookingsManager({ allowedLocationIds }: { allowedLocationIds?: string[] }) {
   const { formatPrice } = useCurrency();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -62,14 +62,15 @@ export default function BookingsManager() {
           created_at,
           notes,
           rooms (
-            title
+            title,
+            location_id
           )
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return (data || []).map((b: any) => ({
+      const mapped = (data || []).map((b: any) => ({
         id: b.id,
         guestName: b.guest_name,
         guestEmail: b.guest_email,
@@ -83,7 +84,14 @@ export default function BookingsManager() {
         currency: b.currency,
         createdAt: b.created_at,
         notes: b.notes,
+        _locationId: b.rooms?.location_id || null,
       }));
+
+      if (allowedLocationIds && allowedLocationIds.length > 0) {
+        return mapped.filter((m: any) => !m._locationId || allowedLocationIds.includes(m._locationId));
+      }
+
+      return mapped;
     },
   });
 

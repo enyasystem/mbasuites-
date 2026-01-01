@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { apiCall, showApiError } from '@/lib/api-utils';
 import type { GuestRegistrationForm } from '../../types/guestRegistration';
 
-export default function GuestRegistration() {
+export default function GuestRegistration({ assignedLocationId }: { assignedLocationId?: string }) {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<GuestRegistrationForm>({
     defaultValues: {
       full_name: '',
@@ -115,6 +115,8 @@ export default function GuestRegistration() {
       emergency_contact_phone: data.emergency_contact_phone || null,
       identification_attachment_url: attachment_url,
       hard_copy_attached: data.hard_copy_attached || false,
+      // associate registration with assigned location when available
+      ...(assignedLocationId ? { location_id: assignedLocationId } : {}),
       created_at: new Date().toISOString(),
     } as Record<string, unknown>;
 

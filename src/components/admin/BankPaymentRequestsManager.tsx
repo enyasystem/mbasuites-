@@ -25,7 +25,7 @@ type BankPaymentRequest = {
   created_at: string;
 };
 
-export default function BankPaymentRequestsManager() {
+export default function BankPaymentRequestsManager({ allowedLocationIds }: { allowedLocationIds?: string[] }) {
   const [requests, setRequests] = useState<BankPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<BankPaymentRequest | null>(null);
@@ -59,7 +59,33 @@ export default function BankPaymentRequestsManager() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      let allRequests = (data || []) as any[];
+
+      if (allowedLocationIds && allowedLocationIds.length > 0) {
+        // collect booking ids to check their rooms' locations
+        const bookingIds = Array.from(new Set(allRequests.filter(r => r.booking_id).map(r => r.booking_id)));
+        if (bookingIds.length > 0) {
+          const { data: bookingsData } = await supabase
+            .from('bookings')
+            .select(`id, room_id, rooms(location_id)`)
+            .in('id', bookingIds);
+
+          const bookingLocationMap: Record<string, string | null> = {};
+          (bookingsData || []).forEach((b: any) => {
+            bookingLocationMap[b.id] = b.rooms?.location_id || null;
+          });
+
+          allRequests = allRequests.filter((r) => {
+            if (!r.booking_id) return false; // only include requests tied to bookings with location
+            const loc = bookingLocationMap[r.booking_id];
+            return !loc || allowedLocationIds.includes(loc);
+          });
+        } else {
+          allRequests = [];
+        }
+      }
+
+      setRequests(allRequests || []);
     } catch (error) {
       console.error("Error fetching bank payment requests:", error);
       toast.error("Failed to load payment requests");

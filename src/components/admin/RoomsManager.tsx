@@ -80,7 +80,7 @@ const roomSchema = z.object({
 
 type RoomFormData = z.infer<typeof roomSchema>;
 
-export default function RoomsManager() {
+export default function RoomsManager({ allowedLocationIds }: { allowedLocationIds?: string[] }) {
   const { rooms, isLoading, addRoom, updateRoom, deleteRoom, toggleAvailability, addRoomImages, removeRoomImage } = useAdminRooms();
   const { locations } = useLocations();
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,14 +114,16 @@ export default function RoomsManager() {
 
   // Filter and paginate rooms
   const filteredRooms = useMemo(() => {
-    return rooms.filter(
-      (room) =>
-        room.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.room_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.room_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (room.location_name || "").toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [rooms, searchTerm]);
+    return rooms
+      .filter((room) => !allowedLocationIds || allowedLocationIds.length === 0 || !room.location_id || allowedLocationIds.includes(room.location_id))
+      .filter(
+        (room) =>
+          room.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          room.room_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          room.room_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (room.location_name || "").toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [rooms, searchTerm, allowedLocationIds]);
 
   const totalPages = Math.ceil(filteredRooms.length / ITEMS_PER_PAGE);
   const paginatedRooms = useMemo(() => {
@@ -141,6 +143,11 @@ export default function RoomsManager() {
       let uploadedUrls: string[] = [];
       if (newFiles.length > 0) {
         uploadedUrls = await uploadFiles(newFiles);
+      }
+
+      // enforce allowed location
+      if (allowedLocationIds && allowedLocationIds.length > 0 && data.location_id && !allowedLocationIds.includes(data.location_id)) {
+        throw new Error("You are not allowed to add rooms for that location.");
       }
 
       await addRoom({
@@ -179,6 +186,10 @@ export default function RoomsManager() {
       let uploadedUrls: string[] = [];
       if (newFiles.length > 0) {
         uploadedUrls = await uploadFiles(newFiles);
+      }
+
+      if (allowedLocationIds && allowedLocationIds.length > 0 && data.location_id && !allowedLocationIds.includes(data.location_id)) {
+        throw new Error("You are not allowed to move rooms to that location.");
       }
 
       await updateRoom(selectedRoom.id, {
