@@ -35,6 +35,7 @@ const menuItems = [
   { title: "Bookings", value: "bookings", icon: CalendarCheck },
   { title: "Rooms", value: "rooms", icon: Building2 },
   { title: "Hero", value: "hero", icon: Image },
+  { title: "Registered Guests", value: "guest-registrations", icon: Users },
   { title: "Calendar Sync", value: "sync", icon: RefreshCw },
   { title: "Analytics", value: "analytics", icon: BarChart3 },
   { title: "Staff", value: "staff", icon: Users },
