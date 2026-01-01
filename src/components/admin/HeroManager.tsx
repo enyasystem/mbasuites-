@@ -56,6 +56,10 @@ export default function HeroManager() {
     }
   }, [queryClient]);
 
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
   
 
   const saveSetting = async (key: string, value: string) => {
