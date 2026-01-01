@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from '@tanstack/react-query';
 
 type PaymentSetting = {
   setting_key: string;
@@ -23,11 +24,9 @@ export default function HeroManager() {
   );
   const [file, setFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const queryClient = useQueryClient();
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("site_settings")
@@ -39,6 +38,13 @@ export default function HeroManager() {
         if (s.setting_value) settings[s.setting_key] = s.setting_value;
       });
 
+      try {
+        // hydrate React Query cache so other components update immediately
+        queryClient.setQueryData(['siteSettings'], settings);
+      } catch (e) {
+        console.warn('Failed to set siteSettings cache', e);
+      }
+
       if (settings.hero_image) setHeroImageUrl(settings.hero_image);
       if (settings.hero_title) setTitle(settings.hero_title);
       if (settings.hero_subtitle) setSubtitle(settings.hero_subtitle);
@@ -48,7 +54,9 @@ export default function HeroManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryClient]);
+
+  
 
   const saveSetting = async (key: string, value: string) => {
     const { data, error } = await supabase
@@ -66,18 +74,28 @@ export default function HeroManager() {
     try {
       const filePath = `hero/${Date.now()}_${file.name}`;
       const bucket = "payment-proofs";
+      // Upload with minimal caching so new images appear immediately
       const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file, { cacheControl: "3600", upsert: true });
+        .upload(filePath, file, { cacheControl: "0", upsert: true });
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
-      const publicUrl = publicUrlData.publicUrl;
+      // Append a cache-busting query param so browsers/CDNs fetch the new image immediately
+      const publicUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
       const res = await saveSetting("hero_image", publicUrl);
       if (res) {
+        // Optimistically update query cache and local preview so UI reflects change immediately
+        try {
+          const existing = queryClient.getQueryData<Record<string, string>>(['siteSettings']) || {};
+          queryClient.setQueryData(['siteSettings'], { ...existing, hero_image: publicUrl });
+        } catch (e) {
+          console.warn('Failed to update siteSettings cache', e);
+        }
+        setHeroImageUrl(publicUrl);
         await fetchSettings();
         toast.success("Hero image uploaded and saved");
       }

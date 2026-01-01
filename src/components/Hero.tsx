@@ -1,7 +1,8 @@
 import heroImage from "@/assets/hero-hotel.jpg";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 
 type PaymentSetting = {
@@ -29,30 +30,30 @@ const Hero = () => {
     "Experience premium comfort in fully furnished apartments designed for modern living. Perfect for business and leisure stays."
   );
 
+  // Use React Query so we can read persisted cache instantly
+  type SiteSettings = Record<string, string>;
+  const { data: siteSettings } = useQuery<SiteSettings | undefined>({
+    queryKey: ['siteSettings'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('site_settings').select('setting_key, setting_value');
+      if (error) throw error;
+      const settings: Record<string, string> = {};
+      data?.forEach((s: PaymentSetting) => {
+        if (s.setting_value != null) settings[s.setting_key] = s.setting_value;
+      });
+      return settings;
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+
+  // Apply settings from cache / query result when available
   useEffect(() => {
-    let mounted = true;
-    const loadSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("site_settings")
-          .select("setting_key, setting_value");
-        if (error) throw error;
-        const settings: Record<string, string> = {};
-        data?.forEach((s: PaymentSetting) => {
-          if (s.setting_value) settings[s.setting_key] = s.setting_value;
-        });
-        if (!mounted) return;
-        if (settings.hero_image) setImageSrc(settings.hero_image);
-        if (settings.hero_title) setTitleText(settings.hero_title);
-        if (settings.hero_subtitle) setSubtitleText(settings.hero_subtitle);
-      } catch (err) {
-        // keep defaults on error
-        console.debug("Failed to load hero settings", err);
-      }
-    };
-    loadSettings();
-    return () => { mounted = false; };
-  }, []);
+    if (!siteSettings) return;
+    setImageSrc(prev => (siteSettings.hero_image && siteSettings.hero_image !== prev ? siteSettings.hero_image : prev));
+    setTitleText(prev => (siteSettings.hero_title && siteSettings.hero_title !== prev ? siteSettings.hero_title : prev));
+    setSubtitleText(prev => (siteSettings.hero_subtitle && siteSettings.hero_subtitle !== prev ? siteSettings.hero_subtitle : prev));
+  }, [siteSettings]);
 
   const titleLines = titleText.split("\n");
 
