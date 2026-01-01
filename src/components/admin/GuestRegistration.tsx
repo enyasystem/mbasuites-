@@ -74,9 +74,18 @@ export default function GuestRegistration() {
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('guest_ids')
           .upload(filePath, file, { cacheControl: '0' });
-        if (uploadError) throw uploadError;
-        const pub = supabase.storage.from('guest_ids').getPublicUrl(filePath) as { data?: { publicUrl?: string } };
-        attachment_url = pub.data?.publicUrl ?? null;
+
+        if (uploadError) {
+          const msg = (uploadError as any).message || (uploadError as any).error || JSON.stringify(uploadError);
+          if (typeof msg === 'string' && msg.toLowerCase().includes('bucket not found')) {
+            showApiError(new Error('Storage bucket "guest_ids" not found. Create a storage bucket named guest_ids in your Supabase project (Storage → New bucket).'), 'uploading identification');
+            return;
+          }
+          throw uploadError;
+        }
+
+        // For private buckets, store the object path so we can create signed URLs when needed.
+        attachment_url = filePath;
       } catch (err) {
         showApiError(err, 'uploading identification');
         return;

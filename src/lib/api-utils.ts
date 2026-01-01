@@ -37,6 +37,14 @@ export function handleApiError(error: unknown, context?: string): ApiError {
     }
   }
 
+  // Supabase storage / HTTP-style error objects sometimes come back with
+  // `statusCode`, `error` and `message` rather than a `code` property.
+  if (error && typeof error === "object" && ("statusCode" in error || "error" in error)) {
+    const e = error as any;
+    const msg = e.message || e.error || JSON.stringify(e);
+    return { message: msg };
+  }
+
   // Network error
   if (error instanceof TypeError && error.message === "Failed to fetch") {
     return { message: "Network error. Please check your internet connection." };
