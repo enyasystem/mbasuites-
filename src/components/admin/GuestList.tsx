@@ -11,6 +11,8 @@ type GuestRow = {
   id_number: string | null;
   identification_attachment_url: string | null;
   signedUrl?: string | null;
+  registered_by?: string | null;
+  registrant_name?: string | null;
   purpose: string | null;
   created_at: string | null;
   hard_copy_attached: boolean | null;
@@ -26,14 +28,25 @@ export default function GuestList() {
       if (res.error) throw res.error;
       const rows: GuestRow[] = res.data || [];
 
+      // Fetch registrant profiles for any rows that have registered_by set
+      const userIds = Array.from(new Set(rows.map(r => r.registered_by).filter(Boolean))) as string[];
+      let profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from('profiles').select('id, full_name, email').in('id', userIds);
+        (profiles || []).forEach((p: any) => {
+          profilesMap[p.id] = { full_name: p.full_name, email: p.email };
+        });
+      }
+
       // For private storage, convert stored object paths to signed URLs for viewing.
       const enhanced = await Promise.all(rows.map(async (r) => {
         const path = r.identification_attachment_url;
         console.debug('GuestList: stored path for row', r.id, path);
-        if (!path) return { ...r, signedUrl: null } as GuestRow;
+        const registrantName = profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null;
+        if (!path) return { ...r, signedUrl: null, registrant_name: registrantName } as GuestRow;
         if (path.startsWith('http')) {
           console.debug('GuestList: attachment already a public URL for row', r.id);
-          return { ...r, signedUrl: path } as GuestRow;
+          return { ...r, signedUrl: path, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         }
         try {
           const { data: signed, error } = await supabase.storage.from('guest_ids').createSignedUrl(path, 60);
@@ -45,14 +58,14 @@ export default function GuestList() {
             if (typeof errMsg === 'string' && (errMsg.toLowerCase().includes('bucket not found') || errMsg.toLowerCase().includes('guest_ids'))) {
               throw new Error('Storage bucket "guest_ids" not found');
             }
-            return { ...r, signedUrl: null } as GuestRow;
+            return { ...r, signedUrl: null, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
           }
-          return { ...r, signedUrl: signed.signedUrl } as GuestRow;
+          return { ...r, signedUrl: signed.signedUrl, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         } catch (err) {
           console.error('GuestList: exception creating signed url for path', path, 'row', r.id, err);
           // Re-throw bucket-not-found so the query hook can display actionable UI
           if (err instanceof Error && err.message.toLowerCase().includes('bucket not found')) throw err;
-          return { ...r, signedUrl: null } as GuestRow;
+          return { ...r, signedUrl: null, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         }
       }));
 
@@ -82,15 +95,16 @@ export default function GuestList() {
         <div className="overflow-x-auto">
           <table className="w-full table-auto border-collapse">
             <thead>
-              <tr className="text-left border-b">
-                <th className="p-2">Name</th>
-                <th className="p-2">Phone</th>
-                <th className="p-2">Email</th>
-                <th className="p-2">ID Number</th>
-                <th className="p-2">Attachment</th>
-                <th className="p-2">Purpose</th>
-                <th className="p-2">Created</th>
-              </tr>
+                      <tr className="text-left border-b">
+                        <th className="p-2">Name</th>
+                        <th className="p-2">Phone</th>
+                        <th className="p-2">Email</th>
+                        <th className="p-2">ID Number</th>
+                        <th className="p-2">Attachment</th>
+                        <th className="p-2">Purpose</th>
+                        <th className="p-2">Created</th>
+                        <th className="p-2">Registered By</th>
+                      </tr>
             </thead>
             <tbody>
               {data?.map((g) => (
@@ -101,7 +115,8 @@ export default function GuestList() {
                   <td className="p-2">{g.id_number ?? '-'}</td>
                   <td className="p-2">{g.signedUrl ? <a className="text-primary underline" href={g.signedUrl} target="_blank" rel="noreferrer">View</a> : '-'}</td>
                   <td className="p-2">{g.purpose ?? '-'}</td>
-                  <td className="p-2">{g.created_at ? new Date(g.created_at).toLocaleString() : '-'}</td>
+                        <td className="p-2">{g.created_at ? new Date(g.created_at).toLocaleString() : '-'}</td>
+                        <td className="p-2">{g.registrant_name ?? '-'}</td>
                 </tr>
               ))}
             </tbody>

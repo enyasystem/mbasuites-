@@ -37,6 +37,7 @@ export default function GuestRegistration({ assignedLocationId }: { assignedLoca
 
   const onSubmit = async (data: GuestRegistrationForm) => {
     // Ensure user is authenticated and has staff/admin role before uploading
+    let userId: string | undefined = undefined;
     try {
       // get authenticated user
       const { data: userData, error: userErr } = await supabase.auth.getUser();
@@ -44,7 +45,7 @@ export default function GuestRegistration({ assignedLocationId }: { assignedLoca
         showApiError(userErr, 'verifying session');
         return;
       }
-      const userId = userData?.user?.id;
+      userId = userData?.user?.id;
       if (!userId) {
         alert('You must be signed in as staff or admin to register guests.');
         return;
@@ -117,6 +118,8 @@ export default function GuestRegistration({ assignedLocationId }: { assignedLoca
       hard_copy_attached: data.hard_copy_attached || false,
       // associate registration with assigned location when available
       ...(assignedLocationId ? { location_id: assignedLocationId } : {}),
+      // record who registered this guest
+      ...(userId ? { registered_by: userId } : {}),
       created_at: new Date().toISOString(),
     } as Record<string, unknown>;
 
