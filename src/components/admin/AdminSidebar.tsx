@@ -40,6 +40,7 @@ const menuItems = [
   { title: "Staff", value: "staff", icon: Users },
   { title: "Activity Log", value: "activity", icon: Activity },
   { title: "Payments", value: "payments", icon: Landmark },
+  { title: "Guest Registration", value: "guest-registration", icon: CalendarCheck },
   { title: "Settings", value: "settings", icon: Settings },
 ];
 

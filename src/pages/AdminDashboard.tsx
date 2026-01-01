@@ -11,6 +11,7 @@ import ActivityLog from "@/components/admin/ActivityLog";
 import PaymentSettingsManager from "@/components/admin/PaymentSettingsManager";
 import HeroManager from "@/components/admin/HeroManager";
 import BankPaymentRequestsManager from "@/components/admin/BankPaymentRequestsManager";
+import GuestRegistration from "@/components/admin/GuestRegistration";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
@@ -184,6 +185,7 @@ export default function AdminDashboard() {
       case "staff": return <StaffManager />;
       case "activity": return <ActivityLog />;
       case "payments": return <BankPaymentRequestsManager />;
+        case "guest-registration": return <GuestRegistration />;
       case "settings": return <PaymentSettingsManager />;
       default: return null;
     }

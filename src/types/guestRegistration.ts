@@ -1,0 +1,23 @@
+export type GuestRegistrationForm = {
+  full_name: string;
+  age?: number;
+  date_of_birth?: string;
+  gender: 'Male' | 'Female' | string;
+  occupation?: string;
+  religion?: string;
+  marital_status?: string;
+  nationality?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  id_number?: string;
+  purpose?: 'Business' | 'Leisure' | 'Both' | 'Other' | string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  identification_attachment?: FileList | null;
+  hard_copy_attached?: boolean;
+};
