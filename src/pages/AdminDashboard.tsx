@@ -94,13 +94,29 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (authLoading || roleLoading) return;
     if (!user) { navigate("/staff-login"); return; }
-    if (role && role !== "admin" && !hasCheckedRole.current) {
+    // Only redirect guests (explicit "guest" role). Allow both `staff` and `admin` to stay on dashboard.
+    if (role === "guest" && !hasCheckedRole.current) {
       hasCheckedRole.current = true;
       navigate("/staff");
     }
   }, [authLoading, roleLoading, user, role, navigate]);
 
-  if (authLoading || roleLoading || !isAdmin) {
+  // Debugging: log current user id and role, and fetch user_roles row for troubleshooting
+  useEffect(() => {
+    if (authLoading || roleLoading) return;
+    console.debug("AdminDashboard debug: userId, role", { userId: user?.id, role });
+    if (user?.id) {
+      supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .then((res) => console.debug('user_roles query result:', res))
+        .catch((err) => console.error('user_roles query error:', err));
+    }
+  }, [authLoading, roleLoading, user, role]);
+
+  // While auth/role are loading, show skeleton. After loading, allow both `admin` and `staff` through.
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="space-y-4 w-full max-w-md px-4">

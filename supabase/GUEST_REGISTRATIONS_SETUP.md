@@ -12,22 +12,16 @@ Guest Registrations — Supabase setup
   - Recommended settings: set `Cache-Control` to `max-age=0, no-cache` on upload to ensure fresh reads.
 
 3) Policies / security
-- If the admin UI is authenticated and only staff/admin users should upload/view attachments, leave the bucket private and generate signed URLs when needed.
-- If attachments can be public, set bucket public and add RLS policies on `guest_registrations` if you want to restrict who can insert/read entries.
+- The `guest_registrations` table should enable Row Level Security (RLS) and policies should be created to restrict access.
+- We've added a migration `supabase/migrations/20260102_guest_registrations_policies.sql` which enables RLS and creates policies that:
+  - Allow only users with `admin` or `staff` role to INSERT and SELECT.
+  - Allow only `admin` or `staff` to UPDATE.
+  - Allow only `admin` to DELETE.
 
-4) Example: grant insert/select to authenticated users only (run in SQL editor)
+- The policies rely on the `has_role(role, user_id)` helper function present in your DB (see existing functions in your schema). If you don't have it, replace the checks with your role logic or join to your `user_roles` table in the policy expressions.
 
--- allow authenticated users to insert guest registrations
--- adjust roles/conditions to match your auth model
-CREATE POLICY "authenticated_can_insert_guest_registrations" ON public.guest_registrations
-  FOR INSERT
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "authenticated_can_select_guest_registrations" ON public.guest_registrations
-  FOR SELECT
-  TO authenticated
-  USING (true);
+4) Example (legacy)
+- If you previously used an open policy (authenticated users allowed), remove those and apply the stricter policies in the migration file above.
 
 5) Notes for the app
 - The front-end saves files to `guest_ids` bucket and stores the returned public URL in `identification_attachment_url`.

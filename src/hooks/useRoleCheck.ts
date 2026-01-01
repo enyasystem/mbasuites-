@@ -31,19 +31,30 @@ export function useRoleCheck(): UseRoleCheckResult {
 
     try {
       setIsLoading(true);
+      // Query may return multiple rows for a user (e.g., multiple locations/roles).
+      // Handle arrays and pick the highest-precedence role available.
       const { data, error } = await supabase
         .from("user_roles")
         .select("role, location_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
 
       if (error) {
         console.error("Error fetching role:", error);
         setRole("guest");
         setLocationId(null);
-      } else if (data) {
-        setRole(data.role as AppRole);
-        setLocationId(data.location_id);
+      } else if (Array.isArray(data) && data.length > 0) {
+        // Determine precedence: admin > staff > guest
+        const roles = data.map((r: any) => r.role) as string[];
+        if (roles.includes("admin")) {
+          setRole("admin");
+        } else if (roles.includes("staff")) {
+          setRole("staff");
+        } else {
+          setRole("guest");
+        }
+        // If multiple, prefer the first non-null location_id
+        const loc = data.find((r: any) => r.location_id)?.location_id ?? data[0].location_id ?? null;
+        setLocationId(loc ?? null);
       } else {
         setRole("guest");
         setLocationId(null);

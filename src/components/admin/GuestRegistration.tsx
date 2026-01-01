@@ -36,6 +36,35 @@ export default function GuestRegistration() {
   });
 
   const onSubmit = async (data: GuestRegistrationForm) => {
+    // Ensure user is authenticated and has staff/admin role before uploading
+    try {
+      // get authenticated user
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) {
+        showApiError(userErr, 'verifying session');
+        return;
+      }
+      const userId = userData?.user?.id;
+      if (!userId) {
+        alert('You must be signed in as staff or admin to register guests.');
+        return;
+      }
+
+      // check user_roles table for admin/staff role
+      const { data: roles, error: rolesErr } = await supabase.from('user_roles').select('role').eq('user_id', userId) as { data: { role: string }[] | null; error: unknown };
+      if (rolesErr) {
+        showApiError(rolesErr, 'checking permissions');
+        return;
+      }
+      const hasPermission = (roles || []).some((r) => r.role === 'admin' || r.role === 'staff');
+      if (!hasPermission) {
+        alert('Only staff or admin users can perform guest registrations.');
+        return;
+      }
+    } catch (err) {
+      showApiError(err, 'verifying session');
+      return;
+    }
     // Upload identification attachment if provided
     let attachment_url: string | null = null;
     if (data.identification_attachment && data.identification_attachment.length > 0) {
@@ -46,11 +75,8 @@ export default function GuestRegistration() {
           .from('guest_ids')
           .upload(filePath, file, { cacheControl: '0' });
         if (uploadError) throw uploadError;
-        const pub = supabase.storage.from('guest_ids').getPublicUrl(filePath);
-        // v2 returns { data: { publicUrl: string } }
-        // safe access with fallback
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        attachment_url = (pub as any)?.data?.publicUrl ?? null;
+        const pub = supabase.storage.from('guest_ids').getPublicUrl(filePath) as { data?: { publicUrl?: string } };
+        attachment_url = pub.data?.publicUrl ?? null;
       } catch (err) {
         showApiError(err, 'uploading identification');
         return;
