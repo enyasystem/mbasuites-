@@ -56,7 +56,7 @@ const Help = () => {
       questions: [
         {
           q: "What time is check-in and check-out?",
-          a: "Standard check-in is from 2:00 PM and check-out is until 11:00 AM. Early check-in or late check-out may be available upon request for an additional fee.",
+          a: "Standard check-in is from 3:00 PM and check-out is until 12:00 PM. Early check-in or late check-out may be available upon request for an additional fee.",
         },
         {
           q: "Do I need to show ID at check-in?",
@@ -190,8 +190,8 @@ const Help = () => {
                 </p>
                 <p>
                   <strong>Phone:</strong>{" "}
-                  <a href="tel:+15551234567" className="text-accent hover:underline">
-                    +1 (555) 123-4567
+                  <a href="tel:+07012345678" className="text-accent hover:underline">
+                    07012345678
                   </a>
                 </p>
                 <p className="text-muted-foreground">

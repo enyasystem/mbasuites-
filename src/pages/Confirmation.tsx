@@ -350,7 +350,7 @@ export default function Confirmation() {
               <li className="flex gap-3">
                 <span className="text-primary">✓</span>
                 <span>
-                  Please arrive at the hotel after 2:00 PM on your check-in date
+                  Please arrive at the hotel after 3:00 PM on your check-in date
                 </span>
               </li>
               <li className="flex gap-3">
