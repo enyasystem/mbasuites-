@@ -61,6 +61,10 @@ export default function Checkout() {
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [promoCode, setPromoCode] = useState<string>("");
+  const [appliedPromo, setAppliedPromo] = useState<any | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isNigeria = selectedLocation?.country === "Nigeria";
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
@@ -89,15 +93,27 @@ export default function Checkout() {
   useEffect(() => {
     setPaymentMethod(isNigeria ? "paystack" : "stripe");
   }, [isNigeria]);
-  // Paystack configuration - TEST MODE
+  // Promo adjusted totals
+  const promoDiscount = appliedPromo ? (() => {
+    const total = bookingData?.totalPrice || 0;
+    if (!appliedPromo) return 0;
+    if (appliedPromo.discount_type === 'percentage') {
+      return Math.round((Number(appliedPromo.discount_value) || 0) / 100 * total);
+    }
+    return Number(appliedPromo.discount_value) || 0;
+  })() : 0;
+
+  const adjustedTotal = Math.max(0, (bookingData?.totalPrice || 0) - promoDiscount);
+
+  // Paystack configuration - TEST MODE (uses adjusted total)
   const paystackConfig = {
     reference: `booking_${new Date().getTime()}`,
     email: form.watch("email") || "guest@example.com",
-    amount: (bookingData?.totalPrice ?? 0) * 100, // Paystack expects amount in kobo (lowest currency unit)
+    amount: (adjustedTotal) * 100, // Paystack expects amount in kobo (lowest currency unit)
     publicKey: "pk_test_xxxxxxxxxxxxx", // Replace with actual test key
   };
 
-  // Initialize Paystack payment hook unconditionally to satisfy Hooks rules
+  // Initialize Paystack payment hook
   const initializePayment = usePaystackPayment(paystackConfig);
 
   // Payment settings from admin
@@ -155,20 +171,42 @@ export default function Checkout() {
   type PaystackReference = { reference?: string };
 
   const onSuccess = (reference: PaystackReference) => {
-    console.log("Payment successful:", reference);
-    setIsProcessing(false);
-    toast({
-      title: "Payment Successful!",
-      description: "Your booking has been confirmed.",
-    });
-    navigate("/confirmation", {
-      state: {
-        bookingReference: reference.reference,
-        guestInfo: form.getValues(),
-        bookingData,
-        isRestored: restoredFromLogin,
-      },
-    });
+    (async () => {
+      try {
+        // Create booking record using adjusted total
+        const { data: bookingResult, error: bookingErr } = await supabase.from('bookings').insert({
+          user_id: user!.id,
+          room_id: bookingData.room!.id,
+          check_in_date: format(bookingData.checkIn!, 'yyyy-MM-dd'),
+          check_out_date: format(bookingData.checkOut!, 'yyyy-MM-dd'),
+          num_guests: bookingData.guests.adults + bookingData.guests.children,
+          total_amount: adjustedTotal,
+          status: 'confirmed',
+          guest_name: `${form.getValues().firstName} ${form.getValues().lastName}`,
+          guest_email: form.getValues().email,
+          guest_phone: form.getValues().phone,
+          currency: selectedLocation?.currency || 'NGN',
+          notes: form.getValues().specialRequests || null,
+        }).select().single();
+
+        if (bookingErr) throw bookingErr;
+
+        // Increment promo usage if applied
+        if (appliedPromo) {
+          try {
+            await supabase.from('promotions').update({ current_uses: (appliedPromo.current_uses || 0) + 1 }).eq('id', appliedPromo.id);
+          } catch (e) { console.warn('Failed to increment promo usage:', e); }
+        }
+
+        setIsProcessing(false);
+        toast({ title: 'Payment Successful!', description: 'Your booking has been confirmed.' });
+        navigate('/confirmation', { state: { bookingReference: reference.reference, guestInfo: form.getValues(), bookingData, isRestored: restoredFromLogin } });
+      } catch (err) {
+        console.error('Post-payment booking creation failed:', err);
+        setIsProcessing(false);
+        toast({ title: 'Booking Error', description: 'Payment succeeded but booking creation failed. Contact support.', variant: 'destructive' });
+      }
+    })();
   };
 
   const onClose = () => {
@@ -188,22 +226,39 @@ export default function Checkout() {
       }
 
       // In a real app, you'd create a payment intent on your backend
-      // For now, simulate successful payment
-      setTimeout(() => {
-        setIsProcessing(false);
-        const bookingRef = `STR-${new Date().getTime()}`;
-        toast({
-          title: "Payment Successful!",
-          description: "Your booking has been confirmed.",
-        });
-        navigate("/confirmation", {
-          state: {
-            bookingReference: bookingRef,
-            guestInfo: data,
-            bookingData,
-            isRestored: restoredFromLogin,
-          },
-        });
+      // For now, simulate successful payment and create booking record
+      setTimeout(async () => {
+        try {
+          const bookingRef = `STR-${new Date().getTime()}`;
+          const { data: bookingResult, error: bookingErr } = await supabase.from('bookings').insert({
+            user_id: user!.id,
+            room_id: bookingData.room!.id,
+            check_in_date: format(bookingData.checkIn!, 'yyyy-MM-dd'),
+            check_out_date: format(bookingData.checkOut!, 'yyyy-MM-dd'),
+            num_guests: bookingData.guests.adults + bookingData.guests.children,
+            total_amount: adjustedTotal,
+            status: 'confirmed',
+            guest_name: `${data.firstName} ${data.lastName}`,
+            guest_email: data.email,
+            guest_phone: data.phone,
+            currency: selectedLocation?.currency || 'NGN',
+            notes: data.specialRequests || null,
+          }).select().single();
+
+          if (bookingErr) throw bookingErr;
+
+          if (appliedPromo) {
+            try { await supabase.from('promotions').update({ current_uses: (appliedPromo.current_uses || 0) + 1 }).eq('id', appliedPromo.id); } catch (e) { console.warn('Failed to increment promo usage:', e); }
+          }
+
+          setIsProcessing(false);
+          toast({ title: 'Payment Successful!', description: 'Your booking has been confirmed.' });
+          navigate('/confirmation', { state: { bookingReference: bookingRef, guestInfo: data, bookingData, isRestored: restoredFromLogin } });
+        } catch (err) {
+          console.error('Stripe booking creation failed:', err);
+          setIsProcessing(false);
+          toast({ title: 'Booking Error', description: 'Payment succeeded but booking creation failed. Contact support.', variant: 'destructive' });
+        }
       }, 2000);
     } catch (error) {
       setIsProcessing(false);
@@ -298,7 +353,7 @@ export default function Checkout() {
 
       const proofUrl = urlData.publicUrl;
 
-      // Create booking
+      // Create booking (use adjusted total if promo applied)
       const { data: bookingResult, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -307,7 +362,7 @@ export default function Checkout() {
           check_in_date: format(bookingData.checkIn!, 'yyyy-MM-dd'),
           check_out_date: format(bookingData.checkOut!, 'yyyy-MM-dd'),
           num_guests: bookingData.guests.adults + bookingData.guests.children,
-          total_amount: bookingData.totalPrice,
+          total_amount: adjustedTotal,
           status: 'pending',
           guest_name: `${data.firstName} ${data.lastName}`,
           guest_email: data.email,
@@ -325,7 +380,7 @@ export default function Checkout() {
         .from('bank_payment_requests')
         .insert({
           booking_id: bookingResult.id,
-          amount: bookingData.totalPrice,
+          amount: adjustedTotal,
           guest_name: `${data.firstName} ${data.lastName}`,
           guest_email: data.email,
           currency: selectedLocation?.currency || 'NGN',
@@ -336,6 +391,15 @@ export default function Checkout() {
       if (paymentRequestError) throw paymentRequestError;
 
       // Clear booking data and navigate to confirmation
+      // If a promo was applied, increment its usage count
+      try {
+        if (appliedPromo) {
+          await supabase.from('promotions').update({ current_uses: (appliedPromo.current_uses || 0) + 1 }).eq('id', appliedPromo.id);
+        }
+      } catch (e) {
+        console.warn('Failed to increment promo usage:', e);
+      }
+
       clearBooking();
       
       toast({
@@ -916,6 +980,46 @@ export default function Checkout() {
                     </span>
                     <span>₦{(bookingData.room.price * bookingData.nights).toLocaleString()}</span>
                   </div>
+                    {/* Promo code input and applied summary */}
+                    <div className="mt-3">
+                      <label className="text-sm font-medium">Promo Code</label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Input placeholder="Enter promo code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
+                        <Button onClick={async () => {
+                          setIsApplyingPromo(true);
+                          setPromoError(null);
+                          try {
+                            const code = (promoCode || "").trim();
+                            if (!code) { setPromoError('Enter a promo code'); setIsApplyingPromo(false); return; }
+                            const { data: p, error } = await supabase.from('promotions').select('*').eq('promo_code', code).single();
+                            if (error || !p) { setPromoError('Invalid promo code'); setIsApplyingPromo(false); return; }
+                            // Validate active and dates
+                            const now = new Date();
+                            if (!p.is_active) { setPromoError('This promo is not active'); setIsApplyingPromo(false); return; }
+                            if (p.start_date && new Date(p.start_date) > now) { setPromoError('This promo is not yet active'); setIsApplyingPromo(false); return; }
+                            if (p.end_date && new Date(p.end_date) < now) { setPromoError('This promo has expired'); setIsApplyingPromo(false); return; }
+                            // usage limits
+                            if (p.max_uses && (p.current_uses || 0) >= p.max_uses) { setPromoError('This promo has reached its usage limit'); setIsApplyingPromo(false); return; }
+                            // min nights
+                            if (p.min_nights && bookingData.nights < p.min_nights) { setPromoError(`Minimum ${p.min_nights} nights required`); setIsApplyingPromo(false); return; }
+                            // applicable room types
+                            if (p.applicable_room_types && p.applicable_room_types.length > 0 && bookingData.room && !p.applicable_room_types.includes(bookingData.room.room_type || bookingData.room.type || '')) { setPromoError('Promo not applicable to this room'); setIsApplyingPromo(false); return; }
+                            // applicable locations
+                            if (p.applicable_location_ids && p.applicable_location_ids.length > 0 && selectedLocation && !p.applicable_location_ids.includes(selectedLocation.id)) { setPromoError('Promo not applicable to this location'); setIsApplyingPromo(false); return; }
+                            setAppliedPromo(p);
+                            setPromoError(null);
+                          } catch (e) {
+                            console.error('Promo validation error', e);
+                            setPromoError('Failed to validate promo');
+                          } finally { setIsApplyingPromo(false); }
+                        }}>Apply</Button>
+                        {appliedPromo && <Button variant="ghost" onClick={() => { setAppliedPromo(null); setPromoCode(''); setPromoError(null); }}>Remove</Button>}
+                      </div>
+                      {promoError && <div className="text-sm text-destructive mt-2">{promoError}</div>}
+                      {appliedPromo && (
+                        <div className="mt-2 text-sm text-success">Applied: {appliedPromo.title} — Discount: {appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}%` : `₦${appliedPromo.discount_value}`}</div>
+                      )}
+                    </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Service fee</span>
                     <span>₦0</span>
@@ -924,9 +1028,21 @@ export default function Checkout() {
 
                 <Separator />
 
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span>₦{bookingData.totalPrice.toLocaleString()}</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>₦{bookingData.totalPrice.toLocaleString()}</span>
+                  </div>
+                  {appliedPromo && (
+                    <div className="flex justify-between text-sm text-success">
+                      <span>Promo: {appliedPromo.promo_code}</span>
+                      <span>-₦{promoDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span>₦{adjustedTotal.toLocaleString()}</span>
+                  </div>
                 </div>
 
                 {/* <div className="bg-muted/50 p-3 rounded-lg mt-4">
