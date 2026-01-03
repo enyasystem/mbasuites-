@@ -13,6 +13,7 @@ import HeroManager from "@/components/admin/HeroManager";
 import BankPaymentRequestsManager from "@/components/admin/BankPaymentRequestsManager";
 import GuestRegistration from "@/components/admin/GuestRegistration";
 import GuestList from "@/components/admin/GuestList";
+import PromotionsManager from "@/components/admin/PromotionsManager";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
@@ -197,6 +198,7 @@ export default function AdminDashboard() {
       case "bookings": return <BookingsManager />;
       case "rooms": return <RoomsManager />;
       case "hero": return <HeroManager />;
+      case "promotions": return <PromotionsManager />;
       case "sync": return <CalendarSyncManager />;
       case "analytics": return <AnalyticsReports />;
       case "staff": return <StaffManager />;

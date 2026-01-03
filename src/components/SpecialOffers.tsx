@@ -5,6 +5,7 @@ import { Sparkles, Tag, Headphones, Globe2 } from "lucide-react";
 import roomDeluxe from "@/assets/room-deluxe.jpg";
 import roomSuite from "@/assets/room-suite.jpg";
 import { useNavigate } from "react-router-dom";
+import usePromotions from "@/hooks/usePromotions";
 import { useCurrency } from "@/context/CurrencyContext";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -44,6 +45,41 @@ const SpecialOffers = () => {
 
   return (
     <section ref={ref} className="container mx-auto px-4 py-12">
+      {/* Promotions / Special Offers fetched from admin */}
+      {/** Display up to 3 promotions that have the 'offers' display location */}
+      {(() => {
+        const { data: promotions = [] } = usePromotions();
+        const offers = promotions.filter((p) => (p.display_locations || []).includes("offers")).slice(0, 3);
+        if (offers.length === 0) return null;
+        return (
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Special Offers</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {offers.map((offer) => (
+                <Card key={offer.id} className="p-6">
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold">{offer.title}</h3>
+                      <div className="text-sm bg-background/80 px-2 py-1 rounded">
+                        {offer.discount_type === "percentage" ? `${offer.discount_value}% OFF` : `₦${offer.discount_value} OFF`}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{offer.description}</p>
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        {offer.promo_code ? `Code: ${offer.promo_code}` : "No code required"}
+                      </div>
+                      <Button onClick={() => window.location.assign('/rooms')} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        Book now
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
       {/* Featured Rooms Grid */}
       <div>
         <motion.h2 

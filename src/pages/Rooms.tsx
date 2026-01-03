@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 import roomDeluxe from "@/assets/room-deluxe.jpg";
 import roomSuite from "@/assets/room-suite.jpg";
+import usePromotions from "@/hooks/usePromotions";
 
 // Static filter options
 const allAmenities = ["WiFi", "AC", "TV", "Minibar", "Safe", "Coffee Maker", "Bathtub", "Living Area", "Work Desk", "Balcony"];
@@ -66,6 +67,17 @@ const Rooms = () => {
     checkOut: urlCheckOut,
     maxGuests: urlGuests ? parseInt(urlGuests) : undefined,
   });
+
+  const { data: promotions = [] } = usePromotions();
+
+  const getApplicable = (room: typeof rooms[number]) => {
+    return promotions.find((p) => {
+      if (!p.display_locations || !p.display_locations.includes("rooms")) return false;
+      const types = p.applicable_room_types || [];
+      if (types.length > 0 && !types.includes(room.category)) return false;
+      return true;
+    });
+  };
 
   // Calculate max price dynamically from rooms data
   const maxPrice = useMemo(() => {
@@ -587,7 +599,9 @@ const Rooms = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredAndSortedRooms.map((room, index) => (
+                  {filteredAndSortedRooms.map((room, index) => {
+                    const promo = getApplicable(room);
+                    return (
                     <motion.div
                       key={room.id}
                       initial={{ opacity: 0, y: 30 }}
@@ -620,6 +634,11 @@ const Rooms = () => {
                                   {room.category.charAt(0).toUpperCase() + room.category.slice(1)}
                                 </Badge>
                               </motion.div>
+                              {promo && (
+                                <div className="absolute top-11 left-3">
+                                  <span className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">{promo.discount_type === 'percentage' ? `${promo.discount_value}% OFF` : `₦${promo.discount_value} OFF`}</span>
+                                </div>
+                              )}
                               <motion.div 
                                 className="absolute top-3 right-3"
                                 initial={{ x: 20, opacity: 0 }}
@@ -676,7 +695,7 @@ const Rooms = () => {
 
                             <CardFooter className="flex items-center justify-between pt-4 border-t">
                               <div>
-                                <p className="text-2xl font-bold text-foreground">
+                                <p className="text-2xl font-bold text-foreground flex items-center gap-3">
                                   {formatLocalPrice(room.price)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">per night</p>
@@ -694,7 +713,8 @@ const Rooms = () => {
                         </motion.div>
                       </Link>
                     </motion.div>
-                  ))}
+                  );
+                  })}
                 </div>
 
                 {/* Floating Apply Filters button */}
