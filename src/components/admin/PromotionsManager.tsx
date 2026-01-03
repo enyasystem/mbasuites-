@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,15 @@ export default function PromotionsManager() {
     qc.invalidateQueries(["promotions"]);
   };
 
+  const deletePromotion = async (id: string) => {
+    const ok = window.confirm("Delete this promotion? This cannot be undone.");
+    if (!ok) return;
+    const { error } = await supabase.from("promotions").delete().eq("id", id);
+    if (error) return alert("Error deleting: " + error.message);
+    qc.invalidateQueries(["admin-promotions"]);
+    qc.invalidateQueries(["promotions"]);
+  };
+
   const startEdit = (p: any) => {
     setShowForm(true);
     setEditingId(p.id);
@@ -150,14 +159,8 @@ export default function PromotionsManager() {
           <label className="text-sm">Promotion is active</label>
           <Switch checked={form.is_active} onCheckedChange={(v: any) => setForm(f => ({ ...f, is_active: v }))} />
           <div className="ml-auto flex gap-2">
-            {editingId ? (
-              <>
-                <Button onClick={savePromotion}>Save Promotion</Button>
-                <Button variant="ghost" onClick={cancelEdit}>Cancel</Button>
-              </>
-            ) : (
-              <Button onClick={savePromotion}>Save Promotion</Button>
-            )}
+            <Button onClick={savePromotion}>Save Promotion</Button>
+            <Button variant="ghost" onClick={cancelEdit}>Cancel</Button>
           </div>
         </div>
       </Card>
@@ -174,10 +177,11 @@ export default function PromotionsManager() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="sm" onClick={() => startEdit(p)}>Edit</Button>
-                  <label className="text-sm">Active</label>
-                  <Switch checked={p.is_active} onCheckedChange={(v: any) => toggleActive(p.id, v)} />
-                </div>
+                    <Button variant="ghost" size="sm" onClick={() => startEdit(p)}>Edit</Button>
+                    <Button variant="destructive" size="sm" onClick={() => deletePromotion(p.id)}>Delete</Button>
+                    <label className="text-sm">Active</label>
+                    <Switch checked={p.is_active} onCheckedChange={(v: any) => toggleActive(p.id, v)} />
+                  </div>
               </div>
             </div>
           ))}
