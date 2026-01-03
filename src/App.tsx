@@ -89,8 +89,8 @@ const App = () => {
                 <BookingProvider>
                   <Toaster />
                   <Sonner />
-                  <PromotionsBanner />
                   <BrowserRouter>
+                    <PromotionsBanner />
                     <AnimatedRoutes />
                   </BrowserRouter>
                 </BookingProvider>

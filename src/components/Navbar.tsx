@@ -38,6 +38,30 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Adjust navbar top offset when a promo banner is present so the banner sits above the nav
+  useEffect(() => {
+    const navEl = document.getElementById('mba-navbar') as HTMLElement | null;
+    if (!navEl) return;
+
+    const update = () => {
+      const banner = document.getElementById('mba-promo-banner') as HTMLElement | null;
+      try {
+        navEl.style.top = banner ? `${banner.getBoundingClientRect().height}px` : '0px';
+      } catch (e) {
+        // ignore measurement errors
+      }
+    };
+
+    update();
+    const mo = new MutationObserver(update);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', update);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
   // Auto-detect hero/background to set initial navbar theme (dark/light)
   // Start optimistic (true) so we don't render the spacer briefly before measurements run
   const [heroAtTop, setHeroAtTop] = useState<boolean>(true);

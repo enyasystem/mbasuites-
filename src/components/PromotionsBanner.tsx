@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { usePromotions } from "@/hooks/usePromotions";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "react-router-dom";
 
 const STORAGE_KEY = "dismissed_promotions_v1";
 
 const PromotionsBanner = () => {
+  const location = useLocation();
+  // Do not show banner on admin dashboard pages
+  if (location.pathname.startsWith("/admin")) return null;
   const { data: promotions = [] } = usePromotions({ activeOnly: true });
   const banners = promotions.filter((p) => (p.display_locations || []).includes("banner"));
   const [index, setIndex] = useState(0);
@@ -39,7 +43,7 @@ const PromotionsBanner = () => {
   };
 
   return (
-    <div className="w-full bg-accent/95 text-accent-foreground py-3 px-4 fixed top-0 left-0 z-50">
+    <div id="mba-promo-banner" className="w-full bg-accent/95 text-accent-foreground py-3 px-4 fixed top-0 left-0 z-60">
       <div className="container mx-auto flex items-center justify-between gap-4">
         <div className="flex-1">
           <div className="flex flex-col md:flex-row md:items-center md:gap-3">
