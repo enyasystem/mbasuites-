@@ -33,8 +33,10 @@ export default function PromotionsManager() {
     end_date: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState<boolean>(false);
 
   const startCreate = () => {
+    setShowForm(true);
     setEditingId(null);
     setForm({ title: "", description: "", discount_type: "percentage", discount_value: 0, promo_code: "", display_locations: { banner: false, offers: true, rooms: false }, is_active: false, min_nights: 1, start_date: "", end_date: "" });
     const el = document.getElementById('promotions-form');
@@ -68,6 +70,7 @@ export default function PromotionsManager() {
     // reset form
     setForm({ title: "", description: "", discount_type: "percentage", discount_value: 0, promo_code: "", display_locations: { banner: false, offers: true, rooms: false }, is_active: false, min_nights: 1, start_date: "", end_date: "" });
     setEditingId(null);
+    setShowForm(false);
   };
 
   const toggleActive = async (id: string, active: boolean) => {
@@ -78,6 +81,7 @@ export default function PromotionsManager() {
   };
 
   const startEdit = (p: any) => {
+    setShowForm(true);
     setEditingId(p.id);
     setForm({
       title: p.title || "",
@@ -100,6 +104,7 @@ export default function PromotionsManager() {
   const cancelEdit = () => {
     setEditingId(null);
     setForm({ title: "", description: "", discount_type: "percentage", discount_value: 0, promo_code: "", display_locations: { banner: false, offers: true, rooms: false }, is_active: false, min_nights: 1, start_date: "", end_date: "" });
+    setShowForm(false);
   };
 
   return (
@@ -108,8 +113,9 @@ export default function PromotionsManager() {
         <h2 className="text-2xl font-semibold">Promotions</h2>
         <Button onClick={startCreate} className="flex items-center gap-2"><Plus className="h-4 w-4" /> Add Promotion</Button>
       </div>
-      <Card id="promotions-form" className="p-6">
-        <h3 className="text-lg font-semibold mb-4">{editingId ? "Edit Promotion" : "Create Promotion"}</h3>
+      {showForm && (
+        <Card id="promotions-form" className="p-6">
+          <h3 className="text-lg font-semibold mb-4">{editingId ? "Edit Promotion" : "Create Promotion"}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Input placeholder="Title *" value={form.title} onChange={(e: any) => setForm(f => ({ ...f, title: e.target.value }))} />
           <Input placeholder="Promo Code (optional)" value={form.promo_code} onChange={(e: any) => setForm(f => ({ ...f, promo_code: e.target.value }))} />
@@ -155,6 +161,7 @@ export default function PromotionsManager() {
           </div>
         </div>
       </Card>
+      )}
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Existing Promotions</h3>
