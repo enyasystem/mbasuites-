@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Trash } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,13 +81,22 @@ export default function PromotionsManager() {
     qc.invalidateQueries(["promotions"]);
   };
 
-  const deletePromotion = async (id: string) => {
-    const ok = window.confirm("Delete this promotion? This cannot be undone.");
-    if (!ok) return;
-    const { error } = await supabase.from("promotions").delete().eq("id", id);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
+
+  const requestDelete = (id: string) => {
+    setDeletingId(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    const { error } = await supabase.from("promotions").delete().eq("id", deletingId);
     if (error) return alert("Error deleting: " + error.message);
     qc.invalidateQueries(["admin-promotions"]);
     qc.invalidateQueries(["promotions"]);
+    setConfirmOpen(false);
+    setDeletingId(null);
   };
 
   const startEdit = (p: any) => {
@@ -178,7 +188,7 @@ export default function PromotionsManager() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="sm" onClick={() => startEdit(p)}>Edit</Button>
-                    <Button variant="destructive" size="sm" onClick={() => deletePromotion(p.id)}>Delete</Button>
+                    <Button variant="destructive" size="sm" onClick={() => requestDelete(p.id)}>Delete</Button>
                     <label className="text-sm">Active</label>
                     <Switch checked={p.is_active} onCheckedChange={(v: any) => toggleActive(p.id, v)} />
                   </div>
@@ -187,6 +197,18 @@ export default function PromotionsManager() {
           ))}
         </div>
       </Card>
+      <Dialog open={confirmOpen} onOpenChange={(o) => setConfirmOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Promotion</DialogTitle>
+            <DialogDescription>Are you sure you want to delete this promotion? This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
