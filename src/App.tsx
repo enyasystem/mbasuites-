@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import PromotionsBanner from "@/components/PromotionsBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Gallery from "./pages/Gallery";
 import Photos from "@/pages/Photos";
 import { useEffect } from "react";
 import { BookingProvider } from "@/contexts/BookingContext";
@@ -52,6 +53,7 @@ const AnimatedRoutes = () => {
           <Route path="/rooms" element={<PageTransition><Rooms /></PageTransition>} />
           <Route path="/rooms/:id" element={<PageTransition><RoomDetails /></PageTransition>} />
           <Route path="/rooms/:id/photos" element={<PageTransition><Photos /></PageTransition>} />
+          <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
           <Route path="/photos" element={<PageTransition><Photos /></PageTransition>} />
           <Route path="/checkout" element={<PageTransition><Checkout /></PageTransition>} />
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />

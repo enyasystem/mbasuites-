@@ -10,6 +10,7 @@ import StaffManager from "@/components/admin/StaffManager";
 import ActivityLog from "@/components/admin/ActivityLog";
 import PaymentSettingsManager from "@/components/admin/PaymentSettingsManager";
 import HeroManager from "@/components/admin/HeroManager";
+import RoomMediaManager from "../components/admin/RoomMediaManager";
 import BankPaymentRequestsManager from "@/components/admin/BankPaymentRequestsManager";
 import GuestRegistration from "@/components/admin/GuestRegistration";
 import GuestList from "@/components/admin/GuestList";
@@ -107,12 +108,14 @@ export default function AdminDashboard() {
     if (authLoading || roleLoading) return;
     console.debug("AdminDashboard debug: userId, role", { userId: user?.id, role });
     if (user?.id) {
-      supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', user.id)
-        .then((res) => console.debug('user_roles query result:', res))
-        .catch((err) => console.error('user_roles query error:', err));
+      (async () => {
+        try {
+          const res = await supabase.from('user_roles').select('*').eq('user_id', user.id);
+          console.debug('user_roles query result:', res);
+        } catch (err) {
+          console.error('user_roles query error:', err);
+        }
+      })();
     }
   }, [authLoading, roleLoading, user, role]);
 
@@ -197,6 +200,7 @@ export default function AdminDashboard() {
         );
       case "bookings": return <BookingsManager />;
       case "rooms": return <RoomsManager />;
+      case "gallery": return <RoomMediaManager />;
       case "hero": return <HeroManager />;
       case "promotions": return <PromotionsManager />;
       case "sync": return <CalendarSyncManager />;
