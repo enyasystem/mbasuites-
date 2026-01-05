@@ -6,7 +6,7 @@ import heroImage from "@/assets/hero-hotel.jpg";
 
 const HeroCarousel = () => {
   return (
-    <section className="relative h-screen min-h-[700px] overflow-hidden pb-20">
+    <section className="relative h-[72vh] md:h-screen min-h-[520px] md:min-h-[700px] overflow-hidden pb-20">
       {/* Background Image */}
       <motion.div
         initial={{ scale: 1.1 }}
