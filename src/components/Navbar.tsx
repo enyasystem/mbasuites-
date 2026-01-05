@@ -49,7 +49,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <BrandLogo size="md" />
+            <Link to="/" aria-label="Home">
+              <BrandLogo size="md" />
+            </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
