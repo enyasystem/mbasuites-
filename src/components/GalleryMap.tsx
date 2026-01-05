@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import {
   Carousel,
@@ -38,13 +38,13 @@ const GalleryMap = () => {
     setLightboxOpen(true);
   };
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % galleryImages.length);
-  };
+  }, [galleryImages.length]);
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  };
+  }, [galleryImages.length]);
 
   // Handle keyboard navigation
   React.useEffect(() => {
@@ -56,7 +56,7 @@ const GalleryMap = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, galleryImages.length]);
+  }, [lightboxOpen, nextImage, prevImage]);
 
   return (
     <section className="py-16 bg-background" aria-labelledby="gallery-title">
