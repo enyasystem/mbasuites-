@@ -69,6 +69,8 @@ export default function RoomMediaManager() {
     queryKey: ["room-media", selectedRoom],
     queryFn: async () => {
       if (!selectedRoom) return [];
+      // supabase types may not include the `room_media` table in the generated Database type.
+      // Use a local cast and disable the explicit-any rule for this call only.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from("room_media")
@@ -162,7 +164,25 @@ export default function RoomMediaManager() {
         is_primary: mediaItems.length === 0,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // If the room_media table does not exist in the database, fall back to
+        // updating the room's `image_url` field so the upload still appears in the UI.
+        const msg = ((dbError as unknown) as { message?: string })?.message || "";
+        if (msg.includes("Could not find the table") || msg.includes("room_media")) {
+          try {
+            const { error: upErr } = await supabase.from("rooms").update({ image_url: publicUrl.publicUrl }).eq("id", selectedRoom);
+            if (upErr) throw upErr;
+            toast.success("Media uploaded and set as room image (fallback)");
+            queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
+            setUploadDialogOpen(false);
+            setUploadForm({ title: "", media_type: "image" });
+            return;
+          } catch (e) {
+            // If fallback fails, surface original dbError below
+          }
+        }
+        throw dbError;
+      }
 
       queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
       toast.success("Media uploaded successfully");

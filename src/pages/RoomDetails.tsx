@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useRoom } from "@/hooks/useRoom";
+import { useGallery } from "@/hooks/useGallery";
+import type { GalleryItem } from "@/hooks/useGallery";
 import { useBooking } from "@/contexts/BookingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -17,17 +19,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import GuestSelector from "@/components/GuestSelector";
 import { ReviewForm } from "@/components/ReviewForm";
+import { ReviewsList } from "@/components/ReviewsList";
 import { useRoomReviews } from "@/hooks/useRoomReviews";
-import { ReviewsList, Review } from "@/components/ReviewsList";
-import PhotoTour from "@/components/PhotoTour";
 import { format, differenceInCalendarDays } from "date-fns";
-import { Star, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, X, Images } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRoomAvailability } from "@/hooks/useRoomAvailability";
-import { toast } from "sonner";
+
+type GalleryImage = { url: string; title?: string };
 
 const RoomDetails = () => {
   const { id } = useParams();
@@ -35,76 +40,59 @@ const RoomDetails = () => {
   const { setBookingData } = useBooking();
   const { user } = useAuth();
   const { room, isLoading, error } = useRoom(id);
+  const { items: galleryHookItems = [], isLoading: mediaLoading } = useGallery();
+
+  // Filter gallery items for this room and normalize to { url, title }
+  const mediaImages = galleryHookItems
+    .filter((it: GalleryItem) => String(it.room_id) === String(id))
+    .map((it: GalleryItem) => ({ url: it.image_url, title: it.title }));
 
   const [checkIn, setCheckIn] = useState<Date | undefined>();
   const [checkOut, setCheckOut] = useState<Date | undefined>();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
-
-  // availability checks
-  const { unavailableDates, isLoading: availabilityLoading, checkAvailability, isDateUnavailable } = useRoomAvailability(room?.id);
-  const [isAvailableForSelectedDates, setIsAvailableForSelectedDates] = useState<boolean | null>(null);
-  const [checkingSelection, setCheckingSelection] = useState(false);
-  // Separate open states for mobile compact booking card so hidden desktop popovers
-  // don't render their portals when mobile popovers are opened.
   const [checkInOpenMobile, setCheckInOpenMobile] = useState(false);
   const [checkOutOpenMobile, setCheckOutOpenMobile] = useState(false);
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
-
-  const checkInRefMobile = useRef<HTMLDivElement | null>(null);
-  const checkOutRefMobile = useRef<HTMLDivElement | null>(null);
-  const checkInRef = useRef<HTMLDivElement | null>(null);
-  const checkOutRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (checkInOpenMobile) checkInRefMobile.current?.focus();
-  }, [checkInOpenMobile]);
-
-  useEffect(() => {
-    if (checkOutOpenMobile) checkOutRefMobile.current?.focus();
-  }, [checkOutOpenMobile]);
-
-  useEffect(() => {
-    if (checkInOpen) checkInRef.current?.focus();
-  }, [checkInOpen]);
-
-  // Re-check availability for selected dates when dates change
-  useEffect(() => {
-    let cancelled = false;
-    if (!checkIn || !checkOut) {
-      setIsAvailableForSelectedDates(null);
-      return;
-    }
-
-    const doCheck = async () => {
-      setCheckingSelection(true);
-      try {
-        const res = await checkAvailability(checkIn, checkOut);
-        if (!cancelled) setIsAvailableForSelectedDates(res.available);
-      } catch (err) {
-        console.error('Availability check failed', err);
-        if (!cancelled) setIsAvailableForSelectedDates(null);
-      } finally {
-        if (!cancelled) setCheckingSelection(false);
-      }
-    };
-
-    doCheck();
-
-    return () => { cancelled = true; };
-  }, [checkIn, checkOut, checkAvailability]);
-
-  useEffect(() => {
-    if (checkOutOpen) checkOutRef.current?.focus();
-  }, [checkOutOpen]);
   const { formatPrice, formatLocalPrice } = useCurrency();
 
-  // Fetch reviews for this room from the database
-  const { reviews, loading: reviewsLoading, error: reviewsError, refetch: refetchReviews } = useRoomReviews(room?.id);
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Reviews
+  const { reviews = [] } = useRoomReviews(room?.id);
+
+  // Prefer mediaImages (from room_media) otherwise fallback to room.images or image_url
+  const galleryImages: GalleryImage[] = (mediaImages && mediaImages.length > 0)
+    ? mediaImages
+    : (room && room.images && room.images.length > 0)
+      ? room.images.map((u: string) => ({ url: u }))
+      : (room && room.image_url) ? [{ url: room.image_url }] : [];
 
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : undefined;
+    : 4.5;
+
+  const nextImage = useCallback(() => {
+    setLightboxIndex((prev) => (prev + 1) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  const prevImage = useCallback(() => {
+    setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === "ArrowRight") nextImage();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "Escape") setLightboxOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, nextImage, prevImage]);
 
   if (isLoading) {
     return (
@@ -142,111 +130,47 @@ const RoomDetails = () => {
     );
   }
 
-  // Create images array - prefer room.images (from room_images), fallback to image_url or a placeholder
-  const images = room && room.images && room.images.length > 0
-    ? room.images
-    : room && room.image_url
-      ? [room.image_url]
-      : ["https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800"];
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   const nights = checkIn && checkOut ? Math.max(1, differenceInCalendarDays(checkOut, checkIn)) : 0;
   const totalPrice = nights * room.price_per_night * guests.rooms;
 
-  // Helpers for date disabling using unavailable dates from the availability hook
-  const isUnavailableDate = (d: Date) => isDateUnavailable(d);
-
-  // Normalized list of disabled day-only dates for DayPicker to ensure selection
-  // is prevented (avoids timezone/time component mismatches).
-  const disabledDays = unavailableDates.map(d => new Date(d.getFullYear(), d.getMonth(), d.getDate()));
-  // Debug: log counts and sample values to verify DayPicker receives correct disabled dates
-  if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
-    console.log('RoomDetails disabledDays count:', disabledDays.length, 'sample:', disabledDays.slice(0, 5));
-    // eslint-disable-next-line no-console
-    console.log('RoomDetails unavailableDates count:', unavailableDates.length, 'sample:', unavailableDates.slice(0,5));
-  }
-
-  const isCheckOutDisabled = (d: Date) => {
-    // Don't allow selecting past dates
-    if (d < new Date()) return true;
-    // If no check-in is selected, fallback to standard behavior
-    if (!checkIn) return d < new Date();
-    // Prevent selecting check-out earlier than check-in
-    if (d < checkIn) return true;
-
-    // Check if any unavailable date falls between check-in (inclusive) and the candidate check-out (inclusive)
-    const checkInTime = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate()).getTime();
-    const candidateTime = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-
-    return unavailableDates.some(u => {
-      const ut = new Date(u.getFullYear(), u.getMonth(), u.getDate()).getTime();
-      // inclusive comparison so booking end date is also considered unavailable
-      return ut >= checkInTime && ut <= candidateTime;
-    });
-  };
-
-  // Calendar components to show a tooltip on booked / past dates and preserve nav icons
-  const calendarComponents = {
-    IconLeft: (props: React.SVGProps<SVGSVGElement>) => <ChevronLeft className="h-4 w-4" {...props} />,
-    IconRight: (props: React.SVGProps<SVGSVGElement>) => <ChevronRight className="h-4 w-4" {...props} />,
-    DayContent: ({ date }: { date: Date }) => {
-      const title = isUnavailableDate(date) ? 'Room booked (unavailable)' : date < new Date() ? 'Past date' : undefined;
-      return <div title={title}>{date.getDate()}</div>;
-    },
-  };
-
-  const handleBooking = async () => {
+  const handleBooking = () => {
     if (!checkIn || !checkOut) {
       alert('Please select check-in and check-out dates.');
       return;
     }
-
-    try {
-      // If we already checked availability for the selected dates, use cached result.
-      let available: boolean | null = isAvailableForSelectedDates;
-      if (available === null) {
-        const res = await checkAvailability(checkIn, checkOut);
-        available = res.available;
-      }
-
-      if (!available) {
-        toast.error('Those dates are not available for booking for this room.');
-        return;
-      }
-
-      // Transform database room to booking format
-      const bookingRoom = {
-        id: room.id,
-        name: room.title,
-        description: room.description || "",
-        price: room.price_per_night,
-        images: images,
-        amenities: room.amenities || [],
-        capacity: { adults: room.max_guests, children: 0 },
-        size: 30,
-        bedType: "King Bed",
-        rating: averageRating,
-        category: room.room_type as "standard" | "deluxe" | "executive" | "presidential",
-        type: "king" as const,
-        available: room.is_available,
-      };
-
-      setBookingData({
-        room: bookingRoom,
-        checkIn,
-        checkOut,
-        guests,
-        nights,
-        totalPrice,
-      });
-      
-      navigate('/checkout');
-    } catch (err) {
-      console.error('Failed to check availability before booking', err);
-      toast.error('Unable to verify availability. Try again.');
-    }
-
-
+    
+    // Transform database room to booking format
+    const bookingRoom = {
+      id: room.id,
+      name: room.title,
+      description: room.description || "",
+      price: room.price_per_night,
+      images: galleryImages.map((g: GalleryImage) => g.url),
+      amenities: room.amenities || [],
+      capacity: { adults: room.max_guests, children: 0 },
+      size: 30,
+      bedType: "King Bed",
+      rating: averageRating,
+      category: room.room_type as "standard" | "deluxe" | "executive" | "presidential",
+      type: "king" as const,
+      available: room.is_available,
+    };
+    
+    setBookingData({
+      room: bookingRoom,
+      checkIn,
+      checkOut,
+      guests,
+      nights,
+      totalPrice,
+    });
+    
+    navigate('/checkout');
   };
 
   return (
@@ -257,20 +181,18 @@ const RoomDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Images + details */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            {/* Main Image Carousel */}
+            <Card className="overflow-hidden">
               <div className="relative">
-                <div className="absolute right-4 top-4 z-10">
-                  <button className="bg-background/80 px-3 py-1 rounded shadow-sm text-sm" onClick={() => navigate(`/rooms/${room.id}/photos`)}>View photos</button>
-                </div>
                 <Carousel>
                   <CarouselContent className="h-80">
-                    {images.map((src, i) => (
+                    {galleryImages.map((img: GalleryImage, i: number) => (
                       <CarouselItem key={i}>
-                        <img
-                          src={src}
-                          alt={`${room.title} ${i + 1}`}
-                          className="w-full h-80 object-cover rounded cursor-pointer"
-                          onClick={() => navigate(`/rooms/${room.id}/photos`, { state: { startIndex: i } })}
+                        <img 
+                          src={img.url} 
+                          alt={img.title || `${room.title} ${i + 1}`} 
+                          className="w-full h-80 object-cover cursor-pointer transition-transform hover:scale-[1.02]" 
+                          onClick={() => openLightbox(i)}
                         />
                       </CarouselItem>
                     ))}
@@ -278,8 +200,39 @@ const RoomDetails = () => {
                   <CarouselPrevious />
                   <CarouselNext />
                 </Carousel>
+                {galleryImages.length > 1 && (
+                  <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-2 text-sm">
+                    <Images className="h-4 w-4" />
+                    <span>{galleryImages.length} photos</span>
+                  </div>
+                )}
               </div>
             </Card>
+
+            {/* Thumbnail Grid (if multiple images) */}
+            {galleryImages.length > 1 && (
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                {galleryImages.slice(0, 6).map((img: GalleryImage, i: number) => (
+                  <div 
+                    key={i}
+                    className="aspect-square rounded-lg overflow-hidden cursor-pointer relative group"
+                    onClick={() => openLightbox(i)}
+                  >
+                    <img 
+                      src={img.url} 
+                      alt={img.title || `Thumbnail ${i + 1}`} 
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    {i === 5 && galleryImages.length > 6 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-white font-semibold">+{galleryImages.length - 6}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <Card className="p-6">
               <div className="flex items-start justify-between">
@@ -300,7 +253,7 @@ const RoomDetails = () => {
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Amenities</h3>
                 <div className="flex flex-wrap gap-2">
-                  {(room.amenities || []).map((a) => (
+                  {(room.amenities || []).map((a: string) => (
                     <Badge key={a} variant="secondary">{a}</Badge>
                   ))}
                 </div>
@@ -318,7 +271,7 @@ const RoomDetails = () => {
                       </div>
                       <div className="text-right">
                         <div className="text-sm">Rating</div>
-                        <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating !== undefined ? averageRating.toFixed(1) : '—'}</div>
+                        <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
                       </div>
                     </div>
 
@@ -332,28 +285,20 @@ const RoomDetails = () => {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <div ref={checkInRefMobile} tabIndex={-1}>
-                              <CalendarComponent
-                                mode="single"
-                                components={calendarComponents}
-                                selected={checkIn}
-                                modifiers={{ booked: disabledDays }}
-                                onSelect={(date) => {
-                                    setCheckIn(date as Date);
-                                    // Delay closing slightly to ensure DayPicker selection finishes,
-                                    // then auto-open the check-out popover for the next selection.
-                                    setTimeout(() => {
-                                      setCheckInOpenMobile(false);
-                                      setTimeout(() => setCheckOutOpenMobile(true), 100);
-                                    }, 150);
-                                }}
-                                disabled={[{ before: new Date() }, ...disabledDays]}
-                              />
-                              <div className="flex items-center gap-3 mt-2">
-                                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
-                              </div>
-                            </div>
+                            <CalendarComponent
+                              mode="single"
+                              selected={checkIn}
+                              onSelect={(date) => {
+                                  setCheckIn(date as Date);
+                                  // Delay closing slightly to ensure DayPicker selection finishes,
+                                  // then auto-open the check-out popover for the next selection.
+                                  setTimeout(() => {
+                                    setCheckInOpenMobile(false);
+                                    setTimeout(() => setCheckOutOpenMobile(true), 100);
+                                  }, 150);
+                              }}
+                              disabled={(date) => date < new Date()}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -367,23 +312,16 @@ const RoomDetails = () => {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <div ref={checkOutRefMobile} tabIndex={-1}>
-                              <CalendarComponent
-                                mode="single"
-                                components={calendarComponents}
-                                selected={checkOut}
-                                onSelect={(date) => {
-                                  setCheckOut(date as Date);
-                                  // Delay closing slightly to ensure DayPicker selection finishes
-                                  setTimeout(() => setCheckOutOpenMobile(false), 150);
-                                }}
-                                disabled={(date) => isCheckOutDisabled(date)}
-                              />
-                              <div className="flex items-center gap-3 mt-2">
-                                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
-                              </div>
-                            </div>
+                            <CalendarComponent
+                              mode="single"
+                              selected={checkOut}
+                              onSelect={(date) => {
+                                setCheckOut(date as Date);
+                                // Delay closing slightly to ensure DayPicker selection finishes
+                                setTimeout(() => setCheckOutOpenMobile(false), 150);
+                              }}
+                              disabled={(date) => date < (checkIn || new Date())}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -412,9 +350,8 @@ const RoomDetails = () => {
                         <Button
                           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                           onClick={handleBooking}
-                          disabled={(isAvailableForSelectedDates === false) || !room.is_available}
                         >
-                          {checkingSelection ? "Checking..." : "Book now"}
+                          Book now
                         </Button>
                       </div>
                     </div>
@@ -422,9 +359,6 @@ const RoomDetails = () => {
                 </div>
 
                 <ReviewsList reviews={reviews} averageRating={averageRating} />
-                {reviewsError && (
-                  <p className="text-sm text-destructive mt-2">Unable to load reviews.</p>
-                )}
               </div>
 
               {user && (
@@ -433,8 +367,7 @@ const RoomDetails = () => {
                     roomId={room.id}
                     roomName={room.title}
                     onReviewSubmitted={() => {
-                      // Refresh reviews after a successful submission
-                      refetchReviews();
+                      console.log("Review submitted");
                     }}
                   />
                 </div>
@@ -468,18 +401,8 @@ const RoomDetails = () => {
                   <div className="text-2xl font-bold">{formatLocalPrice(room.price_per_night)} <span className="text-sm text-muted-foreground">/ night</span></div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm">Rating</div>
-                    <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating !== undefined ? averageRating.toFixed(1) : '—'}</div>
-                    {/* Availability badge */}
-                    {isAvailableForSelectedDates === false ? (
-                      <Badge variant="destructive">Not available for selected dates</Badge>
-                    ) : (!checkIn && isDateUnavailable(new Date()) ? (
-                      <Badge variant="destructive">Room booked today</Badge>
-                    ) : (!room.is_available ? (
-                      <Badge variant="secondary">Unavailable</Badge>
-                    ) : null))}
-                  </div>
+                  <div className="text-sm">Rating</div>
+                  <div className="flex items-center gap-1"><Star className="h-4 w-4" />{averageRating.toFixed(1)}</div>
                 </div>
               </div>
 
@@ -493,28 +416,20 @@ const RoomDetails = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <div ref={checkInRef} tabIndex={-1}>
-                        <CalendarComponent
-                          mode="single"
-                          components={calendarComponents}
-                          selected={checkIn}
-                          modifiers={{ booked: disabledDays }}
-                          onSelect={(date) => {
-                            setCheckIn(date as Date);
-                            // Delay closing slightly to ensure DayPicker selection finishes,
-                            // then auto-open the check-out popover for the next selection.
-                            setTimeout(() => {
-                              setCheckInOpen(false);
-                              setTimeout(() => setCheckOutOpen(true), 100);
-                            }, 150);
-                          }}
-                          disabled={[{ before: new Date() }, ...disabledDays]}
-                        />
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                          <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
-                        </div>
-                      </div>
+                      <CalendarComponent
+                        mode="single"
+                        selected={checkIn}
+                        onSelect={(date) => {
+                          setCheckIn(date as Date);
+                          // Delay closing slightly to ensure DayPicker selection finishes,
+                          // then auto-open the desktop check-out popover.
+                          setTimeout(() => {
+                            setCheckInOpen(false);
+                            setTimeout(() => setCheckOutOpen(true), 100);
+                          }, 150);
+                        }}
+                        disabled={(date) => date < new Date()}
+                      />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -528,23 +443,16 @@ const RoomDetails = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <div ref={checkOutRef} tabIndex={-1}>
-                        <CalendarComponent
-                          mode="single"
-                          components={calendarComponents}
-                          selected={checkOut}
-                          onSelect={(date) => {
-                            setCheckOut(date as Date);
-                            // Delay closing slightly to ensure DayPicker selection finishes
-                            setTimeout(() => setCheckOutOpen(false), 150);
-                          }}
-                          disabled={(date) => isCheckOutDisabled(date)}
-                        />
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                          <span className="text-sm text-muted-foreground">Booked</span>
-                        </div>
-                      </div>
+                      <CalendarComponent
+                        mode="single"
+                        selected={checkOut}
+                        onSelect={(date) => {
+                          setCheckOut(date as Date);
+                          // Delay closing slightly to ensure DayPicker selection finishes
+                          setTimeout(() => setCheckOutOpen(false), 150);
+                        }}
+                        disabled={(date) => date < (checkIn || new Date())}
+                      />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -573,9 +481,8 @@ const RoomDetails = () => {
                   <Button
                     className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                     onClick={handleBooking}
-                    disabled={(isAvailableForSelectedDates === false) || !room.is_available}
                   >
-                    {checkingSelection ? "Checking..." : "Book now"}
+                    Book now
                   </Button>
                 </div>
               </div>
@@ -583,17 +490,82 @@ const RoomDetails = () => {
 
             <Card className="p-4">
               <h4 className="text-sm font-semibold mb-2">Availability</h4>
-              <CalendarComponent mode="single" components={calendarComponents} modifiers={{ booked: disabledDays }} disabled={[{ before: new Date() }, ...disabledDays]} />
-              <div className="flex items-center gap-3 mt-3">
-                <span className="w-3 h-3 rounded-full bg-destructive inline-block" />
-                <span className="text-sm text-muted-foreground">Room booked (unavailable dates)</span>
-              </div>
+              <CalendarComponent mode="single" disabled={(date) => date < new Date()} />
             </Card>
           </aside>
         </div>
       </div>
 
       <Footer />
+
+      {/* Lightbox Dialog */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
+          <div className="relative w-full h-[90vh] flex items-center justify-center">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+
+            {/* Navigation buttons */}
+            {galleryImages.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-4 z-50 text-white hover:bg-white/20 h-12 w-12"
+                  onClick={prevImage}
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 z-50 text-white hover:bg-white/20 h-12 w-12"
+                  onClick={nextImage}
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+              </>
+            )}
+
+            {/* Main image */}
+            <img
+              src={galleryImages[lightboxIndex]?.url}
+              alt={galleryImages[lightboxIndex]?.title || `Image ${lightboxIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+
+            {/* Image counter and title */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-center">
+              <p className="text-lg font-medium">{galleryImages[lightboxIndex]?.title || room.title}</p>
+              <p className="text-sm text-white/70">{lightboxIndex + 1} / {galleryImages.length}</p>
+            </div>
+
+            {/* Thumbnail strip */}
+            {galleryImages.length > 1 && (
+              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 max-w-[80vw] overflow-x-auto py-2">
+                {galleryImages.map((img: GalleryImage, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightboxIndex(i)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      i === lightboxIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

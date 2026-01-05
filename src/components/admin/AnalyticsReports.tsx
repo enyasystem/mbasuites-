@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,7 +55,7 @@ export default function AnalyticsReports() {
   const { formatPrice } = useCurrency();
   const { locations } = useLocations();
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setIsLoading(true);
     try {
       const startDate = format(subDays(new Date(), parseInt(dateRange)), 'yyyy-MM-dd');
@@ -103,11 +103,11 @@ export default function AnalyticsReports() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dateRange, selectedLocation]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [dateRange, selectedLocation]);
+  }, [fetchAnalytics]);
 
   const statusData = bookingStats ? [
     { name: 'Confirmed', value: bookingStats.confirmed_bookings, color: 'hsl(142, 76%, 36%)' },
