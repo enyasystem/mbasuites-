@@ -141,14 +141,14 @@ const Login = () => {
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
 
-                <div className="relative">
+                {/* <div className="relative">
                   <Separator />
                   <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
                     OR CONTINUE WITH
                   </span>
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* <div className="grid grid-cols-2 gap-3">
                   <Button
                     type="button"
                     variant="outline"
@@ -174,8 +174,8 @@ const Login = () => {
                       />
                     </svg>
                     Google
-                  </Button>
-                  
+                  </Button> */}
+{/*                   
                   <Button
                     type="button"
                     variant="outline"
@@ -190,7 +190,7 @@ const Login = () => {
                     </svg>
                     Facebook
                   </Button>
-                </div>
+                </div> */}
 
                 <p className="text-center text-sm text-muted-foreground">
                   Don't have an account?{" "}

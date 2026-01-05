@@ -9,7 +9,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Link to="/" aria-label="Home">
-                <img src="/mba_suites_logo.png" alt="MBA Suites" className="h-12 w-auto" />
+                <img src="/mba_suites-logo.png" alt="MBA Suites" className="h-12 w-auto" />
               </Link>
             </div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
