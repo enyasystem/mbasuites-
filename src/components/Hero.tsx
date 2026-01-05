@@ -67,20 +67,19 @@ const HeroCarousel = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-            className="text-white/70 text-sm md:text-base max-w-md leading-relaxed font-light"
+            className="text-white/95 font-light uppercase tracking-[0.28em] leading-tight mb-2 text-2xl md:text-3xl lg:text-4xl max-w-2xl"
           >
             {heroSubtitle}
           </motion.h2>
 
-          {/* Description
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
-            className="text-white/70 text-sm md:text-base max-w-md leading-relaxed font-light"
+            className="text-white/80 text-sm md:text-base max-w-2xl leading-relaxed font-light"
           >
             We provide refined, functional spaces that reflect your taste, lifestyle, and vision from booking to checkout.
-          </motion.p> */}
+          </motion.p>
         </div>
 
         {/* CTA Buttons - Bottom Right */}
