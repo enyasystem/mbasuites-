@@ -255,11 +255,6 @@ export default function GuestRegistration({ assignedLocationId }: { assignedLoca
             <input type="file" accept="image/*,application/pdf" {...register('identification_attachment')} />
             <p className="text-xs text-muted-foreground mt-1">Upload a scanned ID or passport (optional).</p>
           </div>
-
-          <div className="md:col-span-2 flex items-center gap-3">
-            <input type="checkbox" {...register('hard_copy_attached')} />
-            <label className="text-sm">Attach photocopy (hard copy submitted)</label>
-          </div>
         </div>
 
         <div className="pt-4">
