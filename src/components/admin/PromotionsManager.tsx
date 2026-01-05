@@ -58,12 +58,36 @@ export default function PromotionsManager() {
       end_date: form.end_date || null,
     };
 
-    if (editingId) {
-      const { error } = await supabase.from("promotions").update(payload).eq("id", editingId);
-      if (error) return alert("Error updating: " + error.message);
-    } else {
-      const { error } = await supabase.from("promotions").insert(payload);
-      if (error) return alert("Error: " + error.message);
+    try {
+      let returned: any = null;
+      if (editingId) {
+        const { data: d, error } = await supabase.from("promotions").update(payload).eq("id", editingId).select().single();
+        if (error) throw error;
+        returned = d;
+      } else {
+        const { data: d, error } = await supabase.from("promotions").insert(payload).select().single();
+        if (error) throw error;
+        returned = d;
+      }
+
+      // If this promotion should show in the banner and is active, clear any local dismissal so it appears immediately
+      try {
+        if (returned && returned.is_active && (returned.display_locations || []).includes('banner')) {
+          const key = 'dismissed_promotions_v1';
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            try {
+              const arr = JSON.parse(raw) as string[];
+              const next = (arr || []).filter((id) => id !== returned.id);
+              localStorage.setItem(key, JSON.stringify(next));
+            } catch (e) {
+              // ignore parse errors
+            }
+          }
+        }
+      } catch (e) { /* ignore */ }
+    } catch (err: any) {
+      return alert('Error saving promotion: ' + (err?.message || String(err)));
     }
 
     qc.invalidateQueries(["admin-promotions"]);
@@ -75,8 +99,23 @@ export default function PromotionsManager() {
   };
 
   const toggleActive = async (id: string, active: boolean) => {
-    const { error } = await supabase.from("promotions").update({ is_active: active }).eq("id", id);
+    const { data, error } = await supabase.from("promotions").update({ is_active: active }).eq("id", id).select().single();
     if (error) return alert("Error: " + error.message);
+    // If enabling and the promo shows in banner, clear local dismissal for immediate visibility
+    try {
+      if (active && data && (data.display_locations || []).includes('banner')) {
+        const key = 'dismissed_promotions_v1';
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const arr = JSON.parse(raw) as string[];
+            const next = (arr || []).filter((pid) => pid !== id);
+            localStorage.setItem(key, JSON.stringify(next));
+          } catch (e) { /* ignore parse errors */ }
+        }
+      }
+    } catch (e) { /* ignore */ }
+
     qc.invalidateQueries(["admin-promotions"]);
     qc.invalidateQueries(["promotions"]);
   };

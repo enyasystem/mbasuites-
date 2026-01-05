@@ -1,0 +1,12 @@
+type Props = { size?: 'sm' | 'md' | 'lg' };
+
+const BrandLogo = ({ size = 'md' }: Props) => {
+  const dims = size === 'sm' ? 28 : size === 'lg' ? 44 : 36;
+  return (
+    <div style={{ width: dims, height: dims }} className="rounded-full overflow-hidden flex items-center justify-center">
+      <img src="/mba_suites_logo.png" alt="MBA Suites" className="w-full h-full object-contain" />
+    </div>
+  );
+};
+
+export default BrandLogo;
