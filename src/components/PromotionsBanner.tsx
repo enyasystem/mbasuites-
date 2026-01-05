@@ -1,76 +1,116 @@
-import { useEffect, useState } from "react";
-import { usePromotions } from "@/hooks/usePromotions";
-import { Button } from "@/components/ui/button";
-import { useLocation } from "react-router-dom";
-import { useRoleCheck } from "@/hooks/useRoleCheck";
+import React, { useState, useEffect } from "react";
+import { usePromotions } from "../hooks/usePromotions";
+import { X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Button } from "./ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-const STORAGE_KEY = "dismissed_promotions_v1";
-
-const PromotionsBanner = () => {
-  const location = useLocation();
-  const { isAdmin } = useRoleCheck();
-  const isAdminPreview = location.pathname.startsWith("/admin") && isAdmin;
-  const { data: promotions = [], isLoading, error } = usePromotions({ activeOnly: true });
-  const banners = promotions.filter((p) => (p.display_locations || []).includes("banner"));
-  const [index, setIndex] = useState(0);
-  const [dismissed, setDismissed] = useState<string[]>([]);
+const PromoBanner = () => {
+  const { data: promotions = [], isLoading } = usePromotions({ activeOnly: true });
+  const [isVisible, setIsVisible] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      setDismissed(raw ? JSON.parse(raw) : []);
-    } catch (e) {
-      setDismissed([]);
-    }
-  }, []);
+    if (!promotions || promotions.length <= 1) return;
 
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    const t = setInterval(() => setIndex((i) => (i + 1) % banners.length), 5000);
-    return () => clearInterval(t);
-  }, [banners.length]);
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % promotions.length);
+    }, 5000);
 
-  // Do not show banner on admin dashboard pages for non-admins
-  if (location.pathname.startsWith("/admin") && !isAdmin) return null;
+    return () => clearInterval(interval);
+  }, [promotions]);
 
-  // Admin preview should ignore dismissed banners so admins can preview
-  const urlParams = new URLSearchParams(location.search);
-  const forceVisible = urlParams.get('promos_preview') === '1' || urlParams.get('show_promos') === '1';
-  const visibleBanners = banners.filter((b) => (isAdminPreview || forceVisible) ? true : !dismissed.includes(b.id));
-  const promo = visibleBanners.length ? visibleBanners[index % visibleBanners.length] : null;
+  if (isLoading || !isVisible || !promotions || promotions.length === 0) return null;
 
+  const currentPromo = promotions[currentIndex];
 
-  const dismiss = (id: string) => {
-    const next = Array.from(new Set([...dismissed, id]));
-    setDismissed(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  };
+  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + promotions.length) % promotions.length);
+  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % promotions.length);
 
   return (
-    <>
-      {promo && (
-        <div id="mba-promo-banner" className="w-full bg-accent/95 text-accent-foreground py-3 px-4 sticky top-0 left-0 z-60">
-          <div className="container mx-auto flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex flex-col md:flex-row md:items-center md:gap-3">
-                <strong className="mr-2">{promo.title}</strong>
-                {isAdminPreview && <span className="ml-2 inline-block text-xs bg-white/20 text-white/90 px-2 py-0.5 rounded">Preview</span>}
-                <span className="text-sm text-accent-foreground/90 mr-2">{promo.description}</span>
-                {promo.promo_code && (
-                  <span className="ml-2 px-2 py-1 bg-background/20 rounded">Code: {promo.promo_code}</span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={() => dismiss(promo.id)}>Dismiss</Button>
-            </div>
-          </div>
-        </div>
-      )}
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      className="bg-gradient-to-r from-accent via-accent/90 to-accent text-accent-foreground relative overflow-hidden"
+    >
+      <div className="container mx-auto px-4 py-2.5">
+        <div className="flex items-center justify-center gap-3">
+          {promotions.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-accent-foreground/80 hover:text-accent-foreground hover:bg-accent-foreground/10"
+              onClick={handlePrev}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
 
-      {/* debug overlay removed */}
-    </>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentPromo.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-3 text-sm"
+            >
+              <Sparkles className="h-4 w-4 shrink-0" />
+              <span className="font-semibold">{currentPromo.title}:</span>
+              <span className="hidden sm:inline">{currentPromo.description}</span>
+              {currentPromo.promo_code && (
+                <code className="bg-accent-foreground/20 px-2 py-0.5 rounded font-mono text-xs">{currentPromo.promo_code}</code>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs font-semibold hover:bg-accent-foreground/10"
+                onClick={() => navigate("/rooms")}
+              >
+                Book Now
+              </Button>
+            </motion.div>
+          </AnimatePresence>
+
+          {promotions.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-accent-foreground/80 hover:text-accent-foreground hover:bg-accent-foreground/10"
+              onClick={handleNext}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
+
+          {promotions.length > 1 && (
+            <div className="flex gap-1 ml-2">
+              {promotions.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === currentIndex ? "w-4 bg-accent-foreground" : "w-1.5 bg-accent-foreground/40"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 absolute right-2 text-accent-foreground/80 hover:text-accent-foreground hover:bg-accent-foreground/10"
+            onClick={() => setIsVisible(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
-export default PromotionsBanner;
+export default PromoBanner;
