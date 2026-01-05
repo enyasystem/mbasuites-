@@ -90,8 +90,9 @@ const HeroCarousel = () => {
 
                   <MotionButton
                     asChild
-                    variant="ghost"
+                    variant="default"
                     size="lg"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                     whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 300 }}
