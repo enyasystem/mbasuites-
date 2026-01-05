@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import roomDeluxe from "@/assets/room-deluxe.jpg";
+import roomDeluxe from "/mba-suites_living-room_tv-wall_04.jpeg";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 const LandingAbout = () => {

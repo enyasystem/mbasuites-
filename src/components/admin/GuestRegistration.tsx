@@ -77,8 +77,22 @@ export default function GuestRegistration({ assignedLocationId }: { assignedLoca
           .upload(filePath, file, { cacheControl: '0' });
 
         if (uploadError) {
-          const msg = (uploadError as any).message || (uploadError as any).error || JSON.stringify(uploadError);
-          if (typeof msg === 'string' && msg.toLowerCase().includes('bucket not found')) {
+          const extractErrorMessage = (err: unknown) => {
+            if (!err) return '';
+            if (typeof err === 'string') return err;
+            if (typeof err === 'object' && err !== null) {
+              const obj = err as Record<string, unknown>;
+              const m = obj['message'];
+              if (typeof m === 'string') return m;
+              const e = obj['error'];
+              if (typeof e === 'string') return e;
+              return JSON.stringify(err);
+            }
+            return String(err);
+          };
+
+          const msg = extractErrorMessage(uploadError);
+          if (msg && msg.toLowerCase().includes('bucket not found')) {
             showApiError(new Error('Storage bucket "guest_ids" not found. Create a storage bucket named guest_ids in your Supabase project (Storage → New bucket).'), 'uploading identification');
             return;
           }

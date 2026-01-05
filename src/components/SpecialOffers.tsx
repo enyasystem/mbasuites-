@@ -12,7 +12,7 @@ import { useRef } from "react";
 
 
 
-const featuredRooms = [
+const featuredRoomsFallback = [
   {
     title: "Deluxe King Room",
     subtitle: "Spacious room with city view • Free WiFi • King bed",
@@ -31,9 +31,11 @@ const featuredRooms = [
   },
 ];
 
+import { useRooms } from "@/hooks/useRooms";
+
 const SpecialOffers = () => {
   const navigate = useNavigate();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice } = useCurrency();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -42,15 +44,16 @@ const SpecialOffers = () => {
 
   const image1Y = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
   const image2Y = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+  const { data: promotions = [] } = usePromotions();
+  const { rooms: dbRooms = [], isLoading: roomsLoading } = useRooms();
 
   return (
     <section ref={ref} className="container mx-auto px-4 py-12">
       {/* Promotions / Special Offers fetched from admin */}
       {/** Display up to 3 promotions that have the 'offers' display location */}
       {(() => {
-        const { data: promotions = [] } = usePromotions();
-        const offers = promotions.filter((p) => (p.display_locations || []).includes("offers")).slice(0, 3);
-        if (offers.length === 0) return null;
+        const offers = (promotions || []).filter((p) => (p.display_locations || []).includes("offers")).slice(0, 3);
+        if (!offers || offers.length === 0) return null;
         return (
           <div className="mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Special Offers</h2>
@@ -92,7 +95,28 @@ const SpecialOffers = () => {
           Featured Rooms
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {featuredRooms.map((room, index) => (
+          {(
+            Array.isArray(dbRooms) && dbRooms.length > 0
+              ? dbRooms.slice(0, 2).map(r => {
+                  // Determine price from DB with fallbacks. Handle cents fields if present.
+                  const rObj = r as Record<string, unknown>;
+                  let priceNum: number | undefined;
+                  if (rObj.price !== undefined && rObj.price !== null) priceNum = Number(rObj.price as unknown);
+                  else if (rObj.price_per_night !== undefined && rObj.price_per_night !== null) priceNum = Number(rObj.price_per_night as unknown);
+                  else if (rObj.price_cents !== undefined && rObj.price_cents !== null) priceNum = Number(rObj.price_cents as unknown) / 100;
+                  else if (rObj.amount !== undefined && rObj.amount !== null) priceNum = Number(rObj.amount as unknown);
+
+                  return {
+                    title: r.title,
+                    subtitle: r.description || "",
+                    price: priceNum ?? 0,
+                    image: r.image_url || (Array.isArray(r.images) && r.images.length ? r.images[0] : roomDeluxe),
+                    badge: r.room_type,
+                    cta: "Book now",
+                  };
+                })
+              : featuredRoomsFallback
+          ).map((room, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -131,8 +155,8 @@ const SpecialOffers = () => {
                     whileInView={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <span className="bg-background/90 text-foreground text-sm font-bold px-3 py-2 rounded-lg">
-                      {formatPrice(room.price)}/night
+                      <span className="bg-background/90 text-foreground text-sm font-bold px-3 py-2 rounded-lg">
+                      {formatLocalPrice(room.price)}/night
                     </span>
                   </motion.div>
                   <motion.div 

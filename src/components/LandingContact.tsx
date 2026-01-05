@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import roomSuite from "@/assets/room-suite.jpg";
+import roomSuite from "/mba-suites_living-room_evening-lighting_04.jpeg";
 import { motion } from "framer-motion";
 
 const LandingContact = () => {
