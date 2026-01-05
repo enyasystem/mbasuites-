@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePromotions } from "../hooks/usePromotions";
-import { X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -25,8 +25,7 @@ const PromoBanner = () => {
 
   const currentPromo = promotions[currentIndex];
 
-  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + promotions.length) % promotions.length);
-  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % promotions.length);
+  // No prev/next controls — auto-rotate only
 
   return (
     <motion.div
@@ -37,16 +36,6 @@ const PromoBanner = () => {
     >
       <div className="container mx-auto px-4 py-2.5">
         <div className="flex items-center justify-center gap-3">
-          {promotions.length > 1 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-accent-foreground/80 hover:text-accent-foreground hover:bg-accent-foreground/10"
-              onClick={handlePrev}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          )}
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -74,30 +63,7 @@ const PromoBanner = () => {
             </motion.div>
           </AnimatePresence>
 
-          {promotions.length > 1 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-accent-foreground/80 hover:text-accent-foreground hover:bg-accent-foreground/10"
-              onClick={handleNext}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          )}
 
-          {promotions.length > 1 && (
-            <div className="flex gap-1 ml-2">
-              {promotions.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    idx === currentIndex ? "w-4 bg-accent-foreground" : "w-1.5 bg-accent-foreground/40"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
 
           <Button
             variant="ghost"
