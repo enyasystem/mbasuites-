@@ -160,7 +160,7 @@ const GalleryMap = () => {
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="Hotel360 Locations in Nigeria"
+                    title="MBA Suites Locations in Nigeria"
                     className="rounded-lg"
                   ></iframe>
                 </div>
@@ -173,8 +173,8 @@ const GalleryMap = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <p className="font-semibold text-foreground mb-1">Hotel360</p>
-              <p>Located in Enugu, Abuja, and Calabar, Nigeria</p>
+              <p className="font-semibold text-foreground mb-1">MBA Suites</p>
+              <p>Located in Lagos, Nakuru - Kenya, and Illinois, Georgia - USA</p>
               <p className="mt-2">
                 <a href="tel:+2347736570134" className="text-accent hover:underline">
                   +234 773 657 0134
