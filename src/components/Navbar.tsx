@@ -50,7 +50,7 @@ const Navbar = () => {
           {/* Logo */}
           <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
             <Link to="/" aria-label="Home">
-              <BrandLogo size="md" />
+              <BrandLogo size="xxl" />
             </Link>
           </motion.div>
 
