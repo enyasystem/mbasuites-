@@ -82,11 +82,18 @@ export async function apiCall<T>(
     onError?: (error: ApiError) => void;
     // Optional simple client-side rate limiting key. If omitted, uses global limiter.
     rateLimitKey?: string;
+    // Optional client-side wait behaviour (ms). If >0, apiCall will wait up to this many ms for a token.
+    rateLimitWaitMs?: number;
+    // Poll interval while waiting for a token (ms)
+    rateLimitIntervalMs?: number;
   }
 ): Promise<{ data: T | null; error: ApiError | null }> {
   try {
     // Enforce a simple client-side token-bucket rate limiter before calling the API.
-    await consumeRateLimitToken(options?.rateLimitKey ?? "__global__");
+    await consumeRateLimitToken(options?.rateLimitKey ?? "__global__", {
+      waitMs: options?.rateLimitWaitMs ?? 0,
+      intervalMs: options?.rateLimitIntervalMs ?? 200,
+    });
 
     const data = await fn();
     return { data, error: null };
@@ -177,15 +184,32 @@ function getBucket(key: string): Bucket {
 /**
  * Attempt to consume a token for the given key. Rejects with an object shaped like an API error on limit exceeded.
  */
-export async function consumeRateLimitToken(key = "__global__") {
-  const bucket = getBucket(key);
+export async function consumeRateLimitToken(
+  key = "__global__",
+  opts?: { waitMs?: number; intervalMs?: number }
+) {
+  const waitMs = opts?.waitMs ?? 0;
+  const intervalMs = opts?.intervalMs ?? 200;
+  const start = Date.now();
 
-  if (bucket.tokens >= 1) {
-    bucket.tokens -= 1;
-    return;
+  while (true) {
+    const bucket = getBucket(key);
+
+    if (bucket.tokens >= 1) {
+      bucket.tokens -= 1;
+      return;
+    }
+
+    if (waitMs <= 0) break;
+
+    const elapsed = Date.now() - start;
+    if (elapsed >= waitMs) break;
+
+    const sleepFor = Math.min(intervalMs, waitMs - elapsed);
+    await new Promise((r) => setTimeout(r, sleepFor));
   }
 
-  // No tokens available — reject immediately with a 429-like error
+  // No tokens available within allowed wait — reject with 429-like error
   const err = { message: "Too many requests. Please try again later.", code: "429" } as any;
   throw err;
 }
