@@ -13,7 +13,7 @@ const Footer = () => {
               </Link>
             </div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
-              Your premium serviced apartments in Lagos (Nigeria), Nakuru (Kenya), Illinois (Georgia - USA).
+Your premium service apartments, shortlets and vacation rentals.
             </p>
           </div>
 
@@ -50,6 +50,7 @@ const Footer = () => {
                 <strong>Address (Lagos - Branch):</strong> Emcel Garden Estate<br />
                 Orchid, Lekki Phase 2 Lagos
               </li>
+              <li><strong>Kenya:</strong> Nairobi, Nakuru</li>
             </ul>
           </div>
         </div>
