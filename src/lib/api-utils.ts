@@ -80,9 +80,14 @@ export async function apiCall<T>(
     context?: string;
     showToast?: boolean;
     onError?: (error: ApiError) => void;
+    // Optional simple client-side rate limiting key. If omitted, uses global limiter.
+    rateLimitKey?: string;
   }
 ): Promise<{ data: T | null; error: ApiError | null }> {
   try {
+    // Enforce a simple client-side token-bucket rate limiter before calling the API.
+    await consumeRateLimitToken(options?.rateLimitKey ?? "__global__");
+
     const data = await fn();
     return { data, error: null };
   } catch (err) {
@@ -130,4 +135,57 @@ export async function retryApiCall<T>(
   }
   
   throw lastError;
+}
+
+// ----------------------
+// Simple client-side rate limiter
+// ----------------------
+
+type Bucket = {
+  tokens: number;
+  lastRefill: number;
+};
+
+const RATE_LIMIT_CAPACITY = 30; // tokens
+const RATE_LIMIT_REFILL_TOKENS = 30; // tokens per interval
+const RATE_LIMIT_REFILL_INTERVAL_MS = 60_000; // 1 minute
+
+const buckets = new Map<string, Bucket>();
+
+function getBucket(key: string): Bucket {
+  const now = Date.now();
+  let bucket = buckets.get(key);
+  if (!bucket) {
+    bucket = { tokens: RATE_LIMIT_CAPACITY, lastRefill: now };
+    buckets.set(key, bucket);
+    return bucket;
+  }
+
+  // refill
+  const elapsed = now - bucket.lastRefill;
+  if (elapsed > 0) {
+    const refillAmount = (elapsed / RATE_LIMIT_REFILL_INTERVAL_MS) * RATE_LIMIT_REFILL_TOKENS;
+    if (refillAmount > 0) {
+      bucket.tokens = Math.min(RATE_LIMIT_CAPACITY, bucket.tokens + refillAmount);
+      bucket.lastRefill = now;
+    }
+  }
+
+  return bucket;
+}
+
+/**
+ * Attempt to consume a token for the given key. Rejects with an object shaped like an API error on limit exceeded.
+ */
+export async function consumeRateLimitToken(key = "__global__") {
+  const bucket = getBucket(key);
+
+  if (bucket.tokens >= 1) {
+    bucket.tokens -= 1;
+    return;
+  }
+
+  // No tokens available — reject immediately with a 429-like error
+  const err = { message: "Too many requests. Please try again later.", code: "429" } as any;
+  throw err;
 }
