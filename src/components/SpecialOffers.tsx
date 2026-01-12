@@ -165,8 +165,8 @@ const SpecialOffers = () => {
                     whileInView={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <h3 className="text-2xl font-bold mb-1">{room.title}</h3>
-                    <p className="text-sm mb-4 text-white/90">{room.subtitle}</p>
+                    <h3 className="text-2xl font-bold mb-1 truncate">{room.title}</h3>
+                    <p className="text-sm mb-4 text-white/90 line-clamp-3">{room.subtitle}</p>
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
