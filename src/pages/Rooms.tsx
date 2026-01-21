@@ -31,6 +31,24 @@ import roomDeluxe from "@/assets/room-deluxe.jpg";
 import roomSuite from "@/assets/room-suite.jpg";
 import usePromotions from "@/hooks/usePromotions";
 
+// Display shape for rooms after mapping DB rows
+interface RoomDisplay {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  price: number;
+  size: number;
+  capacity: { adults: number; children: number };
+  bedType: string;
+  amenities: string[];
+  images: string[];
+  description: string;
+  rating: number;
+  available: boolean;
+  locationId?: string | null;
+}
+
 // Static filter options
 const allAmenities = ["WiFi", "AC", "TV", "Minibar", "Safe", "Coffee Maker", "Bathtub", "Living Area", "Work Desk", "Balcony"];
 const allBedTypes = ["Single Bed", "Double Bed", "Queen Bed", "King Bed", "King Bed + Sofa Bed"];
@@ -224,7 +242,7 @@ const Rooms = () => {
 
   const { data: promotions = [] } = usePromotions();
 
-  const getApplicable = (room: typeof rooms[number]) => {
+  const getApplicable = (room: RoomDisplay) => {
     return promotions.find((p) => {
       if (!p.display_locations || !p.display_locations.includes("rooms")) return false;
       const types = p.applicable_room_types || [];
@@ -278,7 +296,7 @@ const Rooms = () => {
   }, [maxPrice]);
 
   // Map database rooms to display format
-  const rooms = useMemo(() => {
+  const rooms = useMemo<RoomDisplay[]>(() => {
     return dbRooms.map((room) => ({
       id: room.id,
       name: room.title,
@@ -297,7 +315,7 @@ const Rooms = () => {
     }));
   }, [dbRooms]);
 
-  const filteredAndSortedRooms = useMemo(() => {
+  const filteredAndSortedRooms = useMemo<RoomDisplay[]>(() => {
     const filtered = rooms.filter((room) => {
       // Price filter
       if (room.price < filters.priceRange[0] || room.price > filters.priceRange[1]) {
@@ -382,7 +400,7 @@ const Rooms = () => {
   };
 
   // Helper: determine if a room matches a given set of filters
-  const roomMatchesFilters = (room: typeof rooms[number], f: RoomFilters) => {
+  const roomMatchesFilters = (room: RoomDisplay, f: RoomFilters) => {
     if (room.price < f.priceRange[0] || room.price > f.priceRange[1]) return false;
     if (f.bedTypes.length > 0 && !f.bedTypes.includes(room.bedType)) return false;
     if (room.size < f.minSize) return false;
