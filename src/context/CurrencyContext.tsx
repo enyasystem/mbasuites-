@@ -2,23 +2,31 @@
 import * as React from "react";
 import type { Currency, Rates } from "@/types/currency";
 
+// Given exchange equivalents (NGN per unit):
+// 1 USD = ₦1,420.26 NGN
+// 1 EUR = ₦1,664.20 NGN
+// 1 GBP = ₦1,908.98 NGN
+// We'll compute rates as "units per 1 USD" so `convertUsdTo(amountUsd, to)` can multiply.
+const baseUsdToNgn = 1420.26;
 const defaultRates: Rates = {
-  // rates are currency units per 1 USD (approximate defaults)
   USD: 1,
-  NGN: 1500, // fallback value; consider refreshing from an API
-  GBP: 0.78,
+  NGN: baseUsdToNgn,
+  EUR: baseUsdToNgn / 1664.2, // ~0.853 EUR per 1 USD
+  GBP: baseUsdToNgn / 1908.98, // ~0.744 GBP per 1 USD
 };
 
 const localeMap: Record<Currency, string> = {
   USD: "en-US",
   NGN: "en-NG",
   GBP: "en-GB",
+  EUR: "de-DE",
 };
 
 const symbolMap: Record<Currency, string> = {
   USD: "$",
   NGN: "₦",
   GBP: "£",
+  EUR: "€",
 };
 
 type CurrencyContextType = {
@@ -36,7 +44,7 @@ const CurrencyContext = React.createContext<CurrencyContextType | null>(null);
 
 export const CurrencyProvider = ({ children }: { children: React.ReactNode }) => {
   const stored = typeof window !== 'undefined' ? window.localStorage.getItem('app_currency') : null;
-  const initialCurrency = (stored && (['USD','NGN','GBP'] as string[]).includes(stored) ? (stored as Currency) : 'NGN') as Currency;
+  const initialCurrency = (stored && (['USD','NGN','GBP','EUR'] as string[]).includes(stored) ? (stored as Currency) : 'NGN') as Currency;
   const [currency, setCurrencyState] = React.useState<Currency>(initialCurrency);
   const [rates, setRates] = React.useState<Rates>(defaultRates);
 
@@ -67,7 +75,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
     const amt = convertUsdTo(amountUsd, currency);
     const formatter = new Intl.NumberFormat(localeMap[currency], {
       style: "currency",
-      currency: currency === "USD" ? "USD" : currency === "NGN" ? "NGN" : "GBP",
+      currency: currency === "USD" ? "USD" : currency === "NGN" ? "NGN" : currency === "GBP" ? "GBP" : "EUR",
       maximumFractionDigits: 0,
     });
     // Intl for NGN/GBP will include symbol; fallback to symbolMap if needed
@@ -82,7 +90,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
   const formatLocalPrice = React.useCallback((amount: number) => {
     const formatter = new Intl.NumberFormat(localeMap[currency], {
       style: "currency",
-      currency: currency === "USD" ? "USD" : currency === "NGN" ? "NGN" : "GBP",
+      currency: currency === "USD" ? "USD" : currency === "NGN" ? "NGN" : currency === "GBP" ? "GBP" : "EUR",
       maximumFractionDigits: 0,
     });
     try {

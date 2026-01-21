@@ -21,6 +21,7 @@ import ThemeToggle from "./ThemeToggle";
 const currencies: { code: Currency; symbol: string; name: string }[] = [
   { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
   { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
   { code: "GBP", symbol: "£", name: "British Pound" },
 ];
 

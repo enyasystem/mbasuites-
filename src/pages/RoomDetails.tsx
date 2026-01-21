@@ -54,7 +54,7 @@ const RoomDetails = () => {
   const [checkInOpenMobile, setCheckInOpenMobile] = useState(false);
   const [checkOutOpenMobile, setCheckOutOpenMobile] = useState(false);
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
-  const { formatPrice, formatLocalPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice, convertToUsd } = useCurrency();
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -241,7 +241,14 @@ const RoomDetails = () => {
                   <p className="text-sm text-muted-foreground capitalize">{room.room_type} • Room {room.room_number}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold">{formatLocalPrice(room.price_per_night)}</div>
+                  <div className="text-2xl font-bold">{(() => {
+                    try {
+                      const usd = convertToUsd(room.price_per_night, 'NGN');
+                      return formatPrice(usd);
+                    } catch {
+                      return formatLocalPrice(room.price_per_night);
+                    }
+                  })()}</div>
                   <div className="text-xs text-muted-foreground">per night</div>
                 </div>
               </div>
@@ -267,7 +274,14 @@ const RoomDetails = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm text-muted-foreground">Price</div>
-                        <div className="text-2xl font-bold">{formatLocalPrice(room.price_per_night)} <span className="text-sm text-muted-foreground">/ night</span></div>
+                        <div className="text-2xl font-bold">{(() => {
+                          try {
+                            const usd = convertToUsd(room.price_per_night, 'NGN');
+                            return `${formatPrice(usd)} `;
+                          } catch {
+                            return `${formatLocalPrice(room.price_per_night)} `;
+                          }
+                        })()}<span className="text-sm text-muted-foreground">/ night</span></div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm">Rating</div>
@@ -340,10 +354,17 @@ const RoomDetails = () => {
                           <span>Rooms</span>
                           <span>{guests.rooms}</span>
                         </div>
-                        <div className="flex items-center justify-between text-lg font-bold mt-2">
-                          <span>Total</span>
-                          <span>{totalPrice ? formatLocalPrice(totalPrice) : formatLocalPrice(0)}</span>
-                        </div>
+                          <div className="flex items-center justify-between text-lg font-bold mt-2">
+                            <span>Total</span>
+                            <span>{(() => {
+                              try {
+                                const usdTotal = convertToUsd(totalPrice || 0, 'NGN');
+                                return totalPrice ? formatPrice(usdTotal) : formatPrice(0);
+                              } catch {
+                                return totalPrice ? formatLocalPrice(totalPrice) : formatLocalPrice(0);
+                              }
+                            })()}</span>
+                          </div>
                       </div>
 
                       <div>
@@ -398,7 +419,14 @@ const RoomDetails = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm text-muted-foreground">Price</div>
-                  <div className="text-2xl font-bold">{formatLocalPrice(room.price_per_night)} <span className="text-sm text-muted-foreground">/ night</span></div>
+                  <div className="text-2xl font-bold">{(() => {
+                    try {
+                      const usd = convertToUsd(room.price_per_night, 'NGN');
+                      return `${formatPrice(usd)} `;
+                    } catch {
+                      return `${formatLocalPrice(room.price_per_night)} `;
+                    }
+                  })()}<span className="text-sm text-muted-foreground">/ night</span></div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm">Rating</div>
@@ -473,7 +501,14 @@ const RoomDetails = () => {
                   </div>
                   <div className="flex items-center justify-between text-lg font-bold mt-2">
                     <span>Total</span>
-                    <span>{totalPrice ? formatLocalPrice(totalPrice) : formatLocalPrice(0)}</span>
+                    <span>{(() => {
+                      try {
+                        const usdTotal = convertToUsd(totalPrice || 0, 'NGN');
+                        return totalPrice ? formatPrice(usdTotal) : formatPrice(0);
+                      } catch {
+                        return totalPrice ? formatLocalPrice(totalPrice) : formatLocalPrice(0);
+                      }
+                    })()}</span>
                   </div>
                 </div>
 
