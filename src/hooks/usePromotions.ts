@@ -32,13 +32,13 @@ export const usePromotions = (opts?: { activeOnly?: boolean }) => {
     queryKey: ["promotions", activeOnly],
     queryFn: async (): Promise<Promotion[]> => {
       const { data, error } = await supabase
-        .from("promotions")
+        .from<Promotion>("promotions")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const items: Promotion[] = (data || []) as any;
+      const items: Promotion[] = (data || []) as Promotion[];
 
       if (activeOnly) return items.filter(isActiveNow);
       return items;

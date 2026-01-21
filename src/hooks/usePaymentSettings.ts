@@ -20,6 +20,16 @@ export function usePaymentSettings() {
   const [error, setError] = useState<string | null>(null);
   const [hasRows, setHasRows] = useState(false);
 
+  const getErrorMessage = (e: unknown): string => {
+    if (e instanceof Error) return e.message;
+    if (typeof e === 'string') return e;
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -88,9 +98,9 @@ export function usePaymentSettings() {
           setSettings(parsed);
           setHasRows(Boolean(rows && rows.length > 0));
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error loading payment settings:", err);
-        if (mounted) setError(err.message || "Failed to load payment settings");
+        if (mounted) setError(getErrorMessage(err) || "Failed to load payment settings");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -104,28 +114,33 @@ export function usePaymentSettings() {
 
     try {
       const sb = supabase as unknown as Record<string, unknown>;
+      type ChannelLike = {
+        on?: (event: unknown, opts?: unknown, cb?: (...args: unknown[]) => unknown) => ChannelLike;
+        subscribe?: () => unknown;
+      };
+
       // Older API: sb.from(...).on(...).subscribe()
       if (typeof sb.from === "function") {
-        const fromFn = sb.from as unknown as (table: string) => any;
+        const fromFn = sb.from as unknown as (table: string) => ChannelLike | undefined;
         const chan = fromFn("payment_settings");
         if (chan && typeof chan.on === "function") {
-          // chaining API
-          // @ts-expect-error - calling third-party API
-          subscription = chan.on("INSERT", () => fetchSettings()).on("UPDATE", () => fetchSettings()).on("DELETE", () => fetchSettings()).subscribe();
+          chan.on!("INSERT", undefined, () => fetchSettings());
+          chan.on!("UPDATE", undefined, () => fetchSettings());
+          chan.on!("DELETE", undefined, () => fetchSettings());
+          if (typeof chan.subscribe === "function") chan.subscribe!();
+          subscription = chan;
         }
       }
 
       // Newer API: channel/postgres_changes
       if (typeof sb.channel === "function") {
-        // @ts-expect-error - third-party API
-        const channel = (sb.channel as any)("payment_settings_changes")
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "payment_settings" },
-            () => fetchSettings()
-          )
-          .subscribe();
-        if (channel) subscription = channel;
+        const channelFn = sb.channel as unknown as (name: string) => ChannelLike;
+        const ch = channelFn("payment_settings_changes");
+        if (ch && typeof ch.on === "function") {
+          ch.on!("postgres_changes", { event: "*", schema: "public", table: "payment_settings" }, () => fetchSettings());
+          if (typeof ch.subscribe === "function") ch.subscribe!();
+          subscription = ch;
+        }
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -138,17 +153,13 @@ export function usePaymentSettings() {
       try {
         const sb = supabase as unknown as Record<string, unknown>;
         if (subscription) {
-          // older unsubscribe
-          // @ts-expect-error - third-party API
-          if (typeof (subscription as any).unsubscribe === "function") {
-            // @ts-expect-error
-            (subscription as any).unsubscribe();
-          } else if (typeof (sb.removeSubscription as any) === "function") {
-            // @ts-expect-error
-            (sb.removeSubscription as any)(subscription);
-          } else if (typeof (sb.removeChannel as any) === "function") {
-            // @ts-expect-error
-            (sb.removeChannel as any)(subscription);
+          const subObj = subscription as unknown as { unsubscribe?: () => unknown };
+          if (typeof subObj.unsubscribe === "function") {
+            subObj.unsubscribe();
+          } else if (typeof (sb.removeSubscription as unknown as Function) === "function") {
+            (sb.removeSubscription as unknown as Function).call(sb, subscription);
+          } else if (typeof (sb.removeChannel as unknown as Function) === "function") {
+            (sb.removeChannel as unknown as Function).call(sb, subscription);
           }
         }
       } catch (err) {

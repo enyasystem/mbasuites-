@@ -2,13 +2,26 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DatabaseRoom } from "./useRooms";
 
+type RoomImage = { id: string; url: string; is_primary: boolean; ordering?: number | null };
+type SupabaseRoomRow = DatabaseRoom & { room_images?: RoomImage[] };
+
+const getErrorMessage = (e: unknown): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return String(e);
+  }
+};
+
 export function useRoom(roomId: string | undefined) {
   const [room, setRoom] = useState<DatabaseRoom | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: any | null = null;
+    let channel: unknown | null = null;
 
     const fetchRoom = async () => {
       if (!roomId) {
@@ -22,34 +35,31 @@ export function useRoom(roomId: string | undefined) {
 
       try {
         const { data, error: fetchError } = await supabase
-          .from("rooms")
+          .from<SupabaseRoomRow>("rooms")
           .select("*, room_images(id, url, is_primary, ordering), locations(name)")
           .eq("id", roomId)
           .maybeSingle();
 
-        if (fetchError) {
-          throw fetchError;
-        }
+        if (fetchError) throw fetchError;
 
         if (!data) {
           setError("Room not found");
           setRoom(null);
         } else {
-          // Build images array (ordered, prefer is_primary)
           const imgs = (data.room_images || [])
             .slice()
-            .sort((a: any, b: any) => {
+            .sort((a: RoomImage, b: RoomImage) => {
               if (a.is_primary && !b.is_primary) return -1;
               if (!a.is_primary && b.is_primary) return 1;
               return (a.ordering || 0) - (b.ordering || 0);
             })
-            .map((r: any) => r.url);
+            .map((r: RoomImage) => r.url);
 
           const roomWithImages = { ...data, images: imgs, image_url: data.image_url || imgs[0] || null };
           setRoom(roomWithImages as DatabaseRoom);
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch room");
+      } catch (err: unknown) {
+        setError(getErrorMessage(err) || "Failed to fetch room");
       } finally {
         setIsLoading(false);
       }
@@ -59,34 +69,47 @@ export function useRoom(roomId: string | undefined) {
 
     // Subscribe to changes on room_images for this room so UI updates in real-time
     try {
-      channel = supabase
-        .channel(`room_images:room_id=eq.${roomId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'room_images', filter: `room_id=eq.${roomId}` }, (payload: any) => {
-          // Re-fetch room to get updated images
-          fetchRoom();
-        })
-        .subscribe();
-    } catch (err) {
-      // Fallback for clients using the older Realtime API
-      try {
-        const subscription = supabase
-          .from(`room_images:room_id=eq.${roomId}`)
-          .on('*', () => fetchRoom())
-          .subscribe();
-        // store in channel variable so we can remove later
-        channel = subscription as any;
-      } catch (err2) {
-        // ignore subscription errors
-        console.warn('Realtime subscription for room images failed', err2);
+      type ChannelLike = {
+        on?: (event: unknown, opts?: unknown, cb?: (...args: unknown[]) => unknown) => ChannelLike;
+        subscribe?: () => unknown;
+      };
+
+      const sb = supabase as unknown as Record<string, unknown>;
+      if (typeof sb.channel === 'function') {
+        const channelFn = sb.channel as unknown as (name: string) => ChannelLike;
+        const ch = channelFn(`room_images:room_id=eq.${roomId}`);
+        if (ch && typeof ch.on === 'function') {
+          ch.on!('postgres_changes', { event: '*', schema: 'public', table: 'room_images', filter: `room_id=eq.${roomId}` }, () => fetchRoom());
+          if (typeof ch.subscribe === 'function') ch.subscribe!();
+          channel = ch;
+        }
+      } else {
+        // Fallback for older Realtime API
+        try {
+          const fromFn = (sb.from as unknown) as (arg: string) => ChannelLike;
+          const sub = fromFn(`room_images:room_id=eq.${roomId}`);
+          if (sub && typeof sub.on === 'function') {
+            sub.on!('*', undefined, () => fetchRoom());
+            if (typeof sub.subscribe === 'function') sub.subscribe!();
+            channel = sub;
+          }
+        } catch (err2) {
+          // ignore subscription errors
+          console.warn('Realtime subscription for room images failed', err2);
+        }
       }
+
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('Realtime subscription for room images not available:', e);
     }
 
     return () => {
       try {
-        if (channel && typeof channel.unsubscribe === 'function') channel.unsubscribe();
-        // supabase.removeChannel for newer SDKs may be necessary, attempt if available
-        // @ts-ignore
-        if (channel && channel.name && (supabase as any).removeChannel) (supabase as any).removeChannel(channel);
+        const subObj = channel as unknown as { unsubscribe?: () => unknown };
+        if (subObj && typeof subObj.unsubscribe === 'function') subObj.unsubscribe();
+        const sb = supabase as unknown as Record<string, unknown>;
+        if (typeof (sb.removeChannel as unknown as Function) === 'function') (sb.removeChannel as unknown as Function).call(sb, channel);
       } catch (e) {
         // ignore cleanup errors
       }
