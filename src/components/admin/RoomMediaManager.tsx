@@ -139,39 +139,91 @@ export default function RoomMediaManager() {
       // Determine starting display order
       const startOrder = mediaItems.length > 0 ? Math.max(...mediaItems.map((m) => m.display_order)) + 1 : 0;
 
+      // Get current session token to call the server function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${selectedRoom}/${Date.now()}-${i}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage.from("room-media").upload(fileName, file);
-        if (uploadError) throw uploadError;
+        // POST file to server function which uploads using the service role
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('room_id', selectedRoom);
 
-        const { data: publicUrl } = supabase.storage.from("room-media").getPublicUrl(fileName);
+        // Use proxied route for local/dev (vercel dev) to avoid cross-origin issues;
+        // in production the Vercel rewrite forwards `/functions/upload-room-media` to Supabase.
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
+        // Try proxied route first (works when running `vercel dev` or in production with Vercel rewrite).
+        // If that returns 404, fall back to calling the Supabase functions endpoint directly.
+        const proxiedUrl = '/functions/upload-room-media';
+        const directUrl = `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1/upload-room-media`;
+
+        console.debug('upload-room-media: attempting proxied function URL', proxiedUrl);
+
+        let res = await fetch(proxiedUrl, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+
+        if (res.status === 404) {
+          console.warn('upload-room-media: proxied route returned 404, falling back to direct Supabase URL', directUrl);
+          res = await fetch(directUrl, {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData,
+          });
+        }
+
+        // Read raw text and attempt JSON parse; provide helpful diagnostics on failure
+        const raw = await res.text();
+        type UploadResponse = { success?: boolean; publicUrl?: string; error?: string };
+        let result: UploadResponse | null = null;
+        if (raw) {
+          try {
+            result = JSON.parse(raw);
+          } catch (err) {
+            console.error('upload-room-media: response not JSON', { status: res.status, statusText: res.statusText, raw });
+            throw new Error(`Upload failed: ${res.status} ${res.statusText} - invalid JSON response`);
+          }
+        }
+
+        if (!res.ok) {
+          const serverMsg = result?.error || raw || res.statusText;
+          console.error('upload-room-media: server responded with error', { status: res.status, serverMsg, raw });
+          throw new Error(`Upload failed: ${res.status} ${serverMsg}`);
+        }
+
+        if (!result?.success) {
+          throw new Error(result?.error || 'Upload function returned unexpected response');
+        }
+
+        const publicUrl = result.publicUrl;
         const displayOrder = startOrder + i;
 
+        // Insert metadata row
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: dbError } = await (supabase as any).from("room_media").insert({
+        const { error: dbError } = await (supabase as any).from('room_media').insert({
           room_id: selectedRoom,
           media_type: uploadForm.media_type,
-          media_url: publicUrl.publicUrl,
+          media_url: publicUrl,
           title: uploadForm.title || file.name,
           display_order: displayOrder,
           is_primary: mediaItems.length === 0 && i === 0,
         });
 
         if (dbError) {
-          const msg = ((dbError as unknown) as { message?: string })?.message || "";
-          if (msg.includes("Could not find the table") || msg.includes("room_media")) {
-            // Fallback: set the room's image_url to the first uploaded file and stop
+          const msg = ((dbError as unknown) as { message?: string })?.message || '';
+          if (msg.includes('Could not find the table') || msg.includes('room_media')) {
             try {
-              const { error: upErr } = await supabase.from("rooms").update({ image_url: publicUrl.publicUrl }).eq("id", selectedRoom);
+              const { error: upErr } = await supabase.from('rooms').update({ image_url: publicUrl }).eq('id', selectedRoom);
               if (upErr) throw upErr;
-              toast.success("Media uploaded and set as room image (fallback)");
-              queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
+              toast.success('Media uploaded and set as room image (fallback)');
+              queryClient.invalidateQueries({ queryKey: ['room-media', selectedRoom] });
               setUploadDialogOpen(false);
-              setUploadForm({ title: "", media_type: "image" });
+              setUploadForm({ title: '', media_type: 'image' });
               break;
             } catch (err) {
               throw dbError;
