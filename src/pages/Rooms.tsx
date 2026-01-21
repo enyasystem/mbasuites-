@@ -281,7 +281,7 @@ const Rooms = () => {
     categories: [],
     sortBy: "price-asc",
   }));
-  const { formatLocalPrice } = useCurrency();
+  const { formatPrice } = useCurrency();
 
   // Update filters when maxPrice changes (data loaded)
   useEffect(() => {
@@ -544,7 +544,7 @@ const Rooms = () => {
             )}
             {(filters.priceRange[0] !== initialFilters.priceRange[0] || filters.priceRange[1] !== initialFilters.priceRange[1]) && (
               <Badge variant="secondary" className="cursor-pointer" onClick={() => removeAppliedFilter('priceRange')}>
-                ${filters.priceRange[0]} - ${filters.priceRange[1]} ×
+                {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])} ×
               </Badge>
             )}
           </div>
@@ -557,7 +557,7 @@ const Rooms = () => {
               <FiltersCard
                 stagedFilters={stagedFilters}
                 maxPrice={maxPrice}
-                formatLocalPrice={formatLocalPrice}
+                formatLocalPrice={formatPrice}
                 toggleCategory={toggleCategory}
                 toggleBedType={toggleBedType}
                 toggleAmenity={toggleAmenity}
@@ -579,7 +579,7 @@ const Rooms = () => {
                       compact
                       stagedFilters={stagedFilters}
                       maxPrice={maxPrice}
-                      formatLocalPrice={formatLocalPrice}
+                      formatLocalPrice={formatPrice}
                       toggleCategory={toggleCategory}
                       toggleBedType={toggleBedType}
                       toggleAmenity={toggleAmenity}
@@ -751,7 +751,7 @@ const Rooms = () => {
                             <CardFooter className="flex items-center justify-between pt-4 border-t">
                               <div>
                                 <p className="text-2xl font-bold text-foreground flex items-center gap-3">
-                                  {formatLocalPrice(room.price)}
+                                  {formatPrice(room.price)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">per night</p>
                               </div>
