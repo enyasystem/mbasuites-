@@ -11,7 +11,7 @@ export interface PaymentSettings {
   bank_sort_code?: string;
   bank_swift_code?: string;
   bank_instructions?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function usePaymentSettings() {
@@ -31,14 +31,16 @@ export function usePaymentSettings() {
 
         if (error) throw error;
 
-        const out: Record<string, any> = {};
-        data?.forEach((row: any) => {
+        type SettingRow = { setting_key: string; setting_value: unknown };
+        const out: Record<string, unknown> = {};
+        const rows = (data ?? []) as SettingRow[];
+        rows.forEach((row) => {
           if (row.setting_value !== null && row.setting_value !== undefined) {
             out[row.setting_key] = row.setting_value;
           }
         });
 
-        const isEnabled = (v: any) => {
+        const isEnabled = (v: unknown) => {
           if (v === true) return true;
           if (v === false) return false;
           if (v == null) return false;
@@ -64,26 +66,27 @@ export function usePaymentSettings() {
           try {
             // Only emit debug logs when the admin-enabled `client_debug` flag is true
             if (parsed.client_debug) {
-               
               console.log("Payment settings raw:", data);
-               
               console.log("Payment settings parsed:", parsed);
 
               // detect duplicate keys which can cause last-write wins issues
               const counts: Record<string, number> = {};
-              data?.forEach((row: any) => {
+              rows.forEach((row) => {
                 counts[row.setting_key] = (counts[row.setting_key] || 0) + 1;
               });
               Object.entries(counts).forEach(([k, v]) => {
                 if (v > 1) {
-                   
                   console.warn(`Duplicate payment_settings rows for key: ${k} (count=${v})`);
                 }
               });
             }
-          } catch (e) {}
+          } catch (e) {
+            // log and continue
+            // eslint-disable-next-line no-console
+            console.warn("Error during payment settings debug logging:", e);
+          }
           setSettings(parsed);
-          setHasRows(Boolean(data && data.length > 0));
+          setHasRows(Boolean(rows && rows.length > 0));
         }
       } catch (err: any) {
         console.error("Error loading payment settings:", err);
@@ -97,33 +100,35 @@ export function usePaymentSettings() {
 
     // Subscribe to realtime changes so UI updates when admin changes settings
     // Support both supabase-js v1 (.from().on().subscribe()) and v2 (channel/postgres_changes)
-    let subscription: any = null;
+    let subscription: unknown = null;
 
     try {
-      const sbAny: any = supabase;
+      const sb = supabase as unknown as Record<string, unknown>;
+      // Older API: sb.from(...).on(...).subscribe()
+      if (typeof sb.from === "function") {
+        const fromFn = sb.from as unknown as (table: string) => any;
+        const chan = fromFn("payment_settings");
+        if (chan && typeof chan.on === "function") {
+          // chaining API
+          // @ts-expect-error - calling third-party API
+          subscription = chan.on("INSERT", () => fetchSettings()).on("UPDATE", () => fetchSettings()).on("DELETE", () => fetchSettings()).subscribe();
+        }
+      }
 
-      if (sbAny.from && typeof sbAny.from === "function" && sbAny.from("").on) {
-        // Older API
-        subscription = sbAny
-          .from("payment_settings")
-          .on("INSERT", () => fetchSettings())
-          .on("UPDATE", () => fetchSettings())
-          .on("DELETE", () => fetchSettings())
-          .subscribe();
-      } else if (sbAny.channel && typeof sbAny.channel === "function") {
-        // Newer API: use realtime channel and postgres_changes
-        const channel = sbAny
-          .channel("payment_settings_changes")
+      // Newer API: channel/postgres_changes
+      if (typeof sb.channel === "function") {
+        // @ts-expect-error - third-party API
+        const channel = (sb.channel as any)("payment_settings_changes")
           .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "payment_settings" },
             () => fetchSettings()
           )
           .subscribe();
-
-        subscription = channel;
+        if (channel) subscription = channel;
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.warn("Realtime subscription not available:", e);
     }
 
@@ -131,14 +136,19 @@ export function usePaymentSettings() {
       mounted = false;
       // cleanup subscription across different supabase client versions
       try {
-        const sbAny: any = supabase;
+        const sb = supabase as unknown as Record<string, unknown>;
         if (subscription) {
-          if (typeof subscription.unsubscribe === "function") {
-            subscription.unsubscribe();
-          } else if (typeof sbAny.removeSubscription === "function") {
-            sbAny.removeSubscription(subscription);
-          } else if (typeof sbAny.removeChannel === "function") {
-            sbAny.removeChannel(subscription);
+          // older unsubscribe
+          // @ts-expect-error - third-party API
+          if (typeof (subscription as any).unsubscribe === "function") {
+            // @ts-expect-error
+            (subscription as any).unsubscribe();
+          } else if (typeof (sb.removeSubscription as any) === "function") {
+            // @ts-expect-error
+            (sb.removeSubscription as any)(subscription);
+          } else if (typeof (sb.removeChannel as any) === "function") {
+            // @ts-expect-error
+            (sb.removeChannel as any)(subscription);
           }
         }
       } catch (err) {

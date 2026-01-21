@@ -15,6 +15,11 @@ interface UseRoleCheckResult {
   refetch: () => void;
 }
 
+type UserRoleRow = {
+  role: string;
+  location_id: string | null;
+};
+
 export function useRoleCheck(): UseRoleCheckResult {
   const { user } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
@@ -43,8 +48,9 @@ export function useRoleCheck(): UseRoleCheckResult {
         setRole("guest");
         setLocationId(null);
       } else if (Array.isArray(data) && data.length > 0) {
+        const rows = data as UserRoleRow[];
         // Determine precedence: admin > staff > guest
-        const roles = data.map((r: any) => r.role) as string[];
+        const roles = rows.map((r) => r.role);
         if (roles.includes("admin")) {
           setRole("admin");
         } else if (roles.includes("staff")) {
@@ -53,7 +59,7 @@ export function useRoleCheck(): UseRoleCheckResult {
           setRole("guest");
         }
         // If multiple, prefer the first non-null location_id
-        const loc = data.find((r: any) => r.location_id)?.location_id ?? data[0].location_id ?? null;
+        const loc = rows.find((r) => r.location_id)?.location_id ?? rows[0].location_id ?? null;
         setLocationId(loc ?? null);
       } else {
         setRole("guest");
@@ -68,15 +74,18 @@ export function useRoleCheck(): UseRoleCheckResult {
   }, [user]);
 
   useEffect(() => {
-    fetchRole();
+    void fetchRole();
   }, [fetchRole]);
 
-  const hasRole = useCallback((checkRole: AppRole): boolean => {
-    if (!role) return checkRole === "guest";
-    if (role === "admin") return true; // Admin has all roles
-    if (role === "staff") return checkRole === "staff" || checkRole === "guest";
-    return checkRole === "guest"; // Guests can only access guest roles
-  }, [role]);
+  const hasRole = useCallback(
+    (checkRole: AppRole): boolean => {
+      if (!role) return checkRole === "guest";
+      if (role === "admin") return true; // Admin has all roles
+      if (role === "staff") return checkRole === "staff" || checkRole === "guest";
+      return checkRole === "guest"; // Guests can only access guest roles
+    },
+    [role]
+  );
 
   return {
     role,
@@ -99,17 +108,33 @@ export function useRequireRole(requiredRole: AppRole, redirectPath = "/") {
   const [canAccess, setCanAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    const apply = (val: boolean | null) => {
+      // Defer to avoid synchronous setState inside effect
+      setTimeout(() => {
+        if (!cancelled) setCanAccess(val);
+      }, 0);
+    };
+
     if (authLoading || isLoading) {
-      setCanAccess(null);
-      return;
+      apply(null);
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!user) {
-      setCanAccess(false);
-      return;
+      apply(false);
+      return () => {
+        cancelled = true;
+      };
     }
 
-    setCanAccess(hasRole(requiredRole));
+    apply(hasRole(requiredRole));
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, authLoading, isLoading, hasRole, requiredRole]);
 
   return {

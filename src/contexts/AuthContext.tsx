@@ -4,6 +4,21 @@ import { User } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
 import { logActivityEvent } from "@/hooks/useActivityLog";
 
+function getErrorMessage(err: unknown): string {
+  if (!err) return "Unknown error";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const maybe = err as Record<string, unknown>;
+    if (typeof maybe.message === "string") return maybe.message;
+  }
+  try {
+    return String(err);
+  } catch {
+    return "Unknown error";
+  }
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -60,13 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         entityType: 'user',
         details: { email }
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to create account";
       toast({
         title: "Error",
-        description: error.message || "Failed to create account",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
@@ -89,13 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         entityType: 'user',
         details: { email }
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to sign in";
       toast({
         title: "Error",
-        description: error.message || "Failed to sign in",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
@@ -109,13 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to sign in with Google";
       toast({
         title: "Error",
-        description: error.message || "Failed to sign in with Google",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
@@ -129,13 +147,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to sign in with Facebook";
       toast({
         title: "Error",
-        description: error.message || "Failed to sign in with Facebook",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
@@ -151,13 +170,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Check your email",
         description: "We've sent you a password reset link.",
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to send reset email";
       toast({
         title: "Error",
-        description: error.message || "Failed to send reset email",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
@@ -176,13 +196,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Signed out",
         description: "You've been successfully signed out.",
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err) || "Failed to sign out";
       toast({
         title: "Error",
-        description: error.message || "Failed to sign out",
+        description: msg,
         variant: "destructive",
       });
-      throw error;
+      throw err;
     }
   };
 
