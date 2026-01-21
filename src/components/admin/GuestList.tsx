@@ -19,22 +19,42 @@ type GuestRow = {
 };
 
 export default function GuestList() {
+  const getErrorMessage = (e: unknown): string => {
+    if (typeof e === 'string') return e;
+    if (e && typeof e === 'object') {
+      const obj = e as Record<string, unknown>;
+      const m = obj.message ?? obj.error ?? obj.msg;
+      if (typeof m === 'string') return m;
+    }
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
+  };
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['guest_registrations'],
     queryFn: async (): Promise<GuestRow[]> => {
-      // supabase types may not include this table; use `any` for the call
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const res = await (supabase as any).from('guest_registrations').select('*').order('created_at', { ascending: false });
-      if (res.error) throw res.error;
-      const rows: GuestRow[] = res.data || [];
+      // Typed select for guest_registrations
+      const { data: rowsData, error: rowsError } = await supabase
+        .from<GuestRow>('guest_registrations')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (rowsError) throw rowsError;
+      const rows: GuestRow[] = rowsData || [];
 
       // Fetch registrant profiles for any rows that have registered_by set
       const userIds = Array.from(new Set(rows.map(r => r.registered_by).filter(Boolean))) as string[];
       const profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
       if (userIds.length > 0) {
-        const { data: profiles } = await supabase.from('profiles').select('id, full_name, email').in('id', userIds);
-        (profiles || []).forEach((p: any) => {
-          profilesMap[p.id] = { full_name: p.full_name, email: p.email };
+        type Profile = { id: string; full_name?: string | null; email?: string | null };
+        const { data: profiles } = await supabase
+          .from<Profile>('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds as string[]);
+        (profiles || []).forEach((p) => {
+          profilesMap[p.id] = { full_name: p.full_name ?? null, email: p.email ?? null };
         });
       }
 
@@ -49,21 +69,18 @@ export default function GuestList() {
           return { ...r, signedUrl: path, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         }
         try {
-          const { data: signed, error } = await supabase.storage.from('guest_ids').createSignedUrl(path, 60);
-          if (error) {
-            console.error('GuestList: createSignedUrl returned error for path', path, 'row', r.id, error);
-            // Normalize possible error shapes (Supabase storage may return { statusCode, error, message })
-            const errObj: any = error;
-            const errMsg = (typeof errObj === 'string') ? errObj : (errObj?.message || errObj?.error || JSON.stringify(errObj));
-            if (typeof errMsg === 'string' && (errMsg.toLowerCase().includes('bucket not found') || errMsg.toLowerCase().includes('guest_ids'))) {
+          const { data: signed, error: signedError } = await supabase.storage.from('guest_ids').createSignedUrl(path, 60);
+          if (signedError) {
+            console.error('GuestList: createSignedUrl returned error for path', path, 'row', r.id, signedError);
+            const errMsg = getErrorMessage(signedError);
+            if (errMsg.toLowerCase().includes('bucket not found') || errMsg.toLowerCase().includes('guest_ids')) {
               throw new Error('Storage bucket "guest_ids" not found');
             }
             return { ...r, signedUrl: null, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
           }
-          return { ...r, signedUrl: signed.signedUrl, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
+          return { ...r, signedUrl: signed?.signedUrl ?? null, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         } catch (err) {
           console.error('GuestList: exception creating signed url for path', path, 'row', r.id, err);
-          // Re-throw bucket-not-found so the query hook can display actionable UI
           if (err instanceof Error && err.message.toLowerCase().includes('bucket not found')) throw err;
           return { ...r, signedUrl: null, registrant_name: profilesMap[r.registered_by]?.full_name ?? profilesMap[r.registered_by]?.email ?? null } as GuestRow;
         }
