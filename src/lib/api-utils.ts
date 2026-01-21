@@ -40,7 +40,7 @@ export function handleApiError(error: unknown, context?: string): ApiError {
   // Supabase storage / HTTP-style error objects sometimes come back with
   // `statusCode`, `error` and `message` rather than a `code` property.
   if (error && typeof error === "object" && ("statusCode" in error || "error" in error)) {
-    const e = error as any;
+    const e = error as Record<string, unknown> & { message?: string; error?: string };
     const msg = e.message || e.error || JSON.stringify(e);
     return { message: msg };
   }
@@ -210,6 +210,6 @@ export async function consumeRateLimitToken(
   }
 
   // No tokens available within allowed wait — reject with 429-like error
-  const err = { message: "Too many requests. Please try again later.", code: "429" } as any;
+  const err: ApiError = { message: "Too many requests. Please try again later.", code: "429" };
   throw err;
 }
