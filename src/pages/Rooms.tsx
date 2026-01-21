@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
+import type { Currency } from "@/types/currency";
 import { useLocation } from "@/context/useLocation";
 import { useRooms, DatabaseRoom } from "@/hooks/useRooms";
 import { RoomFilters } from "@/types/room";
@@ -281,7 +282,7 @@ const Rooms = () => {
     categories: [],
     sortBy: "price-asc",
   }));
-  const { formatPrice } = useCurrency();
+  const { formatPrice, formatLocalPrice, convertToUsd } = useCurrency();
 
   // Update filters when maxPrice changes (data loaded)
   useEffect(() => {
@@ -517,7 +518,7 @@ const Rooms = () => {
             )}
             <span className="font-medium text-foreground">{rooms.length} rooms available</span>
             {selectedLocation && selectedLocation.price_per_night_usd !== undefined && selectedLocation.price_per_night_usd !== null && (
-              <span className="ml-3 text-sm text-muted-foreground">Base price: ${selectedLocation.price_per_night_usd} / night</span>
+                <span className="ml-3 text-sm text-muted-foreground">Base price: {formatPrice(selectedLocation.price_per_night_usd)} / night</span>
             )}
           </div>
           {/* Active filter chips (applied filters) */}
@@ -544,7 +545,7 @@ const Rooms = () => {
             )}
             {(filters.priceRange[0] !== initialFilters.priceRange[0] || filters.priceRange[1] !== initialFilters.priceRange[1]) && (
               <Badge variant="secondary" className="cursor-pointer" onClick={() => removeAppliedFilter('priceRange')}>
-                {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])} ×
+                {formatLocalPrice(filters.priceRange[0])} - {formatLocalPrice(filters.priceRange[1])} ×
               </Badge>
             )}
           </div>
@@ -557,7 +558,7 @@ const Rooms = () => {
               <FiltersCard
                 stagedFilters={stagedFilters}
                 maxPrice={maxPrice}
-                formatLocalPrice={formatPrice}
+                formatLocalPrice={formatLocalPrice}
                 toggleCategory={toggleCategory}
                 toggleBedType={toggleBedType}
                 toggleAmenity={toggleAmenity}
@@ -579,7 +580,7 @@ const Rooms = () => {
                       compact
                       stagedFilters={stagedFilters}
                       maxPrice={maxPrice}
-                      formatLocalPrice={formatPrice}
+                      formatLocalPrice={formatLocalPrice}
                       toggleCategory={toggleCategory}
                       toggleBedType={toggleBedType}
                       toggleAmenity={toggleAmenity}
@@ -751,7 +752,18 @@ const Rooms = () => {
                             <CardFooter className="flex items-center justify-between pt-4 border-t">
                               <div>
                                 <p className="text-2xl font-bold text-foreground flex items-center gap-3">
-                                  {formatPrice(room.price)}
+                                  {(() => {
+                                    // Determine the currency the room price is stored in (from its location)
+
+                                    // Prices in DB are stored in NGN (Naira). Convert from NGN -> USD -> selected currency.
+                                    const dbCurrency: Currency = "NGN";
+                                    try {
+                                      const usd = convertToUsd(room.price, dbCurrency);
+                                      return formatPrice(usd);
+                                    } catch {
+                                      return formatLocalPrice(room.price);
+                                    }
+                                  })()}
                                 </p>
                                 <p className="text-xs text-muted-foreground">per night</p>
                               </div>
