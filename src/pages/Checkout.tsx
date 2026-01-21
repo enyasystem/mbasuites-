@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useBooking } from "@/contexts/BookingContext";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/context/useLocation";
 import { useLocation as useRouterLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";

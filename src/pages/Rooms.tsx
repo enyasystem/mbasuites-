@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/context/useLocation";
 import { useRooms, DatabaseRoom } from "@/hooks/useRooms";
 import { RoomFilters } from "@/types/room";
 import { useSearchParams } from "react-router-dom";
@@ -485,6 +485,9 @@ const Rooms = () => {
               </Badge>
             )}
             <span className="font-medium text-foreground">{rooms.length} rooms available</span>
+            {selectedLocation && selectedLocation.price_per_night_usd !== undefined && selectedLocation.price_per_night_usd !== null && (
+              <span className="ml-3 text-sm text-muted-foreground">Base price: ${selectedLocation.price_per_night_usd} / night</span>
+            )}
           </div>
           {/* Active filter chips (applied filters) */}
           <div className="mt-3 flex flex-wrap gap-2">

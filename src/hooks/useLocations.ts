@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LocationData } from "@/context/LocationContext";
+import { LocationData } from "@/types/location";
 
 export const useLocations = () => {
   const [locations, setLocations] = useState<LocationData[]>([]);
@@ -17,9 +17,11 @@ export const useLocations = () => {
           .order('name');
 
         if (error) throw error;
-        setLocations(data || []);
-      } catch (err: any) {
-        setError(err.message);
+        const locs = (data || []) as LocationData[];
+        setLocations(locs);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
         console.error('Error fetching locations:', err);
       } finally {
         setIsLoading(false);

@@ -1,28 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-export interface LocationData {
-  id: string;
-  name: string;
-  country: string;
-  city: string;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  timezone: string;
-  currency: string;
-  is_active: boolean;
-}
-
-interface LocationContextType {
-  locationId: string | null;
-  setLocationId: (id: string | null) => void;
-  locations: LocationData[];
-  isLoading: boolean;
-  selectedLocation: LocationData | null;
-}
-
-const LocationContext = createContext<LocationContextType | undefined>(undefined);
+import { LocationData, LocationContextType } from "@/types/location";
+import { LocationContext as InternalLocationContext } from "@/context/locationInternals";
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -39,12 +18,12 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
           .order('name');
 
         if (error) throw error;
-        
-        setLocations(data || []);
-        // Prefer 'Lagos' as default if present (case-insensitive on city), otherwise fall back to first active location
-        if (data && data.length > 0 && !locationId) {
-          const preferred = (data || []).find((l: any) => (l.city && l.city.toLowerCase() === 'lagos') || (l.name && l.name.toLowerCase().includes('lagos')));
-          setLocationId(preferred ? preferred.id : data[0].id);
+        const locs = (data as LocationData[]) || [];
+        setLocations(locs);
+        // Prefer 'Lagos' as default if present; use functional set to avoid reading locationId in effect
+        if (locs.length > 0) {
+          const preferred = locs.find((l) => (l.city && l.city.toLowerCase() === 'lagos') || (l.name && l.name.toLowerCase().includes('lagos')));
+          setLocationId((prev) => prev ?? (preferred ? preferred.id : locs[0].id));
         }
       } catch (error) {
         console.error('Error fetching locations:', error);
@@ -59,7 +38,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const selectedLocation = locations.find(loc => loc.id === locationId) || null;
 
   return (
-    <LocationContext.Provider value={{ 
+    <InternalLocationContext.Provider value={{ 
       locationId, 
       setLocationId, 
       locations, 
@@ -67,14 +46,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       selectedLocation 
     }}>
       {children}
-    </LocationContext.Provider>
+    </InternalLocationContext.Provider>
   );
 };
 
-export const useLocation = () => {
-  const context = useContext(LocationContext);
-  if (!context) {
-    throw new Error("useLocation must be used within LocationProvider");
-  }
-  return context;
-};

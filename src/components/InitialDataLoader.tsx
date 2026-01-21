@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useLocation } from '@/context/LocationContext';
+import { useLocation } from '@/context/useLocation';
 import SiteLoader from './SiteLoader';
 
 export default function InitialDataLoader({ children }: { children: React.ReactNode }) {
