@@ -130,7 +130,7 @@ export function ContactForm() {
               <Phone className="h-5 w-5 text-accent mt-1" />
               <div>
                 <h4 className="font-medium">Phone</h4>
-                <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-sm text-muted-foreground">+1 470 869 9787 (WhatsApp)</p>
               </div>
             </div>
 
@@ -138,7 +138,7 @@ export function ContactForm() {
               <Mail className="h-5 w-5 text-accent mt-1" />
               <div>
                 <h4 className="font-medium">Email</h4>
-                <p className="text-sm text-muted-foreground">contact@mbasuites.com</p>
+                <p className="text-sm text-muted-foreground">mbasuites@yahoo.com</p>
               </div>
             </div>
 
