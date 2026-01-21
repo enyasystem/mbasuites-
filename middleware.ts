@@ -8,11 +8,13 @@
 // NOTE: This project isn't a Next.js app, so avoid importing `next/server` here.
 // Use standard Web `Response` objects so the file type-checks in this workspace.
 
-// Configurable via environment variables at deploy time
-const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX || '100', 10); // tokens
-const WINDOW_SECONDS = parseInt(process.env.RATE_LIMIT_WINDOW_SECONDS || '60', 10); // refill window
-const BLOCKED_IPS = (process.env.VERCEL_BLOCKED_IPS || '').split(',').map((s) => s.trim()).filter(Boolean);
-const WHITELIST_IPS = (process.env.VERCEL_WHITELIST_IPS || '').split(',').map((s) => s.trim()).filter(Boolean);
+// Configurable via environment variables at deploy time. Guard access to `process`
+// because Edge runtimes may not provide a Node `process` global.
+const safeEnv = (typeof process !== 'undefined' && process.env) ? process.env : undefined;
+const MAX_REQUESTS = parseInt(safeEnv?.RATE_LIMIT_MAX ?? '100', 10); // tokens
+const WINDOW_SECONDS = parseInt(safeEnv?.RATE_LIMIT_WINDOW_SECONDS ?? '60', 10); // refill window
+const BLOCKED_IPS = (safeEnv?.VERCEL_BLOCKED_IPS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+const WHITELIST_IPS = (safeEnv?.VERCEL_WHITELIST_IPS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
 type Bucket = { tokens: number; last: number };
 
