@@ -35,14 +35,21 @@ const Login = () => {
     mode: "onChange",
   });
 
+  type RouterState = {
+    returnTo?: string;
+    formValues?: Record<string, unknown> | null;
+    bookingData?: unknown;
+  } | null;
+
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     
     try {
       await signIn(data.email, data.password);
-      const returnTo = (routerLocation.state as any)?.returnTo;
-      const formValues = (routerLocation.state as any)?.formValues;
-      const bookingData = (routerLocation.state as any)?.bookingData;
+      const state = routerLocation.state as RouterState;
+      const returnTo = state?.returnTo;
+      const formValues = state?.formValues;
+      const bookingData = state?.bookingData;
       if (returnTo) {
         navigate(returnTo, { state: { formValues, bookingData } });
       } else {
@@ -59,9 +66,10 @@ const Login = () => {
     setSocialLoading(true);
     try {
       await signInWithGoogle();
-      const returnTo = (routerLocation.state as any)?.returnTo;
-      const formValues = (routerLocation.state as any)?.formValues;
-      const bookingData = (routerLocation.state as any)?.bookingData;
+      const state = routerLocation.state as RouterState;
+      const returnTo = state?.returnTo;
+      const formValues = state?.formValues;
+      const bookingData = state?.bookingData;
       if (returnTo) {
         navigate(returnTo, { state: { formValues, bookingData } });
         return;
@@ -77,9 +85,10 @@ const Login = () => {
     setSocialLoading(true);
     try {
       await signInWithFacebook();
-      const returnTo = (routerLocation.state as any)?.returnTo;
-      const formValues = (routerLocation.state as any)?.formValues;
-      const bookingData = (routerLocation.state as any)?.bookingData;
+      const state = routerLocation.state as RouterState;
+      const returnTo = state?.returnTo;
+      const formValues = state?.formValues;
+      const bookingData = state?.bookingData;
       if (returnTo) {
         navigate(returnTo, { state: { formValues, bookingData } });
         return;
