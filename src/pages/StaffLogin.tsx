@@ -34,7 +34,11 @@ export default function StaffLogin() {
     try {
       const saved = window.localStorage.getItem("staff_email");
       if (saved) setValue("email", saved);
-    } catch (e) {}
+    } catch (e) {
+      // localStorage may be unavailable in some environments — warn and continue
+      // eslint-disable-next-line no-console
+      console.warn("Failed to read staff_email from localStorage", e);
+    }
   }, [setValue]);
 
   // Redirect authenticated staff/admins
@@ -54,22 +58,29 @@ export default function StaffLogin() {
     if (remember) {
       try {
         window.localStorage.setItem("staff_email", email);
-      } catch (e) {}
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Failed to save staff_email to localStorage", e);
+      }
     } else {
       try {
         window.localStorage.removeItem("staff_email");
-      } catch (e) {}
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Failed to remove staff_email from localStorage", e);
+      }
     }
 
     setIsSubmitting(true);
     try {
       await signIn(email, password);
       // Redirect will happen via useEffect after role is fetched
-    } catch (error: any) {
-      toast({ 
-        title: "Login failed", 
-        description: error.message || "Invalid credentials", 
-        variant: "destructive" 
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err);
+      toast({
+        title: "Login failed",
+        description: msg || "Invalid credentials",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
