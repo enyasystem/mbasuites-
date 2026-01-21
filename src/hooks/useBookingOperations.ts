@@ -4,6 +4,16 @@ import { toast } from "@/hooks/use-toast";
 import { useActivityLog } from "@/hooks/useActivityLog";
 import { sendBookingEmail } from "@/hooks/useBookingEmail";
 
+const getErrorMessage = (e: unknown): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return String(e);
+  }
+};
+
 interface BookingData {
   room_id: string;
   check_in_date: string;
@@ -87,11 +97,11 @@ export const useBookingOperations = () => {
       });
 
       return booking;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating booking:', error);
       toast({
         title: "Booking Failed",
-        description: error.message || "Failed to create booking. Please try again.",
+        description: getErrorMessage(error) || "Failed to create booking. Please try again.",
         variant: "destructive",
       });
       return null;
@@ -131,11 +141,11 @@ export const useBookingOperations = () => {
       });
 
       return booking;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating booking:', error);
       toast({
         title: "Update Failed",
-        description: error.message || "Failed to update booking.",
+        description: getErrorMessage(error) || "Failed to update booking.",
         variant: "destructive",
       });
       return null;
@@ -184,11 +194,11 @@ export const useBookingOperations = () => {
       });
 
       return booking;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error cancelling booking:', error);
       toast({
         title: "Cancellation Failed",
-        description: error.message || "Failed to cancel booking.",
+        description: getErrorMessage(error) || "Failed to cancel booking.",
         variant: "destructive",
       });
       return null;
@@ -236,11 +246,11 @@ export const useBookingOperations = () => {
       });
 
       return booking;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error confirming booking:', error);
       toast({
         title: "Confirmation Failed",
-        description: error.message || "Failed to confirm booking.",
+        description: getErrorMessage(error) || "Failed to confirm booking.",
         variant: "destructive",
       });
       return null;
@@ -288,11 +298,11 @@ export const useBookingOperations = () => {
       });
 
       return booking;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error completing booking:', error);
       toast({
         title: "Operation Failed",
-        description: error.message || "Failed to complete booking.",
+        description: getErrorMessage(error) || "Failed to complete booking.",
         variant: "destructive",
       });
       return null;

@@ -4,7 +4,7 @@ interface LogActivityParams {
   action: string;
   entityType: string;
   entityId?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   userId?: string;
 }
 

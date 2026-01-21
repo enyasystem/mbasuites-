@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/context/useLocation";
 import { handleApiError } from "@/lib/api-utils";
 
 export interface DatabaseRoom {
@@ -21,6 +21,17 @@ export interface DatabaseRoom {
   updated_at: string;
 }
 
+interface RoomImage {
+  id: string;
+  url: string;
+  is_primary: boolean;
+  ordering?: number | null;
+}
+
+type SupabaseRoomRow = DatabaseRoom & {
+  room_images?: RoomImage[];
+};
+
 interface UseRoomsOptions {
   locationId?: string | null;
   roomType?: string | null;
@@ -29,7 +40,7 @@ interface UseRoomsOptions {
   checkOut?: string | null;
 }
 
-export function useRooms(options: UseRoomsOptions = {}) {
+export function useRooms(options: UseRoomsOptions = {}): { rooms: DatabaseRoom[]; isLoading: boolean; error: string | null; refetch: () => Promise<unknown> } {
   const { locationId: contextLocationId, isLoading: locationsLoading } = useLocation();
   const effectiveLocationId = options.locationId ?? contextLocationId;
 
@@ -72,16 +83,19 @@ export function useRooms(options: UseRoomsOptions = {}) {
       const { data, error } = await query;
       if (error) throw error;
 
-      let availableRooms = (data || []).map((r: any) => {
+      const rows = (data || []) as unknown as SupabaseRoomRow[];
+
+      let availableRooms = rows.map((r) => {
         const imgs = (r.room_images || [])
           .slice()
-          .sort((a: any, b: any) => {
+          .sort((a: RoomImage, b: RoomImage) => {
             if (a.is_primary && !b.is_primary) return -1;
             if (!a.is_primary && b.is_primary) return 1;
             return (a.ordering || 0) - (b.ordering || 0);
           })
-          .map((ri: any) => ri.url);
-        return { ...r, images: imgs, image_url: r.image_url || imgs[0] || null };
+          .map((ri: RoomImage) => ri.url);
+
+        return { ...(r as DatabaseRoom), images: imgs, image_url: r.image_url || imgs[0] || null };
       });
 
       if (options.checkIn && options.checkOut && availableRooms.length > 0) {
@@ -106,16 +120,15 @@ export function useRooms(options: UseRoomsOptions = {}) {
     }
   };
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery<DatabaseRoom[], Error>({
     queryKey,
     queryFn,
     enabled,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 60 * 24,
   });
 
   return {
-    rooms: data ?? [],
+    rooms: (data ?? []) as DatabaseRoom[],
     isLoading,
     error: (error as Error | null)?.message ?? null,
     refetch,

@@ -16,7 +16,7 @@ import GuestSelector from "@/components/GuestSelector";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/context/useLocation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SearchBar = () => {

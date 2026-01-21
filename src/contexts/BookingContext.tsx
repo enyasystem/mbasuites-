@@ -48,7 +48,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
           nights: parsed.nights || 0,
           totalPrice: parsed.totalPrice || 0,
         };
-        setBookingData(restored);
+        const t = window.setTimeout(() => setBookingData(restored), 0);
+        return () => clearTimeout(t);
       }
     } catch (e) {
       // ignore parse errors

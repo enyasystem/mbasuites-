@@ -30,6 +30,25 @@ type Booking = {
   notes: string | null;
 };
 
+type SupabaseBookingRow = {
+  id: string;
+  guest_name?: string;
+  guest_email?: string;
+  guest_phone?: string | null;
+  room_id?: string;
+  check_in_date?: string;
+  check_out_date?: string;
+  status?: BookingStatus;
+  total_amount?: number;
+  currency?: string;
+  created_at?: string;
+  notes?: string | null;
+  rooms?: {
+    title?: string;
+    location_id?: string | null;
+  } | null;
+};
+
 export default function BookingsManager({ allowedLocationIds }: { allowedLocationIds?: string[] }) {
   const { formatPrice } = useCurrency();
   const queryClient = useQueryClient();
@@ -70,25 +89,25 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
 
       if (error) throw error;
 
-      const mapped = (data || []).map((b: any) => ({
+      const mapped = (data || []).map((b: SupabaseBookingRow) => ({
         id: b.id,
-        guestName: b.guest_name,
-        guestEmail: b.guest_email,
-        guestPhone: b.guest_phone,
+        guestName: b.guest_name || 'Guest',
+        guestEmail: b.guest_email || '',
+        guestPhone: b.guest_phone || null,
         roomName: b.rooms?.title || 'Unknown Room',
-        roomId: b.room_id,
-        checkIn: b.check_in_date,
-        checkOut: b.check_out_date,
-        status: b.status as BookingStatus,
-        amount: b.total_amount,
-        currency: b.currency,
-        createdAt: b.created_at,
-        notes: b.notes,
+        roomId: b.room_id || '',
+        checkIn: b.check_in_date || '',
+        checkOut: b.check_out_date || '',
+        status: (b.status as BookingStatus) || 'pending',
+        amount: b.total_amount || 0,
+        currency: b.currency || 'NGN',
+        createdAt: b.created_at || '',
+        notes: b.notes || null,
         _locationId: b.rooms?.location_id || null,
       }));
 
       if (allowedLocationIds && allowedLocationIds.length > 0) {
-        return mapped.filter((m: any) => !m._locationId || allowedLocationIds.includes(m._locationId));
+        return mapped.filter((m) => !m._locationId || allowedLocationIds.includes(m._locationId as string));
       }
 
       return mapped;
@@ -130,13 +149,13 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
     if (!sortBy) return filtered;
     const copy = [...filtered];
     copy.sort((a, b) => {
-      const av: any = a[sortBy];
-      const bv: any = b[sortBy];
+      const av = a[sortBy] as unknown;
+      const bv = b[sortBy] as unknown;
       if (typeof av === "string" && typeof bv === "string") {
         return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
       }
       if (typeof av === "number" && typeof bv === "number") {
-        return sortDir === "asc" ? av - bv : bv - av;
+        return sortDir === "asc" ? (av as number) - (bv as number) : (bv as number) - (av as number);
       }
       return 0;
     });
@@ -232,17 +251,17 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
             className="pl-10"
           />
         </div>
-        <Select onValueChange={(v) => setStatusFilter(v as any)} value={statusFilter}>
+        <Select onValueChange={(v: string) => setStatusFilter(v as BookingStatus | "all")} value={statusFilter}>
           <SelectTrigger className="w-full sm:w-44">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
         </Select>
         <Input
           type="date"

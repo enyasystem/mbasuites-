@@ -44,6 +44,16 @@ export default function StaffManager() {
   
   const { locations } = useLocations();
 
+  const getErrorMessage = (e: unknown): string => {
+    if (e instanceof Error) return e.message;
+    if (typeof e === 'string') return e;
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
+  };
+
   const fetchStaff = async () => {
     setIsLoading(true);
     try {
@@ -62,23 +72,26 @@ export default function StaffManager() {
       }
 
       // Fetch related profiles
-      const userIds = [...new Set(rolesData.map(r => r.user_id))];
-      const locationIds = [...new Set(rolesData.map(r => r.location_id).filter(Boolean))];
-      
-      const [profilesRes, locationsRes] = await Promise.all([
-        supabase.from('profiles').select('id, email, full_name, phone').in('id', userIds),
-        locationIds.length > 0 
-          ? supabase.from('locations').select('id, name').in('id', locationIds)
-          : { data: [] }
-      ]);
+      const userIds = [...new Set(rolesData.map((r: { user_id: string }) => r.user_id))];
+      const locationIds = [...new Set(rolesData.map((r: { location_id?: string | null }) => r.location_id).filter(Boolean))];
+
+      type Profile = { id: string; email?: string | null; full_name?: string | null; phone?: string | null };
+      type LocationSmall = { id: string; name?: string };
+
+      const profilesPromise = supabase.from<Profile>('profiles').select('id, email, full_name, phone').in('id', userIds as string[]);
+      const locationsPromise = locationIds.length > 0
+        ? supabase.from<LocationSmall>('locations').select('id, name').in('id', locationIds as string[])
+        : Promise.resolve({ data: [] as LocationSmall[] } as const);
+
+      const [profilesRes, locationsRes] = await Promise.all([profilesPromise, locationsPromise]);
 
       const profilesMap = (profilesRes.data || []).reduce((acc, p) => {
-        acc[p.id] = { email: p.email, full_name: p.full_name, phone: p.phone };
+        acc[p.id] = { email: p.email ?? '', full_name: p.full_name ?? null, phone: p.phone ?? null };
         return acc;
       }, {} as Record<string, { email: string; full_name: string | null; phone: string | null }>);
 
       const locationsMap = (locationsRes.data || []).reduce((acc, l) => {
-        acc[l.id] = { name: l.name };
+        acc[l.id] = { name: l.name ?? '' };
         return acc;
       }, {} as Record<string, { name: string }>);
 
@@ -91,7 +104,7 @@ export default function StaffManager() {
       setStaff(transformedData);
     } catch (error) {
       console.error('Error fetching staff:', error);
-      toast.error('Failed to load staff members');
+      toast.error(getErrorMessage(error) || 'Failed to load staff members');
     } finally {
       setIsLoading(false);
     }
@@ -145,9 +158,9 @@ export default function StaffManager() {
       setIsAddDialogOpen(false);
       setFormData({ email: "", role: "staff", location_id: "" });
       fetchStaff();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding staff:', error);
-      toast.error(error.message || 'Failed to add staff member');
+      toast.error(getErrorMessage(error) || 'Failed to add staff member');
     }
   };
 
@@ -168,9 +181,9 @@ export default function StaffManager() {
       toast.success('Staff member updated successfully');
       setEditingStaff(null);
       fetchStaff();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating staff:', error);
-      toast.error(error.message || 'Failed to update staff member');
+      toast.error(getErrorMessage(error) || 'Failed to update staff member');
     }
   };
 
@@ -185,9 +198,9 @@ export default function StaffManager() {
 
       toast.success('Staff role removed successfully');
       fetchStaff();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting staff:', error);
-      toast.error(error.message || 'Failed to remove staff role');
+      toast.error(getErrorMessage(error) || 'Failed to remove staff role');
     }
   };
 

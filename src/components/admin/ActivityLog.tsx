@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ interface ActivityLogEntry {
   action: string;
   entity_type: string;
   entity_id: string | null;
-  details: Record<string, any> | null;
+  details: Record<string, unknown> | null;
   ip_address: string | null;
   created_at: string;
   profile?: {
@@ -56,75 +56,85 @@ export default function ActivityLog() {
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 50;
 
-  const fetchLogs = async (reset = false) => {
-    if (reset) {
-      setPage(0);
-      setLogs([]);
-    }
-    
+  type ActivityRow = {
+    id: string;
+    user_id: string | null;
+    action: string;
+    entity_type: string;
+    entity_id: string | null;
+    details: unknown;
+    ip_address: string | null;
+    created_at: string;
+  };
+
+  // Fetch and transform logs for a given page. Separated to avoid effect dependency issues.
+  const doFetch = useCallback(async (pageNum = 0, append = false) => {
     setIsLoading(true);
     try {
       let query = supabase
         .from('activity_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .range(reset ? 0 : page * pageSize, (reset ? 0 : page) * pageSize + pageSize - 1);
+        .range(pageNum * pageSize, pageNum * pageSize + pageSize - 1);
 
       if (entityFilter !== "all") {
         query = query.eq('entity_type', entityFilter);
       }
-      
+
       if (actionFilter !== "all") {
         query = query.eq('action', actionFilter);
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
       // Fetch profiles for users who have activity
-      const userIds = [...new Set((data || []).map(d => d.user_id).filter(Boolean))];
+      const rowsData = (data || []) as ActivityRow[];
+      const userIds = [...new Set(rowsData.map(d => d.user_id).filter(Boolean) as string[])];
       let profilesMap: Record<string, { email: string; full_name: string | null }> = {};
-      
+
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, email, full_name')
           .in('id', userIds);
-        
-        profilesMap = (profiles || []).reduce((acc, p) => {
+
+        const rows = (profiles || []) as { id: string; email: string; full_name: string | null }[];
+        profilesMap = rows.reduce((acc, p) => {
           acc[p.id] = { email: p.email, full_name: p.full_name };
           return acc;
         }, {} as Record<string, { email: string; full_name: string | null }>);
       }
 
-      const transformedData: ActivityLogEntry[] = (data || []).map(item => ({
+      const transformedData: ActivityLogEntry[] = rowsData.map(item => ({
         ...item,
-        details: item.details as Record<string, any> | null,
-        profile: item.user_id ? profilesMap[item.user_id] || null : null
+        details: (item.details as Record<string, unknown>) ?? null,
+        profile: item.user_id ? profilesMap[item.user_id] || null : null,
       }));
 
-      if (reset) {
+      if (!append) {
         setLogs(transformedData);
+        setPage(0);
       } else {
         setLogs(prev => [...prev, ...transformedData]);
       }
-      
-      setHasMore((data || []).length === pageSize);
-    } catch (error) {
-      console.error('Error fetching activity logs:', error);
+
+      setHasMore(rowsData.length === pageSize);
+    } catch (err) {
+        console.error('Error fetching activity logs:', err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchLogs(true);
   }, [entityFilter, actionFilter]);
 
+  useEffect(() => {
+    void doFetch(0, false);
+  }, [doFetch]);
+
   const loadMore = () => {
-    setPage(prev => prev + 1);
-    fetchLogs();
+    const next = page + 1;
+    setPage(next);
+    void doFetch(next, true);
   };
 
   const filteredLogs = logs.filter(log => {

@@ -31,7 +31,9 @@ export default function GuestSelector({
 
   // Use ref to avoid onChange in dependency array causing infinite loops
   const onChangeRef = React.useRef(onChange);
-  onChangeRef.current = onChange;
+  React.useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   React.useEffect(() => {
     onChangeRef.current?.({ adults, children, rooms });

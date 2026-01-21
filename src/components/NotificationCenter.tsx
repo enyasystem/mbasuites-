@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNotifications } from "@/contexts/NotificationContext";
+import { useNotifications, Notification } from "@/contexts/NotificationContext";
 import { Bell, Check, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ export function NotificationCenter() {
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotifications();
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
     if (notification.actionUrl) {
       navigate(notification.actionUrl);

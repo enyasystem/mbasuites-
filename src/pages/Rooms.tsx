@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/context/useLocation";
 import { useRooms, DatabaseRoom } from "@/hooks/useRooms";
 import { RoomFilters } from "@/types/room";
 import { useSearchParams } from "react-router-dom";
@@ -39,6 +39,160 @@ const allCategories = [
   { value: "deluxe", label: "Deluxe" },
   { value: "suite", label: "Suite" },
 ];
+
+interface FiltersCardProps {
+  compact?: boolean;
+  stagedFilters: RoomFilters;
+  maxPrice: number;
+  formatLocalPrice: (n: number) => string;
+  toggleCategory: (c: string) => void;
+  toggleBedType: (b: string) => void;
+  toggleAmenity: (a: string) => void;
+  countIfToggled: (type: "amenity" | "bed" | "category", value: string) => number;
+  resetFilters: () => void;
+  setStagedFilters: React.Dispatch<React.SetStateAction<RoomFilters>>;
+}
+
+function FiltersCard({ compact, stagedFilters, maxPrice, formatLocalPrice, toggleCategory, toggleBedType, toggleAmenity, countIfToggled, resetFilters, setStagedFilters }: FiltersCardProps) {
+  return (
+    <Card className={compact ? "" : "sticky top-24"}>
+      {!compact && (
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Filters</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+              className="text-accent hover:text-accent/80"
+            >
+              Reset
+            </Button>
+          </div>
+        </CardHeader>
+      )}
+      <CardContent>
+        <ScrollArea className="h-[600px] pr-4">
+          {/* Price Range */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Price Range (per night)</Label>
+            <div className="space-y-4">
+              <Slider
+                value={stagedFilters.priceRange}
+                onValueChange={(value) =>
+                  setStagedFilters((prev) => ({ ...prev, priceRange: value as [number, number] }))
+                }
+                max={maxPrice}
+                min={0}
+                step={1000}
+                className="w-full"
+              />
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{formatLocalPrice(stagedFilters.priceRange[0])}</span>
+                <span>{formatLocalPrice(stagedFilters.priceRange[1])}</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Room Category */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Room Category</Label>
+            <div className="space-y-3">
+              {allCategories.map((category) => (
+                <div key={category.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-${category.value}`}
+                    checked={stagedFilters.categories.includes(category.value)}
+                    onCheckedChange={() => toggleCategory(category.value)}
+                  />
+                  <Label
+                    htmlFor={`category-${category.value}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{category.label}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('category', category.value)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Bed Type */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Bed Type</Label>
+            <div className="space-y-3">
+              {allBedTypes.map((bedType) => (
+                <div key={bedType} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`bed-${bedType}`}
+                    checked={stagedFilters.bedTypes.includes(bedType)}
+                    onCheckedChange={() => toggleBedType(bedType)}
+                  />
+                  <Label
+                    htmlFor={`bed-${bedType}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{bedType}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('bed', bedType)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Room Size */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-semibold">Minimum Room Size</Label>
+            <div className="space-y-4">
+              <Slider
+                value={[stagedFilters.minSize]}
+                onValueChange={(value) => setStagedFilters((prev) => ({ ...prev, minSize: value[0] }))}
+                max={100}
+                min={0}
+                step={5}
+                className="w-full"
+              />
+              <div className="text-sm text-muted-foreground">
+                {stagedFilters.minSize} m² and above
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Amenities */}
+          <div className="space-y-4">
+            <Label className="text-sm font-semibold">Amenities</Label>
+            <div className="space-y-3">
+              {allAmenities.map((amenity) => (
+                <div key={amenity} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`amenity-${amenity}`}
+                    checked={stagedFilters.amenities.includes(amenity)}
+                    onCheckedChange={() => toggleAmenity(amenity)}
+                  />
+                  <Label
+                    htmlFor={`amenity-${amenity}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{amenity}</span>
+                    <Badge className="text-xs bg-background/80">{countIfToggled('amenity', amenity)}</Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
 
 const Rooms = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -114,9 +268,13 @@ const Rooms = () => {
   // Update filters when maxPrice changes (data loaded)
   useEffect(() => {
     if (maxPrice > 0) {
-      setFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
-      setStagedFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
+      const t = window.setTimeout(() => {
+        setFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
+        setStagedFilters(prev => ({ ...prev, priceRange: [0, maxPrice] as [number, number] }));
+      }, 0);
+      return () => clearTimeout(t);
     }
+    return;
   }, [maxPrice]);
 
   // Map database rooms to display format
@@ -290,152 +448,7 @@ const Rooms = () => {
     setStagedFilters(newStaged);
   };
 
-  // Reusable filters card so we can show it in the sidebar (large screens)
-  // and inside a dropdown/popover for small screens.
-  const FiltersCard = ({ compact }: { compact?: boolean }) => (
-    <Card className={compact ? "" : "sticky top-24"}>
-      {!compact && (
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Filters</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetFilters}
-              className="text-accent hover:text-accent/80"
-            >
-              Reset
-            </Button>
-          </div>
-        </CardHeader>
-      )}
-      <CardContent>
-        <ScrollArea className="h-[600px] pr-4">
-          {/* Price Range */}
-          <div className="space-y-4 mb-6">
-            <Label className="text-sm font-semibold">Price Range (per night)</Label>
-            <div className="space-y-4">
-              <Slider
-                value={stagedFilters.priceRange}
-                onValueChange={(value) =>
-                  setStagedFilters((prev) => ({
-                    ...prev,
-                    priceRange: value as [number, number],
-                  }))
-                }
-                max={maxPrice}
-                min={0}
-                step={1000}
-                className="w-full"
-              />
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>{formatLocalPrice(stagedFilters.priceRange[0])}</span>
-                <span>{formatLocalPrice(stagedFilters.priceRange[1])}</span>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Room Category */}
-          <div className="space-y-4 mb-6">
-            <Label className="text-sm font-semibold">Room Category</Label>
-            <div className="space-y-3">
-              {allCategories.map((category) => (
-                <div key={category.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`category-${category.value}`}
-                    checked={stagedFilters.categories.includes(category.value)}
-                    onCheckedChange={() => toggleCategory(category.value)}
-                  />
-                  <Label
-                    htmlFor={`category-${category.value}`}
-                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                  >
-                    <span>{category.label}</span>
-                    <Badge className="text-xs bg-background/80">{countIfToggled('category', category.value)}</Badge>
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Bed Type */}
-          <div className="space-y-4 mb-6">
-            <Label className="text-sm font-semibold">Bed Type</Label>
-            <div className="space-y-3">
-              {allBedTypes.map((bedType) => (
-                <div key={bedType} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`bed-${bedType}`}
-                    checked={stagedFilters.bedTypes.includes(bedType)}
-                    onCheckedChange={() => toggleBedType(bedType)}
-                  />
-                  <Label
-                    htmlFor={`bed-${bedType}`}
-                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                  >
-                    <span>{bedType}</span>
-                    <Badge className="text-xs bg-background/80">{countIfToggled('bed', bedType)}</Badge>
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Room Size */}
-          <div className="space-y-4 mb-6">
-            <Label className="text-sm font-semibold">Minimum Room Size</Label>
-            <div className="space-y-4">
-              <Slider
-                value={[stagedFilters.minSize]}
-                onValueChange={(value) =>
-                  setStagedFilters((prev) => ({ ...prev, minSize: value[0] }))
-                }
-                max={100}
-                min={0}
-                step={5}
-                className="w-full"
-              />
-              <div className="text-sm text-muted-foreground">
-                {stagedFilters.minSize} m² and above
-              </div>
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Amenities */}
-          <div className="space-y-4">
-            <Label className="text-sm font-semibold">Amenities</Label>
-            <div className="space-y-3">
-              {allAmenities.map((amenity) => (
-                <div key={amenity} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`amenity-${amenity}`}
-                    checked={stagedFilters.amenities.includes(amenity)}
-                    onCheckedChange={() => toggleAmenity(amenity)}
-                  />
-                  <Label
-                    htmlFor={`amenity-${amenity}`}
-                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                  >
-                    <span>{amenity}</span>
-                    <Badge className="text-xs bg-background/80">{countIfToggled('amenity', amenity)}</Badge>
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
-  );
-
+  
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -485,6 +498,9 @@ const Rooms = () => {
               </Badge>
             )}
             <span className="font-medium text-foreground">{rooms.length} rooms available</span>
+            {selectedLocation && selectedLocation.price_per_night_usd !== undefined && selectedLocation.price_per_night_usd !== null && (
+              <span className="ml-3 text-sm text-muted-foreground">Base price: ${selectedLocation.price_per_night_usd} / night</span>
+            )}
           </div>
           {/* Active filter chips (applied filters) */}
           <div className="mt-3 flex flex-wrap gap-2">
@@ -520,7 +536,17 @@ const Rooms = () => {
           {/* Filters Sidebar (desktop) + Popover (mobile) */}
           <div className="lg:w-80 shrink-0">
             <div className="hidden lg:block">
-              <FiltersCard />
+              <FiltersCard
+                stagedFilters={stagedFilters}
+                maxPrice={maxPrice}
+                formatLocalPrice={formatLocalPrice}
+                toggleCategory={toggleCategory}
+                toggleBedType={toggleBedType}
+                toggleAmenity={toggleAmenity}
+                countIfToggled={countIfToggled}
+                resetFilters={resetFilters}
+                setStagedFilters={setStagedFilters}
+              />
             </div>
             <div className="block lg:hidden">
               <Popover>
@@ -530,8 +556,19 @@ const Rooms = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[320px] max-w-full p-0">
-                  <div className="p-4">
-                    <FiltersCard compact />
+                    <div className="p-4">
+                    <FiltersCard
+                      compact
+                      stagedFilters={stagedFilters}
+                      maxPrice={maxPrice}
+                      formatLocalPrice={formatLocalPrice}
+                      toggleCategory={toggleCategory}
+                      toggleBedType={toggleBedType}
+                      toggleAmenity={toggleAmenity}
+                      countIfToggled={countIfToggled}
+                      resetFilters={resetFilters}
+                      setStagedFilters={setStagedFilters}
+                    />
                     <div className="flex justify-end gap-2 mt-2">
                       <Button variant="ghost" onClick={resetFilters}>Reset</Button>
                       <Button onClick={() => { applyStagedFilters(); }}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,12 @@ type BankPaymentRequest = {
   created_at: string;
 };
 
+type BookingWithRoom = {
+  id: string;
+  room_id: string | null;
+  rooms?: { location_id?: string | null } | null;
+};
+
 export default function BankPaymentRequestsManager({ allowedLocationIds }: { allowedLocationIds?: string[] }) {
   const [requests, setRequests] = useState<BankPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +38,51 @@ export default function BankPaymentRequestsManager({ allowedLocationIds }: { all
   const [adminNotes, setAdminNotes] = useState("");
   const [processing, setProcessing] = useState(false);
   const { formatPrice } = useCurrency();
+
+  const fetchRequests = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("bank_payment_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      let allRequests = (data || []) as BankPaymentRequest[];
+
+      if (allowedLocationIds && allowedLocationIds.length > 0) {
+        // collect booking ids to check their rooms' locations
+        const bookingIds = Array.from(
+          new Set(allRequests.filter((r) => r.booking_id).map((r) => r.booking_id as string))
+        );
+        if (bookingIds.length > 0) {
+          const { data: bookingsData } = await supabase
+            .from("bookings")
+            .select(`id, room_id, rooms(location_id)`)
+            .in("id", bookingIds as string[]);
+
+          const bookingLocationMap: Record<string, string | null> = {};
+          ((bookingsData || []) as BookingWithRoom[]).forEach((b) => {
+            bookingLocationMap[b.id] = b.rooms?.location_id || null;
+          });
+
+          allRequests = allRequests.filter((r) => {
+            if (!r.booking_id) return false; // only include requests tied to bookings with location
+            const loc = bookingLocationMap[r.booking_id as string];
+            return !loc || allowedLocationIds.includes(loc);
+          });
+        } else {
+          allRequests = [];
+        }
+      }
+
+      setRequests(allRequests || []);
+    } catch (error) {
+      console.error("Error fetching bank payment requests:", error);
+      toast.error("Failed to load payment requests");
+    } finally {
+      setLoading(false);
+    }
+  }, [allowedLocationIds]);
 
   useEffect(() => {
     fetchRequests();
@@ -49,50 +100,7 @@ export default function BankPaymentRequestsManager({ allowedLocationIds }: { all
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const fetchRequests = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("bank_payment_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      let allRequests = (data || []) as any[];
-
-      if (allowedLocationIds && allowedLocationIds.length > 0) {
-        // collect booking ids to check their rooms' locations
-        const bookingIds = Array.from(new Set(allRequests.filter(r => r.booking_id).map(r => r.booking_id)));
-        if (bookingIds.length > 0) {
-          const { data: bookingsData } = await supabase
-            .from('bookings')
-            .select(`id, room_id, rooms(location_id)`)
-            .in('id', bookingIds);
-
-          const bookingLocationMap: Record<string, string | null> = {};
-          (bookingsData || []).forEach((b: any) => {
-            bookingLocationMap[b.id] = b.rooms?.location_id || null;
-          });
-
-          allRequests = allRequests.filter((r) => {
-            if (!r.booking_id) return false; // only include requests tied to bookings with location
-            const loc = bookingLocationMap[r.booking_id];
-            return !loc || allowedLocationIds.includes(loc);
-          });
-        } else {
-          allRequests = [];
-        }
-      }
-
-      setRequests(allRequests || []);
-    } catch (error) {
-      console.error("Error fetching bank payment requests:", error);
-      toast.error("Failed to load payment requests");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchRequests]);
 
   const updateRequestStatus = async (status: "confirmed" | "rejected") => {
     if (!selectedRequest) return;
