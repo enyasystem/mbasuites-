@@ -119,6 +119,38 @@ serve(async (req: Request) => {
     const fname = `${slug}-${Date.now()}-${crypto.randomUUID().slice(0,8)}.${ext}`;
     const path = `room-images/${fname}`;
 
+    // Upstash-backed per-user rate limiting
+    try {
+      const denoGet = (globalThis as unknown as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get;
+      const UPSTASH_URL = denoGet?.('UPSTASH_REDIS_REST_URL');
+      const UPSTASH_TOKEN = denoGet?.('UPSTASH_REDIS_REST_TOKEN');
+      const RATE_LIMIT = parseInt(denoGet?.('UPLOAD_RATE_LIMIT') || '20', 10); // requests per WINDOW
+      const WINDOW = parseInt(denoGet?.('UPLOAD_RATE_WINDOW') || '60', 10); // seconds
+
+      if (UPSTASH_URL && UPSTASH_TOKEN) {
+        const rateKey = `rate:user:${user.id}`;
+        // INCR
+        const incrRes = await fetch(`${UPSTASH_URL}/incr/${encodeURIComponent(rateKey)}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
+        });
+        const incrJson = await incrRes.json().catch(() => ({}));
+        const count = Number(incrJson?.result ?? 0);
+        if (count === 1) {
+          // set expiry
+          await fetch(`${UPSTASH_URL}/expire/${encodeURIComponent(rateKey)}/${WINDOW}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
+          });
+        }
+        if (count > RATE_LIMIT) {
+          return new Response(JSON.stringify({ error: 'Too many uploads' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      }
+    } catch (e) {
+      console.warn('rate limit check skipped due to error', e);
+    }
+
     // Upload using service role
     const uploadRes = await supabase.storage.from('room-media').upload(path, bytes, { contentType: file.type });
     if (uploadRes.error) {
