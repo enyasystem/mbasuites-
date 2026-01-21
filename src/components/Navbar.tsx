@@ -151,7 +151,7 @@ const Navbar = () => {
             <>
               <motion.div key="overlay" className="fixed inset-0 z-40 bg-black/20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} onClick={() => setMobileMenuOpen(false)} />
 
-              <motion.div key="mobile-menu" className="md:hidden py-4 border-t border-border" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+              <motion.div key="mobile-menu" className="md:hidden py-4 border-t border-border relative z-50" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
                 <div className="flex flex-col gap-4 px-4">
                   <Link to="/" className="text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Home</Link>
                   <Link to="/rooms" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Rooms</Link>
