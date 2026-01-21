@@ -92,7 +92,6 @@ export function usePaymentSettings() {
             }
           } catch (e) {
             // log and continue
-            // eslint-disable-next-line no-console
             console.warn("Error during payment settings debug logging:", e);
           }
           setSettings(parsed);
@@ -143,7 +142,6 @@ export function usePaymentSettings() {
         }
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.warn("Realtime subscription not available:", e);
     }
 

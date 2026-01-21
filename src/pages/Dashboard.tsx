@@ -36,7 +36,7 @@ const Dashboard = () => {
 
   const {
     register,
-    watch,
+    control,
     formState: { errors, dirtyFields },
     reset,
   } = useForm<ProfileFormData>({
@@ -66,25 +66,27 @@ const Dashboard = () => {
     }
   }, [user, reset]);
 
-  // Auto-save with debounce
+  // Auto-save with debounce using useWatch
+  const watchedValues = useWatch({ control });
+
   useEffect(() => {
-    const subscription = watch((value) => {
-      setAutoSaving(true);
-      const timer = setTimeout(() => {
-        // In real app, save to database
-        setLastSaved(new Date());
-        setAutoSaving(false);
-        toast({
-          title: "Auto-saved",
-          description: "Your profile has been saved automatically",
-        });
-      }, 2000);
+    // schedule auto-saving state update to avoid synchronous setState in effect
+    const start = setTimeout(() => setAutoSaving(true), 0);
+    const timer = setTimeout(() => {
+      // In real app, save to database
+      setLastSaved(new Date());
+      setAutoSaving(false);
+      toast({
+        title: "Auto-saved",
+        description: "Your profile has been saved automatically",
+      });
+    }, 2000);
 
-      return () => clearTimeout(timer);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [watch]);
+    return () => {
+      clearTimeout(start);
+      clearTimeout(timer);
+    };
+  }, [watchedValues]);
 
   if (loading) {
     return (

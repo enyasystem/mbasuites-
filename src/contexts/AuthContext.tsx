@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
+import * as React from "react";
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";

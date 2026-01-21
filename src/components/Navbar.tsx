@@ -5,7 +5,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import type { Currency } from "@/context/CurrencyContext";
+import type { Currency } from "@/types/currency";
 import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,

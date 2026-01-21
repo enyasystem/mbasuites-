@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +54,7 @@ export default function StaffManager() {
     }
   };
 
-  const fetchStaff = async () => {
+  const fetchStaff = useCallback(async () => {
     setIsLoading(true);
     try {
       // Fetch user roles
@@ -108,11 +108,11 @@ export default function StaffManager() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchStaff();
-  }, []);
+    void fetchStaff();
+  }, [fetchStaff]);
 
   const handleAddStaff = async () => {
     try {
