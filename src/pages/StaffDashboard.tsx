@@ -55,13 +55,14 @@ export default function StaffDashboard() {
   useEffect(() => {
     const checkStaffRole = async () => {
       if (!user) return;
-      const { data: roles } = await supabase.from("user_roles").select("role, location_id").eq("user_id", user.id);
+      type RoleRow = { role: string; location_id?: string | null };
+      const { data: roles } = await supabase.from<RoleRow>("user_roles").select("role, location_id").eq("user_id", user.id);
       if (!roles || roles.length === 0) return navigate("/");
-      const hasStaffRole = roles.some((r: any) => r.role === "staff" || r.role === "admin");
+      const hasStaffRole = roles.some((r) => r.role === "staff" || r.role === "admin");
       if (!hasStaffRole) return navigate("/");
       setIsStaff(true);
-      const locationIds = roles.filter((r: any) => r.location_id).map((r: any) => r.location_id);
-      const isAdmin = roles.some((r: any) => r.role === "admin");
+      const locationIds = roles.filter((r) => r.location_id).map((r) => r.location_id as string);
+      const isAdmin = roles.some((r) => r.role === "admin");
       if (isAdmin) setAssignedLocations(allLocations.map(l => ({ id: l.id, name: l.name })));
       else if (locationIds.length > 0) setAssignedLocations(allLocations.filter(l => locationIds.includes(l.id)).map(l => ({ id: l.id, name: l.name })));
     };
@@ -73,19 +74,41 @@ export default function StaffDashboard() {
       if (!isStaff) return;
       setIsLoading(true);
       try {
+        type BookingRowRaw = {
+          id: string;
+          guest_name: string;
+          guest_email: string;
+          check_in_date: string;
+          check_out_date: string;
+          status: string;
+          total_amount: number;
+          num_guests: number;
+          room?: { title?: string; room_number?: string; location_id?: string } | null;
+        };
+
         const { data, error } = await supabase
-          .from("bookings")
+          .from<BookingRowRaw>("bookings")
           .select(`id, guest_name, guest_email, check_in_date, check_out_date, status, total_amount, num_guests, room:rooms(title, room_number, location_id)`)
           .order("check_in_date", { ascending: false })
           .limit(100);
         if (error) throw error;
-        let rows = data || [];
-        if (selectedLocation !== "all") rows = rows.filter((b: any) => b.room?.location_id === selectedLocation);
+        let rows: BookingRowRaw[] = (data as BookingRowRaw[]) || [];
+        if (selectedLocation !== "all") rows = rows.filter((b) => b.room?.location_id === selectedLocation);
         else if (assignedLocations.length > 0 && assignedLocations.length !== allLocations.length) {
           const ids = assignedLocations.map(l => l.id);
-          rows = rows.filter((b: any) => ids.includes(b.room?.location_id));
+          rows = rows.filter((b) => ids.includes(b.room?.location_id || ""));
         }
-        setBookings(rows.map((b: any) => ({ ...b, room: b.room ? { title: b.room.title, room_number: b.room.room_number } : null })));
+        setBookings(rows.map((b) => ({
+          id: b.id,
+          guest_name: b.guest_name,
+          guest_email: b.guest_email,
+          check_in_date: b.check_in_date,
+          check_out_date: b.check_out_date,
+          status: (b.status as Booking["status"]) || "pending",
+          total_amount: b.total_amount,
+          num_guests: b.num_guests,
+          room: b.room ? { title: b.room.title || "", room_number: b.room.room_number || "" } : null,
+        })));
       } catch (err) {
         console.error(err);
         toast({ title: "Error", description: "Failed to load bookings", variant: "destructive" });
@@ -117,7 +140,7 @@ export default function StaffDashboard() {
     }
   };
 
-  const updateBookingStatus = async (id: string, newStatus: any) => {
+  const updateBookingStatus = async (id: string, newStatus: Booking["status"]) => {
     try {
       const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", id);
       if (error) throw error;
