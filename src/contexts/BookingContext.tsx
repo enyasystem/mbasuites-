@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Room } from "@/types/room";
 
+/* eslint-disable react-refresh/only-export-components */
 interface BookingData {
   room: Room | null;
   checkIn: Date | undefined;

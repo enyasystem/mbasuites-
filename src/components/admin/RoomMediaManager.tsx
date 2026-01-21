@@ -131,57 +131,54 @@ export default function RoomMediaManager() {
   });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedRoom) return;
+    const files = e.target.files;
+    if (!files || files.length === 0 || !selectedRoom) return;
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${selectedRoom}/${Date.now()}.${fileExt}`;
+      // Determine starting display order
+      const startOrder = mediaItems.length > 0 ? Math.max(...mediaItems.map((m) => m.display_order)) + 1 : 0;
 
-      const { error: uploadError } = await supabase.storage
-        .from("room-media")
-        .upload(fileName, file);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${selectedRoom}/${Date.now()}-${i}.${fileExt}`;
 
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage.from("room-media").upload(fileName, file);
+        if (uploadError) throw uploadError;
 
-      const { data: publicUrl } = supabase.storage
-        .from("room-media")
-        .getPublicUrl(fileName);
+        const { data: publicUrl } = supabase.storage.from("room-media").getPublicUrl(fileName);
 
-      // Get max display order
-      const maxOrder = mediaItems.length > 0 
-        ? Math.max(...mediaItems.map(m => m.display_order)) + 1 
-        : 0;
+        const displayOrder = startOrder + i;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: dbError } = await (supabase as any).from("room_media").insert({
-        room_id: selectedRoom,
-        media_type: uploadForm.media_type,
-        media_url: publicUrl.publicUrl,
-        title: uploadForm.title || file.name,
-        display_order: maxOrder,
-        is_primary: mediaItems.length === 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: dbError } = await (supabase as any).from("room_media").insert({
+          room_id: selectedRoom,
+          media_type: uploadForm.media_type,
+          media_url: publicUrl.publicUrl,
+          title: uploadForm.title || file.name,
+          display_order: displayOrder,
+          is_primary: mediaItems.length === 0 && i === 0,
+        });
 
-      if (dbError) {
-        // If the room_media table does not exist in the database, fall back to
-        // updating the room's `image_url` field so the upload still appears in the UI.
-        const msg = ((dbError as unknown) as { message?: string })?.message || "";
-        if (msg.includes("Could not find the table") || msg.includes("room_media")) {
-          try {
-            const { error: upErr } = await supabase.from("rooms").update({ image_url: publicUrl.publicUrl }).eq("id", selectedRoom);
-            if (upErr) throw upErr;
-            toast.success("Media uploaded and set as room image (fallback)");
-            queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
-            setUploadDialogOpen(false);
-            setUploadForm({ title: "", media_type: "image" });
-            return;
-          } catch (e) {
-            // If fallback fails, surface original dbError below
+        if (dbError) {
+          const msg = ((dbError as unknown) as { message?: string })?.message || "";
+          if (msg.includes("Could not find the table") || msg.includes("room_media")) {
+            // Fallback: set the room's image_url to the first uploaded file and stop
+            try {
+              const { error: upErr } = await supabase.from("rooms").update({ image_url: publicUrl.publicUrl }).eq("id", selectedRoom);
+              if (upErr) throw upErr;
+              toast.success("Media uploaded and set as room image (fallback)");
+              queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
+              setUploadDialogOpen(false);
+              setUploadForm({ title: "", media_type: "image" });
+              break;
+            } catch (err) {
+              throw dbError;
+            }
           }
+          throw dbError;
         }
-        throw dbError;
       }
 
       queryClient.invalidateQueries({ queryKey: ["room-media", selectedRoom] });
@@ -191,6 +188,12 @@ export default function RoomMediaManager() {
     } catch (error) {
       toast.error("Upload failed: " + (error as Error).message);
     } finally {
+      // clear the file input so same files can be selected again
+      try {
+        if (e.target) e.target.value = "";
+      } catch (err) {
+        // ignore
+      }
       setUploading(false);
     }
   };
@@ -272,6 +275,7 @@ export default function RoomMediaManager() {
                       <div className="mt-2">
                         <Input
                           type="file"
+                          multiple
                           accept={uploadForm.media_type === "video" ? "video/*" : "image/*"}
                           onChange={handleFileUpload}
                           disabled={uploading}

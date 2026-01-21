@@ -1,8 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
-
-type Currency = "USD" | "NGN" | "GBP";
-
-type Rates = Record<Currency, number>;
+import type { Currency, Rates } from "@/types/currency";
 
 const defaultRates: Rates = {
   // rates are currency units per 1 USD (approximate defaults)
@@ -36,7 +34,7 @@ type CurrencyContextType = {
 
 const CurrencyContext = React.createContext<CurrencyContextType | null>(null);
 
-export const CurrencyProvider: React.FC = ({ children }) => {
+export const CurrencyProvider = ({ children }: { children: React.ReactNode }) => {
   const stored = typeof window !== 'undefined' ? window.localStorage.getItem('app_currency') : null;
   const initialCurrency = (stored && (['USD','NGN','GBP'] as string[]).includes(stored) ? (stored as Currency) : 'NGN') as Currency;
   const [currency, setCurrencyState] = React.useState<Currency>(initialCurrency);
@@ -114,4 +112,4 @@ export const useCurrency = () => {
   return ctx;
 };
 
-export type { Currency };
+// Note: `Currency` type is exported from `src/types/currency.ts`

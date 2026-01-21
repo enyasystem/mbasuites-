@@ -36,7 +36,6 @@ export default function StaffLogin() {
       if (saved) setValue("email", saved);
     } catch (e) {
       // localStorage may be unavailable in some environments — warn and continue
-      // eslint-disable-next-line no-console
       console.warn("Failed to read staff_email from localStorage", e);
     }
   }, [setValue]);
@@ -55,18 +54,16 @@ export default function StaffLogin() {
   const onSubmit = async (data: FormValues) => {
     const { email, password, remember } = data;
     
-    if (remember) {
+      if (remember) {
       try {
         window.localStorage.setItem("staff_email", email);
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.warn("Failed to save staff_email to localStorage", e);
       }
     } else {
       try {
         window.localStorage.removeItem("staff_email");
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.warn("Failed to remove staff_email from localStorage", e);
       }
     }

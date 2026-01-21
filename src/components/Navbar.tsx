@@ -1,11 +1,11 @@
 import { Menu, User, DollarSign, LogOut, LayoutDashboard, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import type { Currency } from "@/context/CurrencyContext";
+import type { Currency } from "@/types/currency";
 import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -26,6 +26,8 @@ const currencies: { code: Currency; symbol: string; name: string }[] = [
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const { currency, setCurrency } = useCurrency();
   const { user, signOut } = useAuth();
   const { isAdmin, isStaff } = useRoleCheck();
@@ -37,6 +39,21 @@ const Navbar = () => {
     await signOut();
     navigate("/");
   };
+
+  // Close mobile menu when clicking outside the menu or toggle button
+  useEffect(() => {
+    function onDocMouseDown(e: MouseEvent) {
+      if (!mobileMenuOpen) return;
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (menuRef.current && menuRef.current.contains(target)) return;
+      if (buttonRef.current && buttonRef.current.contains(target)) return;
+      setMobileMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [mobileMenuOpen]);
 
   return (
     <motion.nav
@@ -140,7 +157,7 @@ const Navbar = () => {
           </motion.div>
 
           {/* Mobile Menu Button */}
-          <motion.button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
+          <motion.button ref={buttonRef} className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
             <Menu className="h-6 w-6" />
           </motion.button>
         </div>
@@ -151,7 +168,7 @@ const Navbar = () => {
             <>
               <motion.div key="overlay" className="fixed inset-0 z-40 bg-black/20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} onClick={() => setMobileMenuOpen(false)} />
 
-              <motion.div key="mobile-menu" className="md:hidden py-4 border-t border-border" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+              <motion.div ref={menuRef} key="mobile-menu" className="md:hidden py-4 border-t border-border relative z-50" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
                 <div className="flex flex-col gap-4 px-4">
                   <Link to="/" className="text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Home</Link>
                   <Link to="/rooms" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Rooms</Link>

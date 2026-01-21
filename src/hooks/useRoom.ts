@@ -100,7 +100,6 @@ export function useRoom(roomId: string | undefined) {
       }
 
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.warn('Realtime subscription for room images not available:', e);
     }
 
