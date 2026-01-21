@@ -2,7 +2,6 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/9da9a259-29cc-4ebd-b286-33fc39f96f55
 
 # MBA Suites — Frontend (elysian-stays)
 

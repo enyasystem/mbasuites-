@@ -8,24 +8,26 @@
 // NOTE: This project isn't a Next.js app, so avoid importing `next/server` here.
 // Use standard Web `Response` objects so the file type-checks in this workspace.
 
-// Configurable via environment variables at deploy time
-const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX || '100', 10); // tokens
-const WINDOW_SECONDS = parseInt(process.env.RATE_LIMIT_WINDOW_SECONDS || '60', 10); // refill window
-const BLOCKED_IPS = (process.env.VERCEL_BLOCKED_IPS || '').split(',').map((s) => s.trim()).filter(Boolean);
-const WHITELIST_IPS = (process.env.VERCEL_WHITELIST_IPS || '').split(',').map((s) => s.trim()).filter(Boolean);
+// Configurable via environment variables at deploy time. Guard access to `process`
+// because Edge runtimes may not provide a Node `process` global.
+const safeEnv = (typeof process !== 'undefined' && process.env) ? process.env : undefined;
+const MAX_REQUESTS = parseInt(safeEnv?.RATE_LIMIT_MAX ?? '100', 10); // tokens
+const WINDOW_SECONDS = parseInt(safeEnv?.RATE_LIMIT_WINDOW_SECONDS ?? '60', 10); // refill window
+const BLOCKED_IPS = (safeEnv?.VERCEL_BLOCKED_IPS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+const WHITELIST_IPS = (safeEnv?.VERCEL_WHITELIST_IPS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
 type Bucket = { tokens: number; last: number };
 
-// Use a global map so the limiter survives across requests on the same instance
-declare global {
-  var __RATE_LIMIT_MAP__: Map<string, Bucket> | undefined;
+// Provide a typed shape for globalThis so we avoid `any` and satisfy ESLint.
+interface GlobalRateMap {
+  __RATE_LIMIT_MAP__?: Map<string, Bucket>;
 }
 
-if (!global.__RATE_LIMIT_MAP__) {
-  global.__RATE_LIMIT_MAP__ = new Map();
+const G = globalThis as unknown as GlobalRateMap;
+if (!G.__RATE_LIMIT_MAP__) {
+  G.__RATE_LIMIT_MAP__ = new Map<string, Bucket>();
 }
-
-const RATE_MAP = global.__RATE_LIMIT_MAP__ as Map<string, Bucket>;
+const RATE_MAP = G.__RATE_LIMIT_MAP__ as Map<string, Bucket>;
 
 function getIpFromRequest(req: Request) {
   // Prefer standard headers; Vercel will pass through `x-forwarded-for`.
@@ -36,44 +38,51 @@ function getIpFromRequest(req: Request) {
 }
 
 export function middleware(req: Request): Response {
-  const ip = getIpFromRequest(req);
+  try {
+    const ip = getIpFromRequest(req);
 
-  // Quick allow/deny lists
-  if (WHITELIST_IPS.includes(ip)) return new Response(null, { status: 200 });
-  if (BLOCKED_IPS.includes(ip)) return new Response('Blocked', { status: 403 });
+    // Quick allow/deny lists
+    if (WHITELIST_IPS.includes(ip)) return new Response(null, { status: 200 });
+    if (BLOCKED_IPS.includes(ip)) return new Response('Blocked', { status: 403 });
 
-  // Token bucket: refill rate = MAX_REQUESTS per WINDOW_SECONDS
-  const now = Date.now();
-  const bucket = RATE_MAP.get(ip) ?? { tokens: MAX_REQUESTS, last: now };
+    // Token bucket: refill rate = MAX_REQUESTS per WINDOW_SECONDS
+    const now = Date.now();
+    const bucket = RATE_MAP.get(ip) ?? { tokens: MAX_REQUESTS, last: now };
 
-  // Refill tokens based on elapsed time
-  const elapsed = Math.max(0, now - bucket.last) / 1000; // seconds
-  const refill = (MAX_REQUESTS / WINDOW_SECONDS) * elapsed;
-  bucket.tokens = Math.min(MAX_REQUESTS, bucket.tokens + refill);
-  bucket.last = now;
+    // Refill tokens based on elapsed time
+    const elapsed = Math.max(0, now - bucket.last) / 1000; // seconds
+    const refill = (MAX_REQUESTS / WINDOW_SECONDS) * elapsed;
+    bucket.tokens = Math.min(MAX_REQUESTS, bucket.tokens + refill);
+    bucket.last = now;
 
-  if (bucket.tokens < 1) {
-    // No tokens left — reject
+    if (bucket.tokens < 1) {
+      // No tokens left — reject
+      RATE_MAP.set(ip, bucket);
+      const retryAfter = Math.ceil(1 / (MAX_REQUESTS / WINDOW_SECONDS));
+      const headers: Record<string, string> = {
+        'Retry-After': String(retryAfter),
+        'Content-Type': 'text/plain',
+      };
+      return new Response('Too Many Requests', { status: 429, headers });
+    }
+
+    // Consume a token and continue
+    bucket.tokens -= 1;
     RATE_MAP.set(ip, bucket);
-    const retryAfter = Math.ceil(1 / (MAX_REQUESTS / WINDOW_SECONDS));
+
+    // Optionally add rate-limit headers for visibility
     const headers: Record<string, string> = {
-      'Retry-After': String(retryAfter),
-      'Content-Type': 'text/plain',
+      'X-RateLimit-Limit': String(MAX_REQUESTS),
+      'X-RateLimit-Remaining': String(Math.max(0, Math.floor(bucket.tokens))),
+      'X-RateLimit-Reset': String(Math.floor((bucket.last + WINDOW_SECONDS * 1000) / 1000)),
     };
-    return new Response('Too Many Requests', { status: 429, headers });
+    return new Response(null, { status: 200, headers });
+  } catch (err) {
+    // Prevent middleware from throwing and causing MIDDLEWARE_INVOCATION_FAILED.
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error('Middleware error:', errMsg);
+    return new Response('Internal Server Error', { status: 500 });
   }
-
-  // Consume a token and continue
-  bucket.tokens -= 1;
-  RATE_MAP.set(ip, bucket);
-
-  // Optionally add rate-limit headers for visibility
-  const headers: Record<string, string> = {
-    'X-RateLimit-Limit': String(MAX_REQUESTS),
-    'X-RateLimit-Remaining': String(Math.max(0, Math.floor(bucket.tokens))),
-    'X-RateLimit-Reset': String(Math.floor((bucket.last + WINDOW_SECONDS * 1000) / 1000)),
-  };
-  return new Response(null, { status: 200, headers });
 }
 
 // Match all routes
