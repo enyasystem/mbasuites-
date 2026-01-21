@@ -57,10 +57,11 @@ const ResetPassword = () => {
       });
 
       setTimeout(() => navigate("/login"), 1500);
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err);
       toast({
         title: "Error",
-        description: error.message || "Failed to update password",
+        description: msg || "Failed to update password",
         variant: "destructive",
       });
     }
