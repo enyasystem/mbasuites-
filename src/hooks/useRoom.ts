@@ -109,7 +109,14 @@ export function useRoom(roomId: string | undefined) {
         const subObj = channel as unknown as { unsubscribe?: () => unknown };
         if (subObj && typeof subObj.unsubscribe === 'function') subObj.unsubscribe();
         const sb = supabase as unknown as Record<string, unknown>;
-        if (typeof (sb.removeChannel as unknown as Function) === 'function') (sb.removeChannel as unknown as Function).call(sb, channel);
+        if (typeof sb.removeChannel === 'function') {
+          const removeCh = sb.removeChannel as unknown as (ch: unknown) => unknown;
+          try {
+            removeCh(channel);
+          } catch (_) {
+            // ignore removal errors
+          }
+        }
       } catch (e) {
         // ignore cleanup errors
       }

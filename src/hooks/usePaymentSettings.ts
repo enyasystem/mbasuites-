@@ -156,10 +156,20 @@ export function usePaymentSettings() {
           const subObj = subscription as unknown as { unsubscribe?: () => unknown };
           if (typeof subObj.unsubscribe === "function") {
             subObj.unsubscribe();
-          } else if (typeof (sb.removeSubscription as unknown as Function) === "function") {
-            (sb.removeSubscription as unknown as Function).call(sb, subscription);
-          } else if (typeof (sb.removeChannel as unknown as Function) === "function") {
-            (sb.removeChannel as unknown as Function).call(sb, subscription);
+          } else if (typeof sb.removeSubscription === "function") {
+            const removeSub = sb.removeSubscription as unknown as (sub: unknown) => unknown;
+            try {
+              removeSub(subscription);
+            } catch (_) {
+              // ignore removal errors
+            }
+          } else if (typeof sb.removeChannel === "function") {
+            const removeCh = sb.removeChannel as unknown as (sub: unknown) => unknown;
+            try {
+              removeCh(subscription);
+            } catch (_) {
+              // ignore removal errors
+            }
           }
         }
       } catch (err) {

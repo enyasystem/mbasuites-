@@ -184,14 +184,14 @@ const Help = () => {
               <div className="space-y-2 text-sm">
                 <p>
                   <strong>Email:</strong>{" "}
-                  <a href="mailto:support@mbasuites.com" className="text-accent hover:underline">
-                    support@mbasuites.com
+                  <a href="mailto:mbasuites@yahoo.com" className="text-accent hover:underline">
+                    mbasuites@yahoo.com
                   </a>
                 </p>
                 <p>
                   <strong>Phone:</strong>{" "}
-                  <a href="tel:+07012345678" className="text-accent hover:underline">
-                    07012345678
+                  <a href="tel:+14708699787" className="text-accent hover:underline">
+                    +1 470 869 9787 (WhatsApp)
                   </a>
                 </p>
                 <p className="text-muted-foreground">

@@ -44,7 +44,7 @@ Your premium service apartments, shortlets and vacation rentals.
                 <strong>Email:</strong> <a href="mailto:info@mbasuites.com" className="hover:text-accent transition-colors">info@mbasuites.com</a>
               </li>
               <li>
-                <strong>Phone:</strong> <a href="tel:+2348091234567" className="hover:text-accent transition-colors">+234 809 123 4567</a>
+                <strong>Phone:</strong> <a href="tel:+14708699787" className="hover:text-accent transition-colors">+1 470 869 9787 (WhatsApp)</a>
               </li>
               <li>
                 <strong>Address (Lagos - Branch):</strong> Emcel Garden Estate<br />

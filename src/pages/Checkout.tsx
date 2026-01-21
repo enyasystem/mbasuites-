@@ -62,7 +62,16 @@ export default function Checkout() {
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [promoCode, setPromoCode] = useState<string>("");
-  const [appliedPromo, setAppliedPromo] = useState<any | null>(null);
+  type Promotion = {
+    id: string;
+    code?: string;
+    discount_type?: "percentage" | "fixed" | string;
+    discount_value?: number | string | null;
+    current_uses?: number;
+    max_uses?: number | null;
+  } | null;
+
+  const [appliedPromo, setAppliedPromo] = useState<Promotion>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

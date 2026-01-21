@@ -254,10 +254,11 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
-    console.error("Error sending email:", error);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err);
+    console.error("Error sending email:", err);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: msg }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

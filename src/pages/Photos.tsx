@@ -42,11 +42,16 @@ const Photos = () => {
   // Lightbox open state
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  // Ensure current index is valid if images change
+  // Ensure current index is valid if images change — only update when out-of-range
   useEffect(() => {
     if (images.length === 0) return;
-    setCurrentIndex((idx) => Math.max(0, Math.min(idx, images.length - 1)));
-  }, [images.length]);
+    if (currentIndex > images.length - 1) {
+      // Schedule update to avoid synchronous setState inside effect
+      setTimeout(() => setCurrentIndex(images.length - 1), 0);
+    } else if (currentIndex < 0) {
+      setTimeout(() => setCurrentIndex(0), 0);
+    }
+  }, [images.length, currentIndex]);
 
   // Scroll into view whenever currentIndex changes
   useEffect(() => {

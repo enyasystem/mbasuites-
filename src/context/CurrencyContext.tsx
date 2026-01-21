@@ -36,7 +36,7 @@ type CurrencyContextType = {
 
 const CurrencyContext = React.createContext<CurrencyContextType | null>(null);
 
-export const CurrencyProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const CurrencyProvider: React.FC = ({ children }) => {
   const stored = typeof window !== 'undefined' ? window.localStorage.getItem('app_currency') : null;
   const initialCurrency = (stored && (['USD','NGN','GBP'] as string[]).includes(stored) ? (stored as Currency) : 'NGN') as Currency;
   const [currency, setCurrencyState] = React.useState<Currency>(initialCurrency);
