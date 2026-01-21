@@ -30,7 +30,7 @@ export default function GuestList() {
 
       // Fetch registrant profiles for any rows that have registered_by set
       const userIds = Array.from(new Set(rows.map(r => r.registered_by).filter(Boolean))) as string[];
-      let profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
+      const profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await supabase.from('profiles').select('id, full_name, email').in('id', userIds);
         (profiles || []).forEach((p: any) => {

@@ -64,9 +64,9 @@ export function usePaymentSettings() {
           try {
             // Only emit debug logs when the admin-enabled `client_debug` flag is true
             if (parsed.client_debug) {
-              // eslint-disable-next-line no-console
+               
               console.log("Payment settings raw:", data);
-              // eslint-disable-next-line no-console
+               
               console.log("Payment settings parsed:", parsed);
 
               // detect duplicate keys which can cause last-write wins issues
@@ -76,7 +76,7 @@ export function usePaymentSettings() {
               });
               Object.entries(counts).forEach(([k, v]) => {
                 if (v > 1) {
-                  // eslint-disable-next-line no-console
+                   
                   console.warn(`Duplicate payment_settings rows for key: ${k} (count=${v})`);
                 }
               });

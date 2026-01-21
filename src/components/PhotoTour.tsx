@@ -20,17 +20,25 @@ const defaultLabels = [
 ];
 
 export default function PhotoTour({ images, open, onOpenChange, initialIndex = 0 }: Props) {
-  const [index, setIndex] = useState(initialIndex || 0);
+  const [index, setIndex] = useState(() => initialIndex ?? 0);
 
   useEffect(() => {
-    setIndex(initialIndex || 0);
+    // defer updating index to avoid synchronous setState inside effect
+    const idxTimer = setTimeout(() => setIndex(initialIndex ?? 0), 0);
+
+    // if opening, scroll to the selected section after render
+    let scrollTimer: number | undefined;
     if (open) {
-      // scroll to the selected section if opening with an index
-      setTimeout(() => {
-        const el = document.getElementById(`photo-section-${initialIndex || 0}`);
+      scrollTimer = window.setTimeout(() => {
+        const el = document.getElementById(`photo-section-${initialIndex ?? 0}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 50);
     }
+
+    return () => {
+      clearTimeout(idxTimer);
+      if (scrollTimer) clearTimeout(scrollTimer);
+    };
   }, [initialIndex, open]);
 
   const labelFor = (i: number) => defaultLabels[i] || `Photo ${i + 1}`;
