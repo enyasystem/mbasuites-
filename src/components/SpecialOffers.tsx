@@ -97,9 +97,9 @@ const SpecialOffers = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {(
             Array.isArray(dbRooms) && dbRooms.length > 0
-              ? dbRooms.slice(0, 2).map(r => {
+                ? dbRooms.slice(0, 2).map(r => {
                   // Determine price from DB with fallbacks. Handle cents fields if present.
-                  const rObj = r as Record<string, unknown>;
+                  const rObj = r as unknown as Record<string, unknown>;
                   let priceNum: number | undefined;
                   if (rObj.price !== undefined && rObj.price !== null) priceNum = Number(rObj.price as unknown);
                   else if (rObj.price_per_night !== undefined && rObj.price_per_night !== null) priceNum = Number(rObj.price_per_night as unknown);

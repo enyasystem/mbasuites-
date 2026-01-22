@@ -27,7 +27,8 @@ import GuestSelector from "@/components/GuestSelector";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList } from "@/components/ReviewsList";
 import { useRoomReviews } from "@/hooks/useRoomReviews";
-import { format, differenceInCalendarDays } from "date-fns";
+import { useRoomAvailability } from "@/hooks/useRoomAvailability";
+import { format, differenceInCalendarDays, startOfDay } from "date-fns";
 import { Star, ChevronLeft, ChevronRight, X, Images } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,6 +63,8 @@ const RoomDetails = () => {
 
   // Reviews
   const { reviews = [] } = useRoomReviews(room?.id);
+
+  const { unavailableDates, isLoading: availabilityLoading, isDateUnavailable } = useRoomAvailability(room?.id);
 
   // Prefer mediaImages (from room_media) otherwise fallback to room.images or image_url
   const galleryImages: GalleryImage[] = (mediaImages && mediaImages.length > 0)
@@ -311,7 +314,8 @@ const RoomDetails = () => {
                                     setTimeout(() => setCheckOutOpenMobile(true), 100);
                                   }, 150);
                               }}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => date < new Date() || isDateUnavailable(date)}
+                              modifiers={{ booked: (d: Date) => isDateUnavailable(d) && startOfDay(d) >= startOfDay(new Date()) }}
                             />
                           </PopoverContent>
                         </Popover>
@@ -334,7 +338,8 @@ const RoomDetails = () => {
                                 // Delay closing slightly to ensure DayPicker selection finishes
                                 setTimeout(() => setCheckOutOpenMobile(false), 150);
                               }}
-                              disabled={(date) => date < (checkIn || new Date())}
+                              disabled={(date) => date < (checkIn || new Date()) || isDateUnavailable(date)}
+                              modifiers={{ booked: (d: Date) => isDateUnavailable(d) && startOfDay(d) >= startOfDay(new Date()) }}
                             />
                           </PopoverContent>
                         </Popover>
@@ -456,7 +461,8 @@ const RoomDetails = () => {
                             setTimeout(() => setCheckOutOpen(true), 100);
                           }, 150);
                         }}
-                        disabled={(date) => date < new Date()}
+                        disabled={(date) => date < new Date() || isDateUnavailable(date)}
+                        modifiers={{ booked: (d: Date) => isDateUnavailable(d) && startOfDay(d) >= startOfDay(new Date()) }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -479,7 +485,8 @@ const RoomDetails = () => {
                           // Delay closing slightly to ensure DayPicker selection finishes
                           setTimeout(() => setCheckOutOpen(false), 150);
                         }}
-                        disabled={(date) => date < (checkIn || new Date())}
+                        disabled={(date) => date < (checkIn || new Date()) || isDateUnavailable(date)}
+                        modifiers={{ booked: (d: Date) => isDateUnavailable(d) && startOfDay(d) >= startOfDay(new Date()) }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -523,9 +530,9 @@ const RoomDetails = () => {
               </div>
             </Card>
 
-            <Card className="p-4">
+                <Card className="p-4">
               <h4 className="text-sm font-semibold mb-2">Availability</h4>
-              <CalendarComponent mode="single" disabled={(date) => date < new Date()} />
+              <CalendarComponent mode="single" disabled={(date) => date < new Date() || isDateUnavailable(date)} modifiers={{ booked: (d: Date) => isDateUnavailable(d) && startOfDay(d) >= startOfDay(new Date()) }} />
             </Card>
           </aside>
         </div>
