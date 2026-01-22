@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* REQUIRED FOR TAILWIND v4 WHEN USING @apply */
+/* any leftover @reference rules removed */
+
+
+/*
+  Definition of the design system.
+  All colors MUST be HSL.
 */
 
 @layer base {
@@ -37,43 +42,21 @@ All colors MUST be HSL.
     --ring: 15 100% 60%;
 
     --radius: 0.75rem;
-    
-    /* Custom colors for hotel theme */
+
+    /* Custom hotel theme colors */
     --navy: 220 50% 20%;
     --coral: 15 100% 60%;
     --cream: 35 40% 95%;
     --gold: 45 90% 55%;
-    
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(220 50% 30% / 0.8), hsl(220 50% 15% / 0.9));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(35 40% 98%));
-    
-    /* Shadows */
-    --shadow-sm: 0 2px 8px hsl(220 20% 15% / 0.08);
-    --shadow-md: 0 4px 16px hsl(220 20% 15% / 0.12);
-    --shadow-lg: 0 8px 24px hsl(220 20% 15% / 0.16);
-    --shadow-accent: 0 4px 20px hsl(15 100% 60% / 0.3);
-    
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --radius: 0.75rem;
-
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -105,6 +88,7 @@ All colors MUST be HSL.
     --border: 220 40% 20%;
     --input: 220 40% 20%;
     --ring: 15 100% 60%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -116,18 +100,19 @@ All colors MUST be HSL.
   }
 }
 
-@layer base {
+/* @layer base {
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-}
+} */
 
 @layer utilities {
   @keyframes fade-in {
