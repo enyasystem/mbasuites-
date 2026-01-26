@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Award, Heart, Shield, Users } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 const About = () => {
   const getInitials = (name: string) => {
@@ -126,9 +128,50 @@ const About = () => {
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-center">Meet Our Team</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="py-8">
+            <h2 className="text-2xl font-bold mb-8 text-center">Meet Our Team</h2>
+            
+            {/* Mobile Marquee */}
+            <div className="md:hidden w-full overflow-hidden">
+              <style>{`
+                @keyframes scroll {
+                  0% {
+                    transform: translateX(0);
+                  }
+                  100% {
+                    transform: translateX(-100%);
+                  }
+                }
+                .marquee-content {
+                  animation: scroll 30s linear infinite;
+                }
+                .marquee-content:hover {
+                  animation-play-state: paused;
+                }
+              `}</style>
+              <div className="flex gap-6 marquee-content w-fit">
+                {[...team, ...team].map((member, index) => (
+                  <div key={`${member.name}-${index}`} className="flex-shrink-0 w-60">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="flex justify-center p-6">
+                        <div className="h-28 w-28 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center mx-auto shadow-lg">
+                          <span className="text-2xl font-semibold text-white">{getInitials(member.name)}</span>
+                        </div>
+                      </div>
+                      <CardContent className="p-6 text-center">
+                        <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
+                        <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                          {member.role}
+                        </span>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Grid */}
+            <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-8">
               {team.map((member, index) => (
                 <motion.div
                   key={member.name}
@@ -137,14 +180,16 @@ const About = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="flex justify-center p-4">
-                      <div className="h-28 w-28 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                        <span className="text-2xl font-semibold text-accent">{getInitials(member.name)}</span>
+                    <div className="flex justify-center p-6">
+                      <div className="h-28 w-28 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center mx-auto shadow-lg">
+                        <span className="text-2xl font-semibold text-white">{getInitials(member.name)}</span>
                       </div>
                     </div>
-                    <CardContent className="p-4 text-center">
-                      <h3 className="font-semibold mb-1" title={member.name}>{member.name}</h3>
-                      <p className="text-sm text-muted-foreground">{member.role}</p>
+                    <CardContent className="p-6 text-center">
+                      <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
+                      <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                        {member.role}
+                      </span>
                     </CardContent>
                   </Card>
                 </motion.div>

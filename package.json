@@ -48,6 +48,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.27.5",
     "input-otp": "^1.4.2",
@@ -61,11 +62,11 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.71.1",
+    "react-is": "latest",
     "react-paystack": "^6.0.0",
     "react-resizable-panels": "^4.4.1",
     "react-router-dom": "^7.12.0",
     "recharts": "^3.6.0",
-    "react-is": "latest",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
@@ -80,7 +81,6 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "autoprefixer": "^10.4.23",
-    
     "eslint": "^9.39.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
@@ -92,8 +92,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
     "vite": "^7.3.1"
-  }
-  ,
+  },
   "overrides": {
     "tar": ">=7.5.4"
   }
