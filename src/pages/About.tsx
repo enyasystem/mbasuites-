@@ -5,6 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Award, Heart, Shield, Users } from "lucide-react";
 
 const About = () => {
+  const getInitials = (name: string) => {
+    const parts = name.replace(/\./g, "").split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return (parts[0] || "").slice(0, 2).toUpperCase();
+  };
   const team = [
     {
       name: "C. Mba",
@@ -133,16 +138,12 @@ const About = () => {
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="flex justify-center p-4">
-                      <div className="h-28 w-28 rounded-full overflow-hidden">
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        />
+                      <div className="h-28 w-28 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
+                        <span className="text-2xl font-semibold text-accent">{getInitials(member.name)}</span>
                       </div>
                     </div>
                     <CardContent className="p-4 text-center">
-                      <h3 className="font-semibold mb-1">{member.name}</h3>
+                      <h3 className="font-semibold mb-1" title={member.name}>{member.name}</h3>
                       <p className="text-sm text-muted-foreground">{member.role}</p>
                     </CardContent>
                   </Card>
