@@ -165,8 +165,8 @@ const About = () => {
                         </div>
                       </div>
                       <CardContent className="p-6 text-center flex-1 flex flex-col justify-center">
-                        <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
-                        <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                        <h3 className="font-semibold mb-4" title={member.name}>{member.name}</h3>
+                        <span className="inline-block px-4 py-2 bg-gradient-to-r from-accent/10 to-accent/5 text-accent text-xs font-semibold rounded-full border border-accent/30 shadow-sm hover:shadow-md hover:border-accent/50 transition-all duration-200">
                           {member.role}
                         </span>
                       </CardContent>
@@ -192,8 +192,8 @@ const About = () => {
                       </div>
                     </div>
                     <CardContent className="p-6 text-center flex-1 flex flex-col justify-center">
-                      <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
-                      <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                      <h3 className="font-semibold mb-4" title={member.name}>{member.name}</h3>
+                      <span className="inline-block px-4 py-2 bg-gradient-to-r from-accent/10 to-accent/5 text-accent text-xs font-semibold rounded-full border border-accent/30 shadow-sm hover:shadow-md hover:border-accent/50 transition-all duration-200">
                         {member.role}
                       </span>
                     </CardContent>
