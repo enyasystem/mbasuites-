@@ -30,6 +30,10 @@ const About = () => {
       role: "Regional Property Manager",
       image: "/placeholder.svg",
     },
+    {      name: "Mr Elijah",
+      role: "Assistant Manager",
+      image: "/placeholder.svg",  
+    },
   ];
 
   const values = [
