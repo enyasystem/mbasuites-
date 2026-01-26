@@ -18,29 +18,35 @@ const About = () => {
       role: "General Manager",
       image: "/placeholder.svg",
     },
-    {
-      name: "Victory Oraeke",
-      role: "Customer Experience Manager",
-      image: "/placeholder.svg",
-    },
+    
     {      name: "Promise Lamingah",
       role: "Regional Property Manager",
       image: "/placeholder.svg",
     },  
+    {
+      name: "Ludia Umbeki",
+      role: "Regional Property Manager",
+      image: "/placeholder.svg",
+    },
     {
       name: "Emmanuel Garba",
       role: "Logistics and Transportation",
       image: "/placeholder.svg",
     },
     {
-      name: "Ludia Umbeki",
-      role: "Regional Property Manager",
+      name: "Victory Oraeke",
+      role: "Customer Experience Manager",
       image: "/placeholder.svg",
     },
     {      name: "Mr Elijah",
       role: "Assistant Manager",
       image: "/placeholder.svg",  
     },
+     
+    {      name: "Promise Lamingah",
+      role: "House Keeping Manager",
+      image: "/placeholder.svg",
+    }
   ];
 
   const values = [
