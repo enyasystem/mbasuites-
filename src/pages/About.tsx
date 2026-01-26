@@ -7,23 +7,27 @@ import { Award, Heart, Shield, Users } from "lucide-react";
 const About = () => {
   const team = [
     {
-      name: "Sarah Johnson",
+      name: "C. Mba",
       role: "General Manager",
       image: "/placeholder.svg",
     },
     {
-      name: "Michael Chen",
-      role: "Head of Operations",
+      name: "Victory Oraeke",
+      role: "Customer Experience Manager",
+      image: "/placeholder.svg",
+    },
+    {      name: "Promise Lamingah",
+      role: "Regional Property Manager",
+      image: "/placeholder.svg",
+    },  
+    {
+      name: "Emmanuel Garba",
+      role: "Logistics and Transportation",
       image: "/placeholder.svg",
     },
     {
-      name: "Emily Rodriguez",
-      role: "Customer Experience Lead",
-      image: "/placeholder.svg",
-    },
-    {
-      name: "David Kim",
-      role: "Property Manager",
+      name: "Ludia Umbeki",
+      role: "Regional Property Manager",
       image: "/placeholder.svg",
     },
   ];
