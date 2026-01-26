@@ -151,14 +151,14 @@ const About = () => {
               `}</style>
               <div className="flex gap-6 marquee-content w-fit">
                 {[...team, ...team, ...team].map((member, index) => (
-                  <div key={`${member.name}-${index}`} className="flex-shrink-0 w-60">
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div key={`${member.name}-${index}`} className="flex-shrink-0 w-60 h-80">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
                       <div className="flex justify-center p-6">
                         <div className="h-28 w-28 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center mx-auto shadow-lg">
                           <span className="text-2xl font-semibold text-white">{getInitials(member.name)}</span>
                         </div>
                       </div>
-                      <CardContent className="p-6 text-center">
+                      <CardContent className="p-6 text-center flex-1 flex flex-col justify-center">
                         <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
                         <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
                           {member.role}
@@ -179,13 +179,13 @@ const About = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-80 flex flex-col">
                     <div className="flex justify-center p-6">
                       <div className="h-28 w-28 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center mx-auto shadow-lg">
                         <span className="text-2xl font-semibold text-white">{getInitials(member.name)}</span>
                       </div>
                     </div>
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-6 text-center flex-1 flex flex-col justify-center">
                       <h3 className="font-semibold mb-3" title={member.name}>{member.name}</h3>
                       <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
                         {member.role}
