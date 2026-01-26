@@ -139,18 +139,18 @@ const About = () => {
                     transform: translateX(0);
                   }
                   100% {
-                    transform: translateX(-100%);
+                    transform: translateX(-66.666%);
                   }
                 }
                 .marquee-content {
-                  animation: scroll 30s linear infinite;
+                  animation: scroll 40s linear infinite;
                 }
                 .marquee-content:hover {
                   animation-play-state: paused;
                 }
               `}</style>
               <div className="flex gap-6 marquee-content w-fit">
-                {[...team, ...team].map((member, index) => (
+                {[...team, ...team, ...team].map((member, index) => (
                   <div key={`${member.name}-${index}`} className="flex-shrink-0 w-60">
                     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="flex justify-center p-6">
