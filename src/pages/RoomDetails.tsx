@@ -57,6 +57,9 @@ const RoomDetails = () => {
   const [guests, setGuests] = useState({ adults: 2, children: 0, rooms: 1 });
   const { formatPrice, formatLocalPrice, convertToUsd } = useCurrency();
 
+  // description truncation toggle to avoid huge walls of text
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -140,6 +143,14 @@ const RoomDetails = () => {
 
   const nights = checkIn && checkOut ? Math.max(1, differenceInCalendarDays(checkOut, checkIn)) : 0;
   const totalPrice = nights * room.price_per_night * guests.rooms;
+
+  // Description display logic
+  const rawDescription = room?.description || "A comfortable and well-appointed room for your stay.";
+  const DESCRIPTION_LIMIT = 300;
+  const shouldTruncate = rawDescription.length > DESCRIPTION_LIMIT;
+  const displayedDescription = shouldTruncate && !showFullDescription
+    ? rawDescription.slice(0, DESCRIPTION_LIMIT) + "..."
+    : rawDescription;
 
   const handleBooking = () => {
     if (!checkIn || !checkOut) {
@@ -256,8 +267,16 @@ const RoomDetails = () => {
                 </div>
               </div>
 
-              <div className="mt-4 text-sm text-muted-foreground">
-                {room.description || "A comfortable and well-appointed room for your stay."}
+              <div className="mt-4 text-sm text-muted-foreground whitespace-pre-line text-justify">
+                {displayedDescription}
+                {shouldTruncate && (
+                  <button
+                    className="ml-1 text-accent underline"
+                    onClick={() => setShowFullDescription((prev) => !prev)}
+                  >
+                    {showFullDescription ? "Show less" : "Read more"}
+                  </button>
+                )}
               </div>
 
               <div className="mt-6">

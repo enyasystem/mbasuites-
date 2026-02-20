@@ -18,7 +18,17 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
+      // disable all of react-query's automatic refetching behaviours that
+      // trigger when the browser tab regains focus or the network reconnects.
+      // the original issue was perceived as a “page refresh” when switching
+      // away and back, which was caused by data refetches. with these
+      // turned off nothing will happen unless we explicitly call `refetch`
+      // or invalidate a query.
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      // mounting is considered a “refresh” as well; keep it off so the UI only
+      // updates when our own code asks for fresh data.
+      refetchOnMount: false,
     },
   },
 });

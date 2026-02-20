@@ -67,6 +67,11 @@ export default function AdminDashboard() {
       })) as RecentBooking[];
     },
     enabled: isAdmin,
+    // react-query defaults to refetching on window focus. the dashboard was
+    // “refreshing” whenever the tab regained focus which felt like a full page
+    // reload to the user. disable automatic refetch so the UI only updates when
+    // we explicitly ask for new data.
+    refetchOnWindowFocus: false,
   });
 
   // Fetch dashboard stats from database
@@ -91,6 +96,7 @@ export default function AdminDashboard() {
       };
     },
     enabled: isAdmin,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {

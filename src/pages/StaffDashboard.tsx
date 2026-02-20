@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,55 +69,57 @@ export default function StaffDashboard() {
     checkStaffRole();
   }, [user, allLocations, navigate]);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      if (!isStaff) return;
-      setIsLoading(true);
-      try {
-        type BookingRowRaw = {
-          id: string;
-          guest_name: string;
-          guest_email: string;
-          check_in_date: string;
-          check_out_date: string;
-          status: string;
-          total_amount: number;
-          num_guests: number;
-          room?: { title?: string; room_number?: string; location_id?: string } | null;
-        };
+  const fetchBookings = useCallback(async () => {
+    if (!isStaff) return;
+    setIsLoading(true);
+    try {
+      type BookingRowRaw = {
+        id: string;
+        guest_name: string;
+        guest_email: string;
+        check_in_date: string;
+        check_out_date: string;
+        status: string;
+        total_amount: number;
+        num_guests: number;
+        room?: { title?: string; room_number?: string; location_id?: string } | null;
+      };
 
-        const { data, error } = await supabase
-          .from<BookingRowRaw>("bookings")
-          .select(`id, guest_name, guest_email, check_in_date, check_out_date, status, total_amount, num_guests, room:rooms(title, room_number, location_id)`)
-          .order("check_in_date", { ascending: false })
-          .limit(100);
-        if (error) throw error;
-        let rows: BookingRowRaw[] = (data as BookingRowRaw[]) || [];
-        if (selectedLocation !== "all") rows = rows.filter((b) => b.room?.location_id === selectedLocation);
-        else if (assignedLocations.length > 0 && assignedLocations.length !== allLocations.length) {
-          const ids = assignedLocations.map(l => l.id);
-          rows = rows.filter((b) => ids.includes(b.room?.location_id || ""));
-        }
-        setBookings(rows.map((b) => ({
-          id: b.id,
-          guest_name: b.guest_name,
-          guest_email: b.guest_email,
-          check_in_date: b.check_in_date,
-          check_out_date: b.check_out_date,
-          status: (b.status as Booking["status"]) || "pending",
-          total_amount: b.total_amount,
-          num_guests: b.num_guests,
-          room: b.room ? { title: b.room.title || "", room_number: b.room.room_number || "" } : null,
-        })));
-      } catch (err) {
-        console.error(err);
-        toast({ title: "Error", description: "Failed to load bookings", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
+      const { data, error } = await supabase
+        .from<BookingRowRaw>("bookings")
+        .select(`id, guest_name, guest_email, check_in_date, check_out_date, status, total_amount, num_guests, room:rooms(title, room_number, location_id)`)
+        .order("check_in_date", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      let rows: BookingRowRaw[] = (data as BookingRowRaw[]) || [];
+      if (selectedLocation !== "all") rows = rows.filter((b) => b.room?.location_id === selectedLocation);
+      else if (assignedLocations.length > 0 && assignedLocations.length !== allLocations.length) {
+        const ids = assignedLocations.map(l => l.id);
+        rows = rows.filter((b) => ids.includes(b.room?.location_id || ""));
       }
-    };
-    fetchBookings();
+      setBookings(rows.map((b) => ({
+        id: b.id,
+        guest_name: b.guest_name,
+        guest_email: b.guest_email,
+        check_in_date: b.check_in_date,
+        check_out_date: b.check_out_date,
+        status: (b.status as Booking["status"]) || "pending",
+        total_amount: b.total_amount,
+        num_guests: b.num_guests,
+        room: b.room ? { title: b.room.title || "", room_number: b.room.room_number || "" } : null,
+      })));
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to load bookings", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   }, [isStaff, selectedLocation, assignedLocations, allLocations]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
@@ -270,7 +272,8 @@ export default function StaffDashboard() {
                       <CardTitle>Recent Bookings</CardTitle>
                       <CardDescription>Manage guest reservations</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                    {/* previously this reloaded the whole page; now just refetch the bookings data */}
+                    <Button variant="outline" size="sm" onClick={fetchBookings}>
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
                     </Button>
