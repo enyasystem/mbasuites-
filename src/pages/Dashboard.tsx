@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AnimatedInput } from "@/components/ui/animated-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+// import { LoyaltyPoints } from "@/components/LoyaltyPoints";
 import { EmailPreferences } from "@/components/EmailPreferences";
 import { Calendar, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,6 +47,10 @@ const Dashboard = () => {
 
   // Fetch bookings for the signed-in user
   const { bookings, isLoading } = useUserBookings();
+
+  // Loyalty points feature (currently coming soon)
+  // const loyaltyPoints = 2750; // Mock loyalty points
+  // const tier = loyaltyPoints >= 5000 ? "Platinum" : loyaltyPoints >= 2500 ? "Gold" : loyaltyPoints >= 1000 ? "Silver" : "Bronze";
 
   useEffect(() => {
     if (!loading && !user) {
@@ -337,6 +342,9 @@ const Dashboard = () => {
                   </motion.div>
                 </CardContent>
               </Card>
+              {/* Uncomment when loyalty points feature is ready
+              <LoyaltyPoints totalPoints={loyaltyPoints} tier={tier} />
+              */}
             </TabsContent>
 
             <TabsContent value="notifications">
