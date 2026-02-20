@@ -145,7 +145,7 @@ const Signup = () => {
                 </div> */}
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     onClick={handleGoogleSignIn}
@@ -170,9 +170,9 @@ const Signup = () => {
                       />
                     </svg>
                     Google
-                  </Button>
+                  </Button> */}
                   
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     onClick={handleFacebookSignIn}
@@ -185,7 +185,7 @@ const Signup = () => {
                       />
                     </svg>
                     Facebook
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <p className="text-center text-sm text-muted-foreground">
