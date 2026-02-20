@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AnimatedInput } from "@/components/ui/animated-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LoyaltyPoints } from "@/components/LoyaltyPoints";
 import { EmailPreferences } from "@/components/EmailPreferences";
 import { Calendar, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,7 +36,6 @@ const Dashboard = () => {
 
   const {
     register,
-    control,
     formState: { errors, dirtyFields },
     reset,
     getValues,
@@ -48,9 +46,6 @@ const Dashboard = () => {
 
   // Fetch bookings for the signed-in user
   const { bookings, isLoading } = useUserBookings();
-
-  const loyaltyPoints = 2750; // Mock loyalty points
-  const tier = loyaltyPoints >= 5000 ? "Platinum" : loyaltyPoints >= 2500 ? "Gold" : loyaltyPoints >= 1000 ? "Silver" : "Bronze";
 
   useEffect(() => {
     if (!loading && !user) {
@@ -330,7 +325,18 @@ const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="rewards">
-              <LoyaltyPoints totalPoints={loyaltyPoints} tier={tier} />
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                    <p className="text-muted-foreground">Our rewards program is currently being developed and will be available soon</p>
+                  </motion.div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="notifications">
