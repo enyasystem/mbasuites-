@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,6 +40,7 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
   });
 
   const { user } = useAuth();
+  const { logActivity } = useActivityLog();
 
   const onSubmit = async (data: ReviewFormData) => {
     if (rating === 0) {
@@ -79,6 +81,19 @@ export function ReviewForm({ roomId, roomName, onReviewSubmitted }: ReviewFormPr
         .single();
 
       if (error) throw error;
+
+      // Log activity
+      await logActivity({
+        action: "create",
+        entityType: "review",
+        entityId: insertData.id,
+        details: {
+          roomId,
+          roomName,
+          rating,
+          comment: data.comment,
+        },
+      });
 
       toast({
         title: "Review submitted!",

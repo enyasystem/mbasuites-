@@ -34,6 +34,12 @@ const ACTION_COLORS: Record<string, string> = {
   login: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
   logout: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   signup: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+  user_login: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+  user_logout: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+  user_signup: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+  booking_created: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  booking_confirmed: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  booking_cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   sync: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
 };
 
@@ -41,8 +47,10 @@ const ENTITY_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
   booking: Calendar,
   room: Building2,
   user: User,
+  profile: User,
   payment: CreditCard,
   calendar: RefreshCw,
+  review: FileText,
   default: FileText,
 };
 
@@ -170,7 +178,7 @@ export default function ActivityLog() {
           <p className="text-muted-foreground">Track all system activities</p>
         </div>
         
-        <Button variant="outline" onClick={() => fetchLogs(true)}>
+        <Button variant="outline" onClick={() => doFetch(0, false)}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -198,7 +206,9 @@ export default function ActivityLog() {
               <SelectItem value="booking">Bookings</SelectItem>
               <SelectItem value="room">Rooms</SelectItem>
               <SelectItem value="user">Users</SelectItem>
+              <SelectItem value="profile">Profiles</SelectItem>
               <SelectItem value="payment">Payments</SelectItem>
+              <SelectItem value="review">Reviews</SelectItem>
               <SelectItem value="calendar">Calendars</SelectItem>
             </SelectContent>
           </Select>
@@ -214,6 +224,13 @@ export default function ActivityLog() {
               <SelectItem value="delete">Delete</SelectItem>
               <SelectItem value="confirm">Confirm</SelectItem>
               <SelectItem value="cancel">Cancel</SelectItem>
+              <SelectItem value="login">Login</SelectItem>
+              <SelectItem value="signup">Signup</SelectItem>
+              <SelectItem value="user_login">User Login</SelectItem>
+              <SelectItem value="user_signup">User Signup</SelectItem>
+              <SelectItem value="booking_created">Booking Created</SelectItem>
+              <SelectItem value="booking_confirmed">Booking Confirmed</SelectItem>
+              <SelectItem value="booking_cancelled">Booking Cancelled</SelectItem>
             </SelectContent>
           </Select>
         </div>

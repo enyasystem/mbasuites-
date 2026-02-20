@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logActivityEvent } from "@/hooks/useActivityLog";
 
 export interface DatabaseRoom {
   id: string;
@@ -98,6 +99,19 @@ export function useAdminRooms() {
       if (imgError) throw imgError;
     }
 
+    // Log activity
+    await logActivityEvent({
+      action: "create",
+      entityType: "room",
+      entityId: data.id,
+      details: {
+        title: roomData.title,
+        roomNumber: roomData.room_number,
+        roomType: roomData.room_type,
+        pricePerNight: roomData.price_per_night,
+      },
+    });
+
     await fetchRooms();
     return data;
   };
@@ -121,6 +135,16 @@ export function useAdminRooms() {
       if (imgError) throw imgError;
     }
 
+    // Log activity
+    await logActivityEvent({
+      action: "update",
+      entityType: "room",
+      entityId: id,
+      details: {
+        updatedFields: Object.keys(roomFields),
+      },
+    });
+
     await fetchRooms();
     return data;
   };
@@ -141,6 +165,17 @@ export function useAdminRooms() {
 
     const { error } = await supabase.from("rooms").delete().eq("id", id);
     if (error) throw error;
+
+    // Log activity
+    await logActivityEvent({
+      action: "delete",
+      entityType: "room",
+      entityId: id,
+      details: {
+        message: "Room deleted",
+      },
+    });
+
     await fetchRooms();
   };
 

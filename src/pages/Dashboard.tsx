@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { useUserBookings } from "@/hooks/useUserBookings";
+import { useActivityLog } from "@/hooks/useActivityLog";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -32,6 +33,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { logActivity } = useActivityLog();
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -95,6 +97,17 @@ const Dashboard = () => {
           full_name: formValues.fullName,
           phone: formValues.phone,
           address: formValues.address,
+        },
+      });
+
+      // Log activity
+      await logActivity({
+        action: "update",
+        entityType: "user",
+        entityId: user.id,
+        details: {
+          updatedFields: Object.keys(dirtyFields),
+          fullName: formValues.fullName,
         },
       });
 
