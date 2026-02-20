@@ -35,7 +35,7 @@ const HeroCarousel = () => {
             className="mb-1"
           >
             <span 
-              className="block text-5xl md:text-6xl lg:text-7xl text-white/95 italic font-light"
+              className="block text-5xl md:text-6xl lg:text-8xl xl:text-9xl text-white/95 italic font-light"
               style={{ fontFamily: "'Times New Roman', Times, serif" }}
             >
               {heroTitle}
@@ -46,7 +46,7 @@ const HeroCarousel = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-            className="text-white/95 font-light uppercase tracking-[0.28em] leading-tight mb-2 text-2xl md:text-3xl lg:text-4xl max-w-2xl"
+            className="text-white/95 font-light uppercase tracking-[0.28em] leading-tight mb-2 text-2xl md:text-3xl lg:text-5xl xl:text-6xl max-w-2xl"
           >
             {heroSubtitle}
           </motion.h2>
@@ -55,7 +55,7 @@ const HeroCarousel = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
-            className="text-white/80 text-sm md:text-base max-w-2xl leading-relaxed font-light"
+            className="text-white/80 text-sm md:text-base lg:text-lg max-w-2xl leading-relaxed font-light"
           >
             We provide refined, functional spaces that reflect your taste, lifestyle, and vision from booking to checkout.
           </motion.p>
