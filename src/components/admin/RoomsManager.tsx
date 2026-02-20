@@ -211,7 +211,18 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
       });
       clearDraftFromStorage();
       setViewMode("list");
-      form.reset();
+      form.reset({
+        title: "",
+        room_number: "",
+        room_type: "standard",
+        price_per_night: 0,
+        max_guests: 2,
+        amenities: [],
+        image_url: "",
+        description: "",
+        is_available: true,
+        location_id: "",
+      });
       setImagePreview("");
       setNewFiles([]);
       setNewFilePreviews([]);
@@ -256,7 +267,18 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
       clearDraftFromStorage();
       setViewMode("list");
       setSelectedRoom(null);
-      form.reset();
+      form.reset({
+        title: "",
+        room_number: "",
+        room_type: "standard",
+        price_per_night: 0,
+        max_guests: 2,
+        amenities: [],
+        image_url: "",
+        description: "",
+        is_available: true,
+        location_id: "",
+      });
       setImagePreview("");
       setNewFiles([]);
       setNewFilePreviews([]);
@@ -404,8 +426,21 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
     clearDraftFromStorage();
     setViewMode("list");
     setSelectedRoom(null);
-    form.reset();
+    form.reset({
+      title: "",
+      room_number: "",
+      room_type: "standard",
+      price_per_night: 0,
+      max_guests: 2,
+      amenities: [],
+      image_url: "",
+      description: "",
+      is_available: true,
+      location_id: "",
+    });
     setImagePreview("");
+    setNewFiles([]);
+    setNewFilePreviews([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
