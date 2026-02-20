@@ -158,9 +158,13 @@ const Navbar = () => {
           </motion.div>
 
           {/* Mobile Menu Button */}
-          <motion.button ref={buttonRef} className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
-            <Menu className="h-6 w-6" />
-          </motion.button>
+          <motion.div className="md:hidden flex items-center gap-2">
+            {user && <NotificationCenter />}
+            <ThemeToggle />
+            <motion.button ref={buttonRef} className="p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
+              <Menu className="h-6 w-6" />
+            </motion.button>
+          </motion.div>
         </div>
 
         {/* Mobile Menu */}

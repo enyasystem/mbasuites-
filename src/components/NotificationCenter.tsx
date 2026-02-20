@@ -48,9 +48,9 @@ export function NotificationCenter() {
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold"
             >
-              {unreadCount}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </motion.span>
           )}
         </Button>

@@ -25,16 +25,28 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "Welcome!",
-      message: "Thanks for joining our hotel booking platform",
-      type: "success",
-      read: false,
-      createdAt: new Date(),
-    },
-  ]);
+  // Initialize from localStorage if available
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    try {
+      const stored = localStorage.getItem("app_notifications");
+      if (stored) {
+        const parsed = JSON.parse(stored) as Notification[];
+        return parsed.map(n => ({ ...n, createdAt: new Date(n.createdAt) }));
+      }
+    } catch (e) {
+      console.warn("Failed to load notifications from localStorage", e);
+    }
+    return [];
+  });
+
+  // Persist notifications to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("app_notifications", JSON.stringify(notifications));
+    } catch (e) {
+      console.warn("Failed to save notifications to localStorage", e);
+    }
+  }, [notifications]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
