@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,7 +32,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [autoSaving, setAutoSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const {
@@ -39,6 +40,7 @@ const Dashboard = () => {
     control,
     formState: { errors, dirtyFields },
     reset,
+    getValues,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     mode: "onChange",
@@ -60,33 +62,66 @@ const Dashboard = () => {
     if (user) {
       reset({
         fullName: user.user_metadata?.full_name || "",
-        phone: "",
-        address: "",
+        phone: user.user_metadata?.phone || "",
+        address: user.user_metadata?.address || "",
       });
     }
   }, [user, reset]);
 
-  // Auto-save with debounce using useWatch
-  const watchedValues = useWatch({ control });
+  // Handle profile save to database
+  const handleSaveProfile = async () => {
+    if (!user) return;
 
-  useEffect(() => {
-    // schedule auto-saving state update to avoid synchronous setState in effect
-    const start = setTimeout(() => setAutoSaving(true), 0);
-    const timer = setTimeout(() => {
-      // In real app, save to database
-      setLastSaved(new Date());
-      setAutoSaving(false);
-      toast({
-        title: "Auto-saved",
-        description: "Your profile has been saved automatically",
+    try {
+      setIsSaving(true);
+      const formValues = getValues();
+
+      // Update Supabase profiles table
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: formValues.fullName,
+          phone: formValues.phone,
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Also update user metadata for full_name
+      await supabase.auth.updateUser({
+        data: {
+          full_name: formValues.fullName,
+          phone: formValues.phone,
+          address: formValues.address,
+        },
       });
-    }, 2000);
 
-    return () => {
-      clearTimeout(start);
-      clearTimeout(timer);
-    };
-  }, [watchedValues]);
+      setLastSaved(new Date());
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Clear lastSaved indicator after 3 seconds
+  useEffect(() => {
+    if (lastSaved) {
+      const timer = setTimeout(() => setLastSaved(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastSaved]);
 
   if (loading) {
     return (
@@ -225,66 +260,70 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>Profile Information</CardTitle>
-                      <CardDescription>Your changes are saved automatically</CardDescription>
+                      <CardDescription>Update your profile details</CardDescription>
                     </div>
                     <AnimatePresence>
-                      {(autoSaving || lastSaved) && (
+                      {lastSaved && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
                           className="flex items-center gap-2 text-sm"
                         >
-                          {autoSaving ? (
-                            <span className="text-muted-foreground">Saving...</span>
-                          ) : (
-                            <>
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span className="text-green-500">Saved</span>
-                            </>
-                          )}
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <span className="text-green-500">Saved</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <AnimatedInput
-                      label="Full Name"
-                      type="text"
-                      error={errors.fullName?.message}
-                      success={dirtyFields.fullName && !errors.fullName}
-                      {...register("fullName")}
-                    />
-
-                    <div className="space-y-2">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
                       <AnimatedInput
-                        label="Email"
-                        type="email"
-                        value={user.email || ""}
-                        disabled
+                        label="Full Name"
+                        type="text"
+                        error={errors.fullName?.message}
+                        success={dirtyFields.fullName && !errors.fullName}
+                        {...register("fullName")}
                       />
-                      <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+
+                      <div className="space-y-2">
+                        <AnimatedInput
+                          label="Email"
+                          type="email"
+                          value={user.email || ""}
+                          disabled
+                        />
+                        <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                      </div>
+
+                      <AnimatedInput
+                        label="Phone Number"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        error={errors.phone?.message}
+                        success={dirtyFields.phone && !errors.phone}
+                        {...register("phone")}
+                      />
+
+                      <AnimatedInput
+                        label="Address"
+                        type="text"
+                        placeholder="123 Main St, City, Country"
+                        error={errors.address?.message}
+                        success={dirtyFields.address && !errors.address}
+                        {...register("address")}
+                      />
                     </div>
 
-                    <AnimatedInput
-                      label="Phone Number"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      error={errors.phone?.message}
-                      success={dirtyFields.phone && !errors.phone}
-                      {...register("phone")}
-                    />
-
-                    <AnimatedInput
-                      label="Address"
-                      type="text"
-                      placeholder="123 Main St, City, Country"
-                      error={errors.address?.message}
-                      success={dirtyFields.address && !errors.address}
-                      {...register("address")}
-                    />
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={isSaving || !Object.keys(dirtyFields).length}
+                      className="w-full"
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
