@@ -145,7 +145,8 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
       try {
         const draftData = JSON.parse(savedDraft) as RoomFormData;
         form.reset(draftData);
-        setViewMode(savedMode);
+        // Always start in list view - don't restore the form view mode
+        setViewMode("list");
         // Try to restore selected room if in edit mode
         if (savedMode === "edit" && draftData.title) {
           const roomToEdit = rooms.find(r => r.title === draftData.title);
