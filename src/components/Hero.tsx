@@ -2,32 +2,11 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import heroImage from "@/assets/hero-hotel.jpg";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-type SiteSettingRow = { setting_key: string; setting_value: string | null };
-
-const fetchSiteSettings = async (): Promise<Record<string, string>> => {
-  const { data, error } = await supabase.from("site_settings").select("setting_key, setting_value");
-  if (error) throw error;
-  const settings: Record<string, string> = {};
-  (data || []).forEach((row: SiteSettingRow) => {
-    if (row.setting_value) settings[row.setting_key] = row.setting_value;
-  });
-  return settings;
-};
+import heroImage from "/hero.jpg";
 
 const HeroCarousel = () => {
-  const { data: siteSettings } = useQuery<Record<string, string>>({
-    queryKey: ['siteSettings'],
-    queryFn: fetchSiteSettings,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const heroImg = siteSettings?.hero_image || heroImage;
-  const heroTitle = siteSettings?.hero_title || "MBA Suites";
-  const heroSubtitle = siteSettings?.hero_subtitle || "FOR EVERYDAY COMFORT";
+  const heroTitle = "MBA Suites";
+  const heroSubtitle = "FOR EVERYDAY COMFORT";
   return (
     <section className="relative h-[72vh] md:h-screen min-h-[520px] md:min-h-[700px] overflow-hidden pb-20">
       {/* Background Image */}
@@ -38,7 +17,7 @@ const HeroCarousel = () => {
         className="absolute inset-0"
       >
         <img
-          src={heroImg}
+          src={heroImage}
           alt="Luxury interior living space"
           className="w-full h-full object-cover"
         />
