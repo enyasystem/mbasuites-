@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import PromotionsBanner from "@/components/PromotionsBanner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// QueryClientProvider is provided at the app entry (`src/main.tsx`).
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Gallery from "./pages/Gallery";
 import Photos from "@/pages/Photos";
@@ -36,7 +36,7 @@ import Help from "./pages/Help";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
 
-const queryClient = new QueryClient();
+// Use the QueryClient provided by the root entrypoint (no local client here)
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -83,24 +83,22 @@ const AnimatedRoutes = () => {
 const App = () => {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <CurrencyProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <NotificationProvider>
-                <BookingProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <PromotionsBanner />
-                    <AnimatedRoutes />
-                  </BrowserRouter>
-                </BookingProvider>
-              </NotificationProvider>
-            </AuthProvider>
-          </TooltipProvider>
-        </CurrencyProvider>
-      </QueryClientProvider>
+      <CurrencyProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <BookingProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <PromotionsBanner />
+                  <AnimatedRoutes />
+                </BrowserRouter>
+              </BookingProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </CurrencyProvider>
     </ErrorBoundary>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,10 +47,21 @@ export default function RoomMediaManager() {
   });
   const queryClient = useQueryClient();
 
+  // Trace mount/unmount and selected room changes for debugging
+  useEffect(() => {
+    console.log("RoomMediaManager: mounted");
+    return () => console.log("RoomMediaManager: unmounted");
+  }, []);
+
+  useEffect(() => {
+    console.log("RoomMediaManager: selectedRoom", selectedRoom);
+  }, [selectedRoom]);
+
   // Fetch rooms
   const { data: rooms = [], isLoading: roomsLoading } = useQuery({
     queryKey: ["admin-rooms-for-media"],
     queryFn: async () => {
+      console.debug('RoomMediaManager: fetching rooms list');
       const { data, error } = await supabase
         .from("rooms")
         .select("id, title, locations(name)")
@@ -62,12 +73,16 @@ export default function RoomMediaManager() {
         location_name: r.locations?.name || "Unknown",
       })) as Room[];
     },
+    // Avoid refetching rooms automatically when remounting or on window focus.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch media for selected room
   const { data: mediaItems = [], isLoading: mediaLoading } = useQuery({
     queryKey: ["room-media", selectedRoom],
     queryFn: async () => {
+      console.debug('RoomMediaManager: fetching media for', selectedRoom);
       if (!selectedRoom) return [];
       // supabase types may not include the `room_media` table in the generated Database type.
       // Use a local cast and disable the explicit-any rule for this call only.
@@ -81,6 +96,10 @@ export default function RoomMediaManager() {
       return data as RoomMedia[];
     },
     enabled: !!selectedRoom,
+    // When switching tabs the component may remount; avoid re-querying unless
+    // explicitly requested (use Refresh button or invalidateQueries).
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Delete media mutation

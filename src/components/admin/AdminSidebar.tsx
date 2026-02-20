@@ -94,7 +94,10 @@ export default function AdminSidebar({ activeTab, onTabChange, hiddenTabs }: Adm
                 .map((item) => (
                   <SidebarMenuItem key={item.value}>
                     <SidebarMenuButton
-                      onClick={() => onTabChange(item.value)}
+                      onClick={() => {
+                        console.log("AdminSidebar: tab click", item.value);
+                        onTabChange(item.value);
+                      }}
                       isActive={activeTab === item.value}
                       tooltip={item.title}
                     >
@@ -111,13 +114,13 @@ export default function AdminSidebar({ activeTab, onTabChange, hiddenTabs }: Adm
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate("/")} tooltip="Back to site">
+            <SidebarMenuButton onClick={() => { console.log("AdminSidebar: back to site"); navigate("/"); }} tooltip="Back to site">
               <ArrowLeft className="h-4 w-4" />
               <span>Back to site</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
+            <SidebarMenuButton onClick={() => { console.log("AdminSidebar: logout"); handleLogout(); }} tooltip="Logout">
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </SidebarMenuButton>

@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
@@ -46,15 +46,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    // Listen for auth changes. Ignore transient null session updates
+    // (e.g. token refresh cycles) so the UI doesn't treat short-lived
+    // transitions as a full sign-out and redirect the user.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        return;
+      }
+
+      // For other events, prefer updating user only when a non-null
+      // session.user exists. This avoids briefly setting user to null
+      // during token refreshes or other internal cycles.
+      if (session?.user) {
+        setUser(session.user);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  // Memoize user based on user.id to prevent new object references
+  // from triggering dependent effects when Supabase returns a new User object
+  const memoizedUser = useMemo(() => user, [user?.id]);
+
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -87,9 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -117,9 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -138,9 +154,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const signInWithFacebook = async () => {
+  const signInWithFacebook = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
@@ -159,9 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -182,14 +198,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       await logActivityEvent({
         action: 'user_logout',
         entityType: 'user',
-        userId: user?.id
+        userId: memoizedUser?.id
       });
 
       const { error } = await supabase.auth.signOut();
@@ -208,10 +224,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw err;
     }
-  };
+  }, [memoizedUser]);
+
+  const contextValue = useMemo(
+    () => ({ user: memoizedUser, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, resetPassword, signOut }),
+    [memoizedUser, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, resetPassword, signOut]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, resetPassword, signOut }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

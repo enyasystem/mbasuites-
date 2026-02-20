@@ -20,10 +20,7 @@ export default function PaymentSettingsManager() {
   const [saving, setSaving] = useState(false);
   
   // Stripe settings
-  const [stripePublishableKey, setStripePublishableKey] = useState("");
-  const [stripeSecretKey, setStripeSecretKey] = useState("");
-  const [stripeEnabled, setStripeEnabled] = useState(false);
-  const [showStripeSecret, setShowStripeSecret] = useState(false);
+  // (Stripe removed)
   
   // Paystack settings
   const [paystackPublicKey, setPaystackPublicKey] = useState("");
@@ -59,11 +56,7 @@ export default function PaymentSettingsManager() {
         if (s.setting_value) settings[s.setting_key] = s.setting_value;
       });
 
-      // Stripe
-      setStripePublishableKey(settings.stripe_publishable_key || "");
-      setStripeSecretKey(settings.stripe_secret_key || "");
-      setStripeEnabled(settings.stripe_enabled === "true");
-      
+      // Stripe removed - do not read stripe keys
       // Paystack
       setPaystackPublicKey(settings.paystack_public_key || "");
       setPaystackSecretKey(settings.paystack_secret_key || "");
@@ -109,23 +102,7 @@ export default function PaymentSettingsManager() {
     if (insertError) throw insertError;
   };
 
-  const saveStripeSettings = async () => {
-    setSaving(true);
-    try {
-      await Promise.all([
-        saveSetting("stripe_publishable_key", stripePublishableKey),
-        saveSetting("stripe_secret_key", stripeSecretKey),
-        saveSetting("stripe_enabled", stripeEnabled.toString()),
-      ]);
-      toast.success("Stripe settings saved successfully");
-    } catch (error) {
-      console.error("Error saving Stripe settings:", error);
-      const msg = error instanceof Error ? error.message : String(error);
-      toast.error("Failed to save Stripe settings: " + msg);
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Stripe removed - no save function
 
   const savePaystackSettings = async () => {
     setSaving(true);
@@ -204,12 +181,8 @@ export default function PaymentSettingsManager() {
         </p>
       </div>
 
-      <Tabs defaultValue="stripe" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="stripe" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Stripe
-          </TabsTrigger>
+      <Tabs defaultValue="paystack" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="paystack" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Paystack
@@ -219,71 +192,6 @@ export default function PaymentSettingsManager() {
             Bank Transfer
           </TabsTrigger>
         </TabsList>
-
-        {/* Stripe Settings */}
-        <TabsContent value="stripe">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Stripe Configuration
-              </CardTitle>
-              <CardDescription>
-                Configure your Stripe API keys for international card payments
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Enable Stripe Payments</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Accept credit/debit card payments via Stripe
-                  </p>
-                </div>
-                <Switch
-                  checked={stripeEnabled}
-                  onCheckedChange={setStripeEnabled}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="stripe-publishable">Publishable Key</Label>
-                <Input
-                  id="stripe-publishable"
-                  value={stripePublishableKey}
-                  onChange={(e) => setStripePublishableKey(e.target.value)}
-                  placeholder="pk_test_..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="stripe-secret">Secret Key</Label>
-                <div className="relative">
-                  <Input
-                    id="stripe-secret"
-                    type={showStripeSecret ? "text" : "password"}
-                    value={stripeSecretKey}
-                    onChange={(e) => setStripeSecretKey(e.target.value)}
-                    placeholder="sk_test_..."
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowStripeSecret(!showStripeSecret)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showStripeSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button onClick={saveStripeSettings} disabled={saving}>
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Saving..." : "Save Stripe Settings"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Paystack Settings */}
         <TabsContent value="paystack">

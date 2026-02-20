@@ -500,9 +500,6 @@ INSERT INTO public.rooms (id, title, room_number, room_type, price_per_night, ma
 
 -- Insert payment settings
 INSERT INTO public.payment_settings (setting_key, setting_value, is_encrypted) VALUES
-  ('stripe_secret_key', 'pk_test_a905a8db55f5981b0590008b39aee889c830febf', false),
-  ('stripe_publishable_key', 'sk_test_7cd882d85742aec6ac4fae20a208f46cf0049c6a', false),
-  ('stripe_enabled', 'true', false),
   ('bank_account_name', 'MBA', false),
   ('bank_name', 'First Bank', false),
   ('bank_account_number', '9328740923482093', false),

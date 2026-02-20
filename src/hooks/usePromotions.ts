@@ -43,7 +43,10 @@ export const usePromotions = (opts?: { activeOnly?: boolean }) => {
       if (activeOnly) return items.filter(isActiveNow);
       return items;
     },
+    // Prevent automatic refetch when component remounts or window regains focus
+    // to avoid unexpected network/database calls.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
-
 export default usePromotions;

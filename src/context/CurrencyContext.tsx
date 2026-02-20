@@ -100,7 +100,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [currency]);
 
-  const value: CurrencyContextType = {
+  const value: CurrencyContextType = React.useMemo(() => ({
     currency,
     setCurrency,
     rates,
@@ -109,7 +109,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
     formatLocalPrice,
     convertUsdTo,
     convertToUsd,
-  };
+  }), [currency, setCurrency, rates, setRates, formatPrice, formatLocalPrice, convertUsdTo, convertToUsd]);
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;
 };

@@ -88,7 +88,21 @@ export default function GuestList() {
 
       return enhanced;
     },
+    // Avoid re-querying signed URLs and registrant profiles every time the
+    // component remounts (e.g. when switching to another admin tab).
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
+
+  // Mount/unmount tracing and data change logging
+  React.useEffect(() => {
+    console.log("GuestList: mounted");
+    return () => console.log("GuestList: unmounted");
+  }, []);
+
+  React.useEffect(() => {
+    console.log("GuestList: data length", data?.length ?? 0);
+  }, [data]);
 
   if (isLoading) {
     return <div className="space-y-2"><Skeleton className="h-6 w-48" /><Skeleton className="h-48" /></div>;

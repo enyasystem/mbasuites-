@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PaymentSettings {
-  stripe_enabled?: boolean;
   paystack_enabled?: boolean;
   bank_enabled?: boolean;
   bank_name?: string;
@@ -60,7 +59,6 @@ export function usePaymentSettings() {
         };
 
         const parsed: PaymentSettings = {
-          stripe_enabled: isEnabled(out.stripe_enabled),
           paystack_enabled: isEnabled(out.paystack_enabled),
           bank_enabled: isEnabled(out.bank_enabled),
           client_debug: isEnabled(out.client_debug),

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { Plus, Trash } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function PromotionsManager() {
   const qc = useQueryClient();
+
+  // Mount/unmount trace for debugging
+  useEffect(() => {
+    console.log("PromotionsManager: mounted");
+    return () => console.log("PromotionsManager: unmounted");
+  }, []);
 
   type PromotionRow = {
     id: string;
@@ -59,10 +65,13 @@ export default function PromotionsManager() {
   const { data: promotions = [], isLoading } = useQuery<PromotionRow[]>({
     queryKey: ["admin-promotions"],
     queryFn: async () => {
+      console.debug('PromotionsManager: fetching promotions');
       const { data, error } = await supabase.from("promotions").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const [form, setForm] = useState<PromotionForm>(initialForm);
@@ -70,6 +79,7 @@ export default function PromotionsManager() {
   const [showForm, setShowForm] = useState<boolean>(false);
 
   const startCreate = () => {
+    console.log("PromotionsManager: startCreate");
     setShowForm(true);
     setEditingId(null);
     setForm(initialForm);
@@ -78,6 +88,7 @@ export default function PromotionsManager() {
   };
 
   const savePromotion = async () => {
+    console.log("PromotionsManager: savePromotion", { editingId });
     const payload: Partial<PromotionRow> = {
       title: form.title,
       description: form.description,
@@ -137,6 +148,7 @@ export default function PromotionsManager() {
   };
 
   const toggleActive = async (id: string, active: boolean) => {
+    console.log("PromotionsManager: toggleActive", id, active);
     const { data, error } = await supabase.from("promotions").update({ is_active: active }).eq("id", id).select().single();
     if (error) return alert("Error: " + error.message);
     // If enabling and the promo shows in banner, clear local dismissal for immediate visibility

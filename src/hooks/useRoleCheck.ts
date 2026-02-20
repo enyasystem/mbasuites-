@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,8 +26,11 @@ export function useRoleCheck(): UseRoleCheckResult {
   const [locationId, setLocationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Memoize user based on user.id to prevent new object references
+  const memoizedUser = useMemo(() => user, [user?.id]);
+
   const fetchRole = useCallback(async () => {
-    if (!user) {
+    if (!memoizedUser) {
       setRole(null);
       setLocationId(null);
       setIsLoading(false);
@@ -41,7 +44,7 @@ export function useRoleCheck(): UseRoleCheckResult {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role, location_id")
-        .eq("user_id", user.id);
+        .eq("user_id", memoizedUser.id);
 
       if (error) {
         console.error("Error fetching role:", error);
@@ -71,7 +74,7 @@ export function useRoleCheck(): UseRoleCheckResult {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [memoizedUser]);
 
   useEffect(() => {
     void fetchRole();
@@ -87,7 +90,7 @@ export function useRoleCheck(): UseRoleCheckResult {
     [role]
   );
 
-  return {
+  return useMemo(() => ({
     role,
     isAdmin: role === "admin",
     isStaff: role === "staff" || role === "admin",
@@ -96,7 +99,7 @@ export function useRoleCheck(): UseRoleCheckResult {
     locationId,
     hasRole,
     refetch: fetchRole,
-  };
+  }), [role, isLoading, locationId, hasRole, fetchRole]);
 }
 
 /**

@@ -166,7 +166,7 @@ export function useAdminRooms() {
 
   useEffect(() => {
     fetchRooms();
-  }, [fetchRooms]);
+  }, []);
 
   return {
     rooms,

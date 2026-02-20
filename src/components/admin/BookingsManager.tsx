@@ -65,6 +65,7 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
   const { data: bookings = [], isLoading, refetch } = useQuery({
     queryKey: ['admin-bookings'],
     queryFn: async () => {
+      console.debug('BookingsManager: fetching bookings');
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -112,7 +113,18 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
 
       return mapped;
     },
+    // Prevent refetch when the component remounts (e.g. when switching tabs)
+    // and when window focus changes — avoid unexpected DB requests on tab switch.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
+  
+  // Mount/unmount tracing for debugging tab switches
+  React.useEffect(() => {
+    console.log("BookingsManager: mounted");
+    return () => console.log("BookingsManager: unmounted");
+  }, []);
+  
 
   // Update booking status mutation
   const updateStatusMutation = useMutation({
@@ -235,7 +247,7 @@ export default function BookingsManager({ allowedLocationIds }: { allowedLocatio
             View, filter, and manage all hotel bookings ({bookings.length} total)
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
+        <Button variant="outline" size="sm" onClick={() => { console.log("BookingsManager: manual refresh"); refetch(); }}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>

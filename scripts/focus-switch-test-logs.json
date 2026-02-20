@@ -1,0 +1,1363 @@
+{
+  "console": [
+    "[vite] connecting...",
+    "[vite] connected.",
+    "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "BookingsManager: fetching bookings",
+    "BookingsManager: mounted",
+    "AdminDashboard: mount component bookings",
+    "AdminDashboard: mount component rooms",
+    "RoomMediaManager: mounted",
+    "RoomMediaManager: selectedRoom null",
+    "RoomMediaManager: fetching rooms list",
+    "AdminDashboard: mount component gallery",
+    "AdminDashboard: mount component hero",
+    "PromotionsManager: mounted",
+    "PromotionsManager: fetching promotions",
+    "AdminDashboard: mount component promotions",
+    "AdminDashboard: mount component sync",
+    "AdminDashboard: mount component analytics",
+    "AdminDashboard: mount component staff",
+    "AdminDashboard: mount component activity",
+    "AdminDashboard: mount component payments",
+    "AdminDashboard: mount component guest-registration",
+    "GuestList: mounted",
+    "GuestList: data length 0",
+    "AdminDashboard: mount component guest-registrations",
+    "AdminDashboard: mount component settings",
+    "AdminDashboard: fetching recentBookings",
+    "AdminDashboard: fetching stats",
+    "AdminDashboard debug: userId, role {userId: dev-user, role: admin}",
+    "AdminDashboard: mounted",
+    "AdminDashboard: activeTab changed overview",
+    "AdminDashboard debug: userId, role {userId: dev-user, role: admin}",
+    "You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.",
+    "AdminDashboard debug: userId, role {userId: dev-user, role: admin}",
+    "AdminDashboard debug: userId, role {userId: dev-user, role: admin}",
+    "GuestList: data length 0",
+    "AdminDashboard debug: userId, role {userId: dev-user, role: admin}",
+    "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq)",
+    "Cycle 1 new requests: 1",
+    "https://r.stripe.com/b",
+    "Cycle 2 new requests: 1",
+    "https://js.stripe.com/v3/fingerprinted/js/trusted-types-checker-a86dcafd042e60cf7585cbabd57b0cdb.js",
+    "Cycle 3 new requests: 0"
+  ],
+  "requests": [
+    {
+      "url": "http://localhost:9000/admin?dev=true",
+      "method": "GET",
+      "resourceType": "document"
+    },
+    {
+      "url": "http://localhost:9000/@vite/client",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/main.tsx?t=1771621897141",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/@react-refresh",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react-dom_client.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/App.tsx?t=1771621897141",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/index.css?t=1771621897141",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/context/LocationContext.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@tanstack_react-query.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@tanstack_react-query-persist-client.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@tanstack_query-sync-storage-persister.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/InitialDataLoader.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/vite/dist/client/env.mjs",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-TKA7E7G6.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-PMKBOVCG.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-G3PMV62Z.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/integrations/supabase/client.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/context/locationInternals.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/toaster.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/sonner.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/tooltip.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/PromotionsBanner.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react-router-dom.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Gallery.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Photos.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/contexts/BookingContext.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/contexts/AuthContext.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/contexts/NotificationContext.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ErrorBoundary.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/MobileBottomNav.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Index.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Rooms.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/RoomDetails.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Checkout.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/StaffLogin.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Confirmation.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/MyBookings.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/AdminDashboard.tsx?t=1771621897141",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/StaffDashboard.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/NotFound.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Login.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Signup.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/ForgotPassword.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/ResetPassword.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Dashboard.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/context/CurrencyContext.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/About.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Contact.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Privacy.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Terms.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/pages/Help.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/framer-motion.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/PageTransition.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-6P6CFXYN.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-MUE7JVKT.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-TGD262LC.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/context/useLocation.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/SiteLoader.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/lib/utils.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/usePromotions.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/lucide-react.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/button.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useGallery.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/Navbar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/Footer.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/skeleton.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/dialog.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/card.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRoom.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/data/galleryImages.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/Lightbox.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/use-toast.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useActivityLog.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@supabase_supabase-js.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/toast.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/next-themes.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/sonner.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/Hero.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/SearchBar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/LandingAbout.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/LandingContact.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/SpecialOffers.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/GalleryMap.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/FAQ.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRooms.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/ripple-card.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/checkbox.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/label.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/slider.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/select.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/badge.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/popover.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/scroll-area.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/separator.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/assets/room-deluxe.jpg?import",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/assets/room-suite.jpg?import",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/carousel.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/calendar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/GuestSelector.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ReviewForm.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ReviewsList.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRoomReviews.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRoomAvailability.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/date-fns.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react-hook-form.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/input.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRoleCheck.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/jspdf.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/jspdf-autotable.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@hookform_resolvers_zod.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/zod.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react-paystack.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@stripe_stripe-js.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/textarea.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/radio-group.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/usePaymentSettings.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/form.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useUserBookings.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/DashboardStats.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/BookingsManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/RoomsManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/CalendarSyncManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/AnalyticsReports.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/StaffManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/ActivityLog.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/PaymentSettingsManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/HeroManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/RoomMediaManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/BankPaymentRequestsManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/GuestRegistration.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/GuestList.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/PromotionsManager.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/admin/AdminSidebar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/sidebar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/animated-input.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useLocations.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/table.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ContactForm.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/tabs.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/LoyaltyPoints.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/EmailPreferences.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/accordion.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-KBS4I3PK.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-6G55HR7L.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-CV3ZSXO2.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-C43WINJU.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-N2LCAOGE.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-VVFNKKEH.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-4IGGD3YR.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-5SMCMHIW.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-ZJHA2VMP.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-3Z3U6VSM.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-OKRDQZDL.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/clsx.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/tailwind-merge.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-slot.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/buttonVariants.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useRipple.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/NotificationCenter.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/dropdown-menu.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/BrandLogo.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ThemeToggle.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-dialog.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/assets/hero-hotel.jpg?import",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-toast.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/class-variance-authority.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/mba-suites_living-room_tv-wall_04.jpeg?import",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/mba-suites_living-room_evening-lighting_04.jpeg?import",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-6WBQ3PW6.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/lib/api-utils.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-label.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-checkbox.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-slider.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/shared.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-popover.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-separator.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/react-day-picker.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-select.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/embla-carousel-react.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/avatar.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/animated-textarea.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-KM43AH6H.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-BI4YUFN6.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-N3ZKBLTA.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-radio-group.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/switch.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/recharts.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-D7ZASVPN.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/alert-dialog.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/useAdminRooms.ts",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-accordion.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/progress.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/hooks/use-mobile.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/src/components/ui/sheet.tsx",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-U7P2NEEE.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-CPSYVFBJ.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-dropdown-menu.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-ZOUOIPSZ.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-NJJMLXXD.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-QYQQHWWA.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-35BHMGOL.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-6ZMM2PAV.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-YEQ736OW.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-avatar.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-QWGFIQ6T.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-switch.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/@radix-ui_react-progress.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:9000/node_modules/.vite/deps/chunk-HCTRTZFR.js?v=b7e413c9",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://js.stripe.com/clover/stripe.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/site_settings?select=setting_key%2Csetting_value",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "http://localhost:9000/mba_suites_logo.png",
+      "method": "GET",
+      "resourceType": "image"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/payment_settings?select=setting_key%2Csetting_value",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/payment_settings?select=setting_key%2Csetting_value",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rooms?select=*%2Croom_images%28id%2Curl%2Cis_primary%2Cordering%29&is_available=eq.true&order=price_per_night.asc&location_id=eq.8599d552-8c3a-45d8-99db-5651da5fdee6",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://js.stripe.com/v3/controller-with-preconnect-0b5dd06de997e17afa8ccebdfd1330a1.html",
+      "method": "GET",
+      "resourceType": "document"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/promotions?select=*&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/bookings?select=id%2Cguest_name%2Cguest_email%2Cguest_phone%2Croom_id%2Ccheck_in_date%2Ccheck_out_date%2Cstatus%2Ctotal_amount%2Ccurrency%2Ccreated_at%2Cnotes%2Crooms%28title%2Clocation_id%29&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rooms?select=*%2Clocations%21left%28name%29%2Croom_images%28id%2Curl%2Cis_primary%2Cordering%29&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rooms?select=id%2Ctitle%2Clocations%28name%29&order=title.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/site_settings?select=setting_key%2Csetting_value",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/promotions?select=*&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/external_calendars?select=*&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rooms?select=id%2Ctitle%2Croom_number",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_booking_stats",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_occupancy_stats",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_revenue_by_room_type",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_daily_booking_trends",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/locations?select=*&is_active=eq.true&order=name.asc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/user_roles?select=*&role=in.%28admin%2Cstaff%29&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/activity_logs?select=*&order=created_at.desc&offset=0&limit=50",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/bank_payment_requests?select=*&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/guest_registrations?select=*&order=created_at.desc",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/payment_settings?select=setting_key%2Csetting_value",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/bookings?select=id%2Cguest_name%2Ccheck_in_date%2Ccheck_out_date%2Cstatus%2Ctotal_amount%2Ccreated_at%2Crooms%28title%29&order=created_at.desc&limit=5",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_booking_stats",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rpc/get_occupancy_stats",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/rest/v1/rooms?select=id&is_available=eq.true",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://ehpdimadogtqzarriuzz.supabase.co/storage/v1/object/public/payment-proofs/hero/1766296372182_1520139673605.jpg",
+      "method": "GET",
+      "resourceType": "image"
+    },
+    {
+      "url": "https://js.stripe.com/v3/fingerprinted/js/shared-93718c93c4dc391856687318ecb7f168.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://js.stripe.com/v3/fingerprinted/js/controller-with-preconnect-aa54deddef2338a7d6a91f53065ec286.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://js.stripe.com/v3/.deploy_status_henson.json",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://js.stripe.com/v3/fingerprinted/js/stripe-cookies-28d0c3a5a6dfa738496e3527f2037989.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://js.stripe.com/v3/.deploy_status_henson.json",
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+      "method": "GET",
+      "resourceType": "document"
+    },
+    {
+      "url": "https://js.stripe.com/v3/fingerprinted/js/m-outer-15a2b40a058ddff1cffdb63779fe3de1.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://m.stripe.network/inner.html",
+      "method": "GET",
+      "resourceType": "document"
+    },
+    {
+      "url": "https://m.stripe.network/out-4.5.45.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "https://r.stripe.com/b",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://r.stripe.com/b",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://m.stripe.com/6",
+      "method": "POST",
+      "resourceType": "xhr"
+    },
+    {
+      "url": "https://r.stripe.com/b",
+      "method": "POST",
+      "resourceType": "fetch"
+    },
+    {
+      "url": "https://js.stripe.com/v3/fingerprinted/js/trusted-types-checker-a86dcafd042e60cf7585cbabd57b0cdb.js",
+      "method": "GET",
+      "resourceType": "script"
+    }
+  ]
+}

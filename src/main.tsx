@@ -17,17 +17,11 @@ if (!rootEl) {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      // disable all of react-query's automatic refetching behaviours that
-      // trigger when the browser tab regains focus or the network reconnects.
-      // the original issue was perceived as a “page refresh” when switching
-      // away and back, which was caused by data refetches. with these
-      // turned off nothing will happen unless we explicitly call `refetch`
-      // or invalidate a query.
+      // Set to Infinity so data never becomes stale and never gets garbage collected from cache
+      staleTime: Infinity,
+      gcTime: Infinity, // Keep data in cache forever even after component unmounts
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-      // mounting is considered a “refresh” as well; keep it off so the UI only
-      // updates when our own code asks for fresh data.
       refetchOnMount: false,
     },
   },
@@ -50,6 +44,9 @@ try {
 }
 
 // Setup Supabase realtime listeners to invalidate queries when relevant tables change
+// DISABLED: These were causing aggressive refetches that reset form state when editing.
+// Queries now only refetch on explicit user action (button clicks, etc).
+/*
 try {
   // rooms table changes should refresh room lists
   supabase
@@ -70,6 +67,7 @@ try {
 } catch (e) {
   // ignore subscription errors in environments where realtime isn't available
 }
+*/
 
 // Wait for persisted cache to restore before rendering so UI can read cached values synchronously
 (async () => {

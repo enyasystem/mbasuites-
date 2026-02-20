@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Plus, Pencil, Trash2, Search, Building2, Upload, X, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -112,6 +112,52 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
     },
   });
 
+  // Persist form draft to localStorage
+  const DRAFT_STORAGE_KEY = "rooms-manager-form-draft";
+  const DRAFT_MODE_KEY = "rooms-manager-form-mode";
+
+  const saveDraftToStorage = useCallback(() => {
+    if (viewMode !== "list") {
+      const formData = form.getValues();
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+      localStorage.setItem(DRAFT_MODE_KEY, viewMode);
+    }
+  }, [form, viewMode]);
+
+  const clearDraftFromStorage = useCallback(() => {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    localStorage.removeItem(DRAFT_MODE_KEY);
+  }, []);
+
+  // Auto-save form changes to localStorage
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      saveDraftToStorage();
+    });
+    return () => subscription.unsubscribe();
+  }, [form, saveDraftToStorage]);
+
+  // Restore form draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+    const savedMode = localStorage.getItem(DRAFT_MODE_KEY) as "add" | "edit" | null;
+    if (savedDraft && savedMode) {
+      try {
+        const draftData = JSON.parse(savedDraft) as RoomFormData;
+        form.reset(draftData);
+        setViewMode(savedMode);
+        // Try to restore selected room if in edit mode
+        if (savedMode === "edit" && draftData.title) {
+          const roomToEdit = rooms.find(r => r.title === draftData.title);
+          if (roomToEdit) setSelectedRoom(roomToEdit);
+        }
+      } catch (e) {
+        console.warn("Failed to restore form draft", e);
+      }
+    }
+  }, []);
+
+
   // Filter and paginate rooms
   const filteredRooms = useMemo(() => {
     return rooms
@@ -163,6 +209,7 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
         location_id: data.location_id || null,
         image_urls: uploadedUrls,
       });
+      clearDraftFromStorage();
       setViewMode("list");
       form.reset();
       setImagePreview("");
@@ -206,6 +253,7 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
         ...(uploadedUrls.length > 0 ? { image_urls: uploadedUrls } : {}),
       });
 
+      clearDraftFromStorage();
       setViewMode("list");
       setSelectedRoom(null);
       form.reset();
@@ -353,6 +401,7 @@ export default function RoomsManager({ allowedLocationIds }: { allowedLocationId
   };
 
   const handleCancel = () => {
+    clearDraftFromStorage();
     setViewMode("list");
     setSelectedRoom(null);
     form.reset();

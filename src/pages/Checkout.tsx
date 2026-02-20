@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { usePaystackPayment } from "react-paystack";
-import { loadStripe } from "@stripe/stripe-js";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -47,10 +46,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-// Initialize Stripe (test mode)
-const stripePromise = loadStripe("pk_test_51PXxxxxxxxxxxxxxYourStripeKeyHere");
-
-type PaymentMethod = "paystack" | "stripe" | "bank";
+type PaymentMethod = "paystack" | "bank";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -77,7 +73,7 @@ export default function Checkout() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isNigeria = selectedLocation?.country === "Nigeria";
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    isNigeria ? "paystack" : "stripe"
+    isNigeria ? "paystack" : "bank"
   );
 
   const routerLocation = useRouterLocation();
@@ -100,7 +96,7 @@ export default function Checkout() {
 
   // Update suggested payment method when location changes
   useEffect(() => {
-    setPaymentMethod(isNigeria ? "paystack" : "stripe");
+    setPaymentMethod(isNigeria ? "paystack" : "bank");
   }, [isNigeria]);
   // Promo adjusted totals
   const promoDiscount = appliedPromo ? (() => {
@@ -227,57 +223,8 @@ export default function Checkout() {
     });
   };
 
-  const handleStripePayment = async (data: FormData) => {
-    try {
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error("Stripe failed to load");
-      }
-
-      // In a real app, you'd create a payment intent on your backend
-      // For now, simulate successful payment and create booking record
-      setTimeout(async () => {
-        try {
-          const bookingRef = `STR-${new Date().getTime()}`;
-          const { data: bookingResult, error: bookingErr } = await supabase.from('bookings').insert({
-            user_id: user!.id,
-            room_id: bookingData.room!.id,
-            check_in_date: format(bookingData.checkIn!, 'yyyy-MM-dd'),
-            check_out_date: format(bookingData.checkOut!, 'yyyy-MM-dd'),
-            num_guests: bookingData.guests.adults + bookingData.guests.children,
-            total_amount: adjustedTotal,
-            status: 'confirmed',
-            guest_name: `${data.firstName} ${data.lastName}`,
-            guest_email: data.email,
-            guest_phone: data.phone,
-            currency: selectedLocation?.currency || 'NGN',
-            notes: data.specialRequests || null,
-          }).select().single();
-
-          if (bookingErr) throw bookingErr;
-
-          if (appliedPromo) {
-            try { await supabase.from('promotions').update({ current_uses: (appliedPromo.current_uses || 0) + 1 }).eq('id', appliedPromo.id); } catch (e) { console.warn('Failed to increment promo usage:', e); }
-          }
-
-          setIsProcessing(false);
-          toast({ title: 'Payment Successful!', description: 'Your booking has been confirmed.' });
-          navigate('/confirmation', { state: { bookingReference: bookingRef, guestInfo: data, bookingData, isRestored: restoredFromLogin } });
-        } catch (err) {
-          console.error('Stripe booking creation failed:', err);
-          setIsProcessing(false);
-          toast({ title: 'Booking Error', description: 'Payment succeeded but booking creation failed. Contact support.', variant: 'destructive' });
-        }
-      }, 2000);
-    } catch (error) {
-      setIsProcessing(false);
-      toast({
-        title: "Payment Failed",
-        description: "There was an error processing your payment.",
-        variant: "destructive",
-      });
-    }
-  };
+  // Stripe integration removed — bank transfer will be used as fallback for
+  // non-Paystack payments.
 
   // Handle file selection for payment proof
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -518,12 +465,9 @@ export default function Checkout() {
     if (paymentMethod === "paystack") {
       // Update Paystack config with the submitted email
       initializePayment({ onSuccess, onClose });
-    } else if (paymentMethod === "stripe") {
-      handleStripePayment(data);
-    } else if (paymentMethod === "bank") {
-      handleBankTransferSubmit(data);
     } else {
-      handleStripePayment(data);
+      // Fallback to bank transfer when Stripe is unavailable/removed
+      handleBankTransferSubmit(data);
     }
   };
 

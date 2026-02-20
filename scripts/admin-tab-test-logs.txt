@@ -1,0 +1,49 @@
+[vite] connecting...
+[vite] connected.
+%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+BookingsManager: fetching bookings
+BookingsManager: mounted
+AdminDashboard: mount component bookings
+AdminDashboard: mount component rooms
+RoomMediaManager: mounted
+RoomMediaManager: selectedRoom null
+RoomMediaManager: fetching rooms list
+AdminDashboard: mount component gallery
+AdminDashboard: mount component hero
+PromotionsManager: mounted
+PromotionsManager: fetching promotions
+AdminDashboard: mount component promotions
+AdminDashboard: mount component sync
+AdminDashboard: mount component analytics
+AdminDashboard: mount component staff
+AdminDashboard: mount component activity
+AdminDashboard: mount component payments
+AdminDashboard: mount component guest-registration
+GuestList: mounted
+GuestList: data length 0
+AdminDashboard: mount component guest-registrations
+AdminDashboard: mount component settings
+AdminDashboard: fetching recentBookings
+AdminDashboard: fetching stats
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard: mounted
+AdminDashboard: activeTab changed overview
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+GuestList: data length 0
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq)
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard: activeTab changed bookings
+AdminSidebar: tab click bookings
+AdminSidebar: tab click rooms
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard: activeTab changed rooms
+AdminSidebar: tab click gallery
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard: activeTab changed gallery
+AdminSidebar: tab click promotions
+AdminDashboard debug: userId, role {userId: dev-user, role: admin}
+AdminDashboard: activeTab changed promotions
