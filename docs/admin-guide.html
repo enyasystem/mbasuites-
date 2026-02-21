@@ -47,7 +47,11 @@
             color: white;
             padding: 2rem 1rem;
             border-bottom: 2px solid var(--secondary);
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
         }
         
         header .container {
@@ -80,11 +84,9 @@
             background: white;
             padding: 2rem 1.25rem;
             border-right: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
+            /* sticky behavior and sizing applied only on medium+ screens */
             box-shadow: var(--shadow-sm);
+            z-index: 8;
         }
         
         nav h3 {
@@ -145,6 +147,7 @@
             border-radius: 0.375rem;
             cursor: pointer;
             box-shadow: var(--shadow-sm);
+            z-index: 11;
         }
         
         /* Main Container */
@@ -418,6 +421,37 @@
                 font-size: 1.35rem;
             }
         }
+
+        /* Sticky nav for medium+ viewports */
+        @media (max-width: 767.98px) {
+            .nav-toggle {
+                display: block;
+            }
+            nav.toc {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 280ms ease;
+            }
+            nav.toc.open {
+                /* allow enough height for most TOCs */
+                max-height: 80vh;
+            }
+        }
+        @media (min-width: 768px) {
+            /* Fix TOC to left side and make main content start to the right of it */
+            nav {
+                position: fixed;
+                left: 0;
+                top: var(--header-offset, 0px);
+                width: 260px;
+                height: calc(100vh - var(--header-offset, 0px));
+                overflow-y: auto;
+            }
+
+            main {
+                margin-left: 300px;
+            }
+        }
         
         /* Responsive - Tablet to Mobile */
         @media (max-width: 768px) {
@@ -441,18 +475,11 @@
                 border-right: none;
                 border-bottom: 1px solid var(--border);
                 box-shadow: none;
-                /* collapsed by default on small screens; expand with .open */
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.28s ease;
             }
 
-            nav.open {
-                max-height: 60vh;
-            }
-
-            .nav-toggle {
-                display: block;
+            /* custom collapsible TOC for small screens (closed by default) */
+            nav.toc {
+                /* no-op on large screens; collapsed on small via media query below */
             }
             
             nav h3 {
@@ -630,11 +657,8 @@
             <p>Complete management system for hotel operations</p>
         </div>
         <button class="nav-toggle" aria-expanded="false" aria-controls="toc" aria-label="Toggle table of contents">☰</button>
-    </header>
-    
-    <div class="layout-wrapper">
-        <nav id="toc">
-            <h3>Table of Contents</h3>
+        <nav id="toc" class="toc header-toc" aria-label="Table of contents">
+            <h3 style="display:none">Table of Contents</h3>
             <ul>
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#bookings">Bookings</a></li>
@@ -652,7 +676,9 @@
                 <li><a href="#reference">Quick Reference</a></li>
             </ul>
         </nav>
-        
+    </header>
+    
+    <div class="layout-wrapper">
         <main>
             <div class="container">
                 <h2 id="overview">Dashboard Overview</h2>
@@ -1064,41 +1090,89 @@
     <button class="back-to-top" aria-label="Back to top"></button>
     
     <script>
-        // Back to top button
+        // Back to top button (guarded)
         const backToTop = document.querySelector('.back-to-top');
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('show');
-            } else {
-                backToTop.classList.remove('show');
-            }
-        });
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        backToTop.innerHTML = '↑';
+        if (backToTop) {
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTop.classList.add('show');
+                } else {
+                    backToTop.classList.remove('show');
+                }
+            });
+            backToTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            backToTop.innerHTML = '↑';
+        }
 
-        // Mobile nav toggle
+        // Mobile nav toggle (custom)
         const navToggle = document.querySelector('.nav-toggle');
         const toc = document.getElementById('toc');
         const navLinks = document.querySelectorAll('nav a');
         const sections = document.querySelectorAll('main [id]');
+        const headerEl = document.querySelector('header');
 
+        function updateHeaderOffset() {
+            const headerH = headerEl ? headerEl.offsetHeight : 0;
+            document.documentElement.style.setProperty('--header-offset', headerH + 'px');
+            // add padding to body so content isn't hidden behind fixed header
+            document.body.style.paddingTop = headerH + 'px';
+        }
+
+        // initialize and update on resize to keep nav positioned under header
+        // run after a small delay to ensure fonts/layout settled
+        window.addEventListener('load', updateHeaderOffset);
+        window.addEventListener('resize', updateHeaderOffset);
+
+        // Toggle nav on small screens using max-height animation
         if (navToggle && toc) {
+            // helper to open/close with animation
+            function openToc() {
+                toc.classList.add('open');
+                // start from 0 to animate to scrollHeight
+                toc.style.maxHeight = '0';
+                requestAnimationFrame(() => {
+                    toc.style.maxHeight = toc.scrollHeight + 'px';
+                });
+                navToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeToc() {
+                // animate to 0 then remove open
+                toc.style.maxHeight = toc.scrollHeight + 'px';
+                requestAnimationFrame(() => {
+                    toc.style.maxHeight = '0';
+                });
+                toc.classList.remove('open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            }
+
             navToggle.addEventListener('click', () => {
-                const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-                navToggle.setAttribute('aria-expanded', String(!expanded));
-                toc.classList.toggle('open');
+                if (toc.classList.contains('open')) {
+                    closeToc();
+                } else {
+                    openToc();
+                }
             });
 
-            // Close nav when a link is clicked (mobile)
+            // close on link click (mobile)
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    if (toc.classList.contains('open')) {
-                        toc.classList.remove('open');
-                        navToggle.setAttribute('aria-expanded', 'false');
-                    }
+                    if (toc.classList.contains('open')) closeToc();
                 });
+            });
+
+            // cleanup after transition so maxHeight grows/shrinks naturally
+            toc.addEventListener('transitionend', (e) => {
+                if (e.propertyName !== 'max-height') return;
+                if (toc.classList.contains('open')) {
+                    // remove inline maxHeight to allow dynamic height
+                    toc.style.maxHeight = '';
+                } else {
+                    // keep it 0 when closed
+                    toc.style.maxHeight = '0';
+                }
             });
         }
 
@@ -1131,5 +1205,6 @@
             });
         }
     </script>
+    <!-- removed Bootstrap JS to avoid conflicts with custom toggle -->
 </body>
 </html>
