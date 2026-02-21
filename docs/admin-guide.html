@@ -3,247 +3,948 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MBA Suites Admin Dashboard - Comprehensive Guide</title>
+    <title>MBA Suites - Admin Dashboard Documentation</title>
     <style>
+        :root {
+            --primary: #1f2937;
+            --primary-light: #374151;
+            --primary-accent: #3b82f6;
+            --primary-accent-light: #60a5fa;
+            --secondary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --neutral: #6b7280;
+            --neutral-light: #f9fafb;
+            --neutral-lighter: #f3f4f6;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        html {
+            scroll-behavior: smooth;
         }
         
-        .container {
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            color: var(--primary);
+            background: var(--neutral-light);
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        header .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
         }
         
         header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.875rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
         }
         
         header p {
-            font-size: 1.1em;
-            opacity: 0.95;
+            font-size: 1rem;
+            opacity: 0.85;
         }
         
+        /* Navigation */
         nav {
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 30px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 1rem;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         nav h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 0.95em;
+            font-size: 0.875rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            color: var(--neutral);
+            margin-bottom: 1rem;
         }
         
         nav ul {
             list-style: none;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
         }
         
         nav a {
-            color: #667eea;
+            color: var(--primary);
             text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
+            padding: 0.625rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
             display: block;
+            font-weight: 500;
         }
         
         nav a:hover {
-            background: #e0e0e0;
-            color: #764ba2;
+            background: var(--primary-accent);
+            color: white;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
         
         main {
-            padding: 40px 30px;
+            background: white;
+            min-height: calc(100vh - 200px);
+            padding: 3rem 1rem;
         }
         
+        /* Typography */
         h2 {
-            color: #667eea;
-            margin-top: 50px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-            font-size: 2em;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 3rem 0 1.5rem 0;
+            letter-spacing: -0.5px;
+            position: relative;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        h2:first-of-type {
+            margin-top: 0;
         }
         
         h3 {
-            color: #764ba2;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-size: 1.3em;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 2rem 0 1rem 0;
+            letter-spacing: -0.25px;
         }
         
         h4 {
-            color: #555;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 1.5rem 0 0.75rem 0;
         }
         
         p {
-            margin-bottom: 15px;
-            line-height: 1.8;
+            margin-bottom: 1.25rem;
+            color: var(--neutral);
+            line-height: 1.75;
         }
         
-        ul, ol {
-            margin: 15px 0 15px 30px;
-            line-height: 1.8;
+        a {
+            color: var(--primary-accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
         }
         
-        li {
-            margin-bottom: 8px;
+        a:hover {
+            color: var(--primary-accent-light);
+            text-decoration: underline;
         }
         
-        strong {
-            color: #667eea;
-            font-weight: 600;
-        }
-        
+        /* Images */
         img {
             max-width: 100%;
             height: auto;
-            margin: 30px 0;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid #e0e0e0;
-        }
-        
-        .feature-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .feature-box strong {
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
             display: block;
-            margin-bottom: 5px;
         }
         
-        .tip-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
+        /* Lists */
+        ul, ol {
+            margin: 1.5rem 0 1.5rem 1.5rem;
+            color: var(--neutral);
         }
         
-        .tip-box::before {
-            content: "💡 Tip: ";
-            font-weight: bold;
-            color: #2196F3;
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.75;
         }
         
-        hr {
-            margin: 40px 0;
-            border: none;
-            border-top: 2px dashed #e0e0e0;
+        /* Cards and Boxes */
+        .feature-card {
+            background: var(--neutral-lighter);
+            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
         }
         
-        footer {
-            background: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-            padding: 30px;
-            text-align: center;
-            color: #666;
-            font-size: 0.95em;
+        .feature-card strong {
+            color: var(--primary);
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
         }
         
+        .feature-card p {
+            margin: 0;
+            font-size: 0.9375rem;
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+            border-left: 4px solid var(--primary-accent);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.375rem;
+            color: var(--primary);
+        }
+        
+        .info-box strong {
+            color: var(--primary-accent);
+            font-weight: 600;
+        }
+        
+        /* Success Box */
+        .success-box {
+            background: linear-gradient(135deg, #f0fdf4 0%, #f7fee7 100%);
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.375rem;
+            color: var(--primary);
+        }
+        
+        .success-box strong {
+            color: var(--success);
+        }
+        
+        /* Action List */
+        .action-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .action-item {
+            background: var(--neutral-lighter);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+        
+        .action-item:hover {
+            border-color: var(--secondary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .action-item h4 {
+            color: var(--primary-accent);
+            margin: 0 0 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-item p {
+            margin: 0;
+            font-size: 0.9375rem;
+        }
+        
+        /* Badge */
         .badge {
             display: inline-block;
-            background: #667eea;
+            background: var(--secondary);
             color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            margin-right: 10px;
-            margin-bottom: 10px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 1rem;
         }
         
-        .action-list {
-            background: #fafafa;
-            border-radius: 5px;
-            padding: 20px;
-            margin: 20px 0;
+        .badge.success {
+            background: var(--success);
         }
         
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            border-top: 2px solid var(--secondary);
+        }
+        
+        footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        footer p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
+        
+        footer strong {
+            color: white;
+        }
+        
+        footer a {
+            color: var(--primary-accent-light);
+        }
+        
+        /* Back to Top Button */
         .back-to-top {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #667eea;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3rem;
+            height: 3rem;
+            background: var(--secondary);
             color: white;
-            width: 50px;
-            height: 50px;
+            border: none;
             border-radius: 50%;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            text-decoration: none;
-            font-size: 1.2em;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-lg);
             transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
         }
         
         .back-to-top:hover {
-            background: #764ba2;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            background: var(--primary-accent);
+            transform: translateY(-2px);
         }
         
+        /* Responsive - Tablet */
         @media (max-width: 768px) {
             header h1 {
-                font-size: 1.8em;
+                font-size: 1.5rem;
+            }
+            
+            header p {
+                font-size: 0.9375rem;
             }
             
             nav ul {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            
+            nav a {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
             }
             
             main {
-                padding: 20px;
+                padding: 2rem 1rem;
             }
             
             h2 {
-                font-size: 1.5em;
+                font-size: 1.5rem;
+                margin: 2.5rem 0 1rem 0;
+            }
+            
+            h3 {
+                font-size: 1.125rem;
+            }
+            
+            .action-list {
+                grid-template-columns: 1fr;
+            }
+            
+            footer {
+                padding: 2rem 1rem;
+            }
+        }
+        
+        /* Responsive - Mobile */
+        @media (max-width: 480px) {
+            header {
+                padding: 1.5rem 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.25rem;
+            }
+            
+            header p {
+                font-size: 0.875rem;
+            }
+            
+            nav {
+                padding: 1rem;
+            }
+            
+            nav h3 {
+                font-size: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            nav ul {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            nav a {
+                font-size: 0.8125rem;
+                padding: 0.5rem 0.625rem;
+            }
+            
+            main {
+                padding: 1.5rem 1rem;
+            }
+            
+            h2 {
+                font-size: 1.25rem;
+                margin: 2rem 0 0.75rem 0;
+            }
+            
+            h3 {
+                font-size: 1rem;
+                margin: 1.5rem 0 0.75rem 0;
+            }
+            
+            p {
+                margin-bottom: 1rem;
+                font-size: 0.9375rem;
+            }
+            
+            ul, ol {
+                margin: 1rem 0 1rem 1.25rem;
+            }
+            
+            li {
+                margin-bottom: 0.625rem;
+                font-size: 0.9375rem;
+            }
+            
+            .feature-card {
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+            
+            .info-box,
+            .success-box {
+                padding: 1rem;
+                margin: 1.5rem 0;
+            }
+            
+            img {
+                margin: 1.5rem 0;
+                border-radius: 0.375rem;
+            }
+            
+            .back-to-top {
+                width: 2.75rem;
+                height: 2.75rem;
+                bottom: 1.5rem;
+                right: 1.5rem;
+                font-size: 1.125rem;
             }
         }
     </style>
 </head>
 <body>
+    <header>
+        <div class="container">
+            <h1>MBA Suites Admin Dashboard</h1>
+            <p>Complete management system for hotel operations</p>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="container">
+            <h3>Navigation</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#bookings">Bookings</a></li>
+                <li><a href="#rooms">Rooms</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#hero">Hero Banner</a></li>
+                <li><a href="#promotions">Promotions</a></li>
+                <li><a href="#sync">Calendar</a></li>
+                <li><a href="#analytics">Analytics</a></li>
+                <li><a href="#staff">Staff</a></li>
+                <li><a href="#activity">Activity</a></li>
+                <li><a href="#payments">Payments</a></li>
+                <li><a href="#guests">Guests</a></li>
+                <li><a href="#settings">Settings</a></li>
+                <li><a href="#reference">Quick Ref</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main>
+        <div class="container">
+            <h2 id="overview">Dashboard Overview</h2>
+            <p>Your main dashboard displays key metrics and recent activity at a glance.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/01-overview.png" alt="Admin Dashboard Overview">
+            
+            <div class="action-list">
+                <div class="action-item">
+                    <h4>📊 Active Bookings</h4>
+                    <p>Total confirmed and pending reservations in your system</p>
+                </div>
+                <div class="action-item">
+                    <h4>🏨 Available Rooms</h4>
+                    <p>Number of rooms ready for booking</p>
+                </div>
+                <div class="action-item">
+                    <h4>💰 Total Revenue</h4>
+                    <p>Cumulative income from all bookings</p>
+                </div>
+                <div class="action-item">
+                    <h4>📈 Occupancy Rate</h4>
+                    <p>Percentage of rooms currently occupied</p>
+                </div>
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="bookings">Bookings Management</h2>
+            <p>Manage reservations, confirm bookings, and track guest information efficiently.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/02-bookings.png" alt="Bookings Management">
+            
+            <h3>Core Features</h3>
+            <ul>
+                <li>View all bookings with filtering by status</li>
+                <li>Search by guest name or booking ID</li>
+                <li>Confirm pending bookings instantly</li>
+                <li>Cancel reservations when needed</li>
+                <li>Track guest contact details and dates</li>
+            </ul>
+            
+            <div class="success-box">
+                <strong>Pro Tip:</strong> Always confirm pending bookings promptly to maintain clear communication with guests and prevent scheduling conflicts.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="rooms">Rooms Management</h2>
+            <p>Control your room inventory with complete CRUD operations and detailed management.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/03-rooms.png" alt="Rooms Management">
+            
+            <h3>Creating a New Room</h3>
+            <p>Provide the following information when adding a room:</p>
+            <ul>
+                <li><strong>Room Name</strong> – Descriptive name (e.g., "Luxury Suite")</li>
+                <li><strong>Room Number</strong> – Unique identifier</li>
+                <li><strong>Room Type</strong> – Standard, Deluxe, or Suite</li>
+                <li><strong>Price Per Night</strong> – Base rate in your currency</li>
+                <li><strong>Max Guests</strong> – Maximum occupancy</li>
+                <li><strong>Description</strong> – Detailed features (minimum 10 characters)</li>
+                <li><strong>Amenities</strong> – WiFi, AC, TV, Safe, etc.</li>
+            </ul>
+            
+            <h3>Room Management</h3>
+            <ul>
+                <li>Edit existing room details anytime</li>
+                <li>Upload and manage room images</li>
+                <li>Toggle availability status</li>
+                <li>Delete rooms (only if no active bookings)</li>
+                <li>Set location assignments</li>
+            </ul>
+            
+            <div class="info-box">
+                Keep room numbers sequential and logical. Use high-quality images to increase booking rates.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="gallery">Gallery & Room Media</h2>
+            <p>Organize and manage all property photography and visual content.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/06-gallery.png" alt="Gallery & Media Management">
+            
+            <h3>Media Management</h3>
+            <ul>
+                <li>Upload multiple images per room</li>
+                <li>Drag-and-drop interface for easy organization</li>
+                <li>Set primary featured image</li>
+                <li>Automatic image optimization</li>
+                <li>Batch upload support</li>
+                <li>View and delete individual images</li>
+            </ul>
+            
+            <div class="info-box">
+                <strong>Image Guidelines:</strong> Use minimum 800px width. Include multiple angles, different lighting conditions, and highlight unique features. Professional photos increase conversion rates.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="hero">Hero Banner Management</h2>
+            <p>Customize the main hero section displayed on your website homepage.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/05-hero.png" alt="Hero Banner Management">
+            
+            <h3>Customizable Elements</h3>
+            <ul>
+                <li><strong>Title</strong> – Main headline (e.g., "Luxury Accommodations Await")</li>
+                <li><strong>Subtitle</strong> – Secondary message (e.g., "Book Your Perfect Stay")</li>
+                <li><strong>Background Image</strong> – Featured image (recommended: 1920×1080px)</li>
+                <li><strong>Call-to-Action</strong> – Button text and destination</li>
+            </ul>
+            
+            <h3>Best Practices</h3>
+            <ul>
+                <li>Keep headlines concise and compelling</li>
+                <li>Update seasonally for promotions</li>
+                <li>Use high-resolution images</li>
+                <li>Test on mobile devices before saving</li>
+                <li>Highlight unique selling propositions</li>
+            </ul>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="promotions">Promotions Management</h2>
+            <p>Create, manage, and track promotional campaigns and discount offers.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/04-promotions.png" alt="Promotions Management">
+            
+            <h3>Promotion Types</h3>
+            <ul>
+                <li>Percentage-based discounts</li>
+                <li>Fixed amount discounts</li>
+                <li>Seasonal offers</li>
+                <li>Room-specific promotions</li>
+            </ul>
+            
+            <h3>Creating Promotions</h3>
+            <ul>
+                <li>Define promotion code and name</li>
+                <li>Set discount type and value</li>
+                <li>Choose applicable date range</li>
+                <li>Select which rooms qualify</li>
+                <li>Set usage limits if needed</li>
+                <li>Include terms and conditions</li>
+            </ul>
+            
+            <div class="success-box">
+                Use memorable promotion codes. Monitor effectiveness and adjust rates based on conversion data. Blackout peak periods to protect revenue.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="sync">Calendar Synchronization</h2>
+            <p>Sync your booking calendar with popular external calendar services.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/07-sync.png" alt="Calendar Sync Configuration">
+            
+            <h3>Supported Integrations</h3>
+            <ul>
+                <li>Google Calendar</li>
+                <li>Microsoft Outlook</li>
+                <li>ICS Feed Import/Export</li>
+                <li>Generic Calendar Services</li>
+            </ul>
+            
+            <h3>Setup Process</h3>
+            <ol>
+                <li>Select calendar service to integrate</li>
+                <li>Authenticate with your account</li>
+                <li>Grant necessary permissions</li>
+                <li>Configure sync preferences</li>
+                <li>Test connection</li>
+                <li>Activate sync</li>
+            </ol>
+            
+            <div class="info-box">
+                Test synchronization before going live. Monitor for sync errors and maintain calendar data consistency across systems.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="analytics">Analytics & Reports</h2>
+            <p>Gain insights into your business performance through comprehensive analytics.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/08-analytics.png" alt="Analytics & Reports Dashboard">
+            
+            <h3>Available Reports</h3>
+            <ul>
+                <li><strong>Booking Analytics</strong> – Trends, patterns, and sources</li>
+                <li><strong>Revenue Analytics</strong> – Income by period, room type, and location</li>
+                <li><strong>Occupancy Analytics</strong> – Room utilization rates and trends</li>
+                <li><strong>Guest Analytics</strong> – Demographics, behavior, and repeat rates</li>
+                <li><strong>Operational Analytics</strong> – Staff, payment, and performance metrics</li>
+            </ul>
+            
+            <h3>Key Metrics</h3>
+            <ul>
+                <li>Revenue Per Available Room (RevPAR)</li>
+                <li>Average Daily Rate (ADR)</li>
+                <li>Occupancy Rate</li>
+                <li>Booking patterns and seasonality</li>
+                <li>Guest satisfaction indicators</li>
+            </ul>
+            
+            <div class="success-box">
+                Review analytics weekly for actionable insights. Use data to inform pricing strategies, promotional campaigns, and inventory planning.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="staff">Staff Management</h2>
+            <p>Control access and manage permissions for your admin and staff team members.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/09-staff.png" alt="Staff Management Interface">
+            
+            <h3>User Roles</h3>
+            <ul>
+                <li><strong>Admin</strong> – Full access to all features and settings</li>
+                <li><strong>Manager</strong> – Room and booking management capabilities</li>
+                <li><strong>Staff</strong> – Limited access to assigned locations</li>
+            </ul>
+            
+            <h3>Staff Operations</h3>
+            <ul>
+                <li>Add new team members with email invitation</li>
+                <li>Assign specific roles and permissions</li>
+                <li>Set location assignments</li>
+                <li>Deactivate inactive users</li>
+                <li>Reset forgotten passwords</li>
+                <li>Track staff activity in logs</li>
+            </ul>
+            
+            <div class="info-box">
+                Apply principle of least privilege – grant only the permissions each staff member needs. Review access regularly for security.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="activity">Activity Log</h2>
+            <p>Comprehensive audit trail tracking all system activities and user actions.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/10-activity.png" alt="Activity Log Dashboard">
+            
+            <h3>Tracked Activities</h3>
+            <ul>
+                <li>User authentication (logins, registrations)</li>
+                <li>Booking actions (create, confirm, cancel)</li>
+                <li>Room management (add, edit, delete)</li>
+                <li>Profile modifications</li>
+                <li>Payment processing</li>
+                <li>Review submissions</li>
+                <li>Staff actions</li>
+            </ul>
+            
+            <h3>Filtering & Search</h3>
+            <ul>
+                <li>Filter by entity type (Users, Bookings, Rooms, etc.)</li>
+                <li>Filter by action type (Create, Update, Delete)</li>
+                <li>Search by user name or email</li>
+                <li>Custom date range selection</li>
+                <li>Full-text search in action details</li>
+            </ul>
+            
+            <div class="info-box">
+                Review activity logs regularly for security and accountability. Investigate unusual patterns and maintain logs for compliance.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="payments">Payment Management</h2>
+            <p>Process guest payments and manage financial transactions securely.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/11-payments.png" alt="Payment Management Interface">
+            
+            <h3>Payment Operations</h3>
+            <ul>
+                <li>View pending payment requests</li>
+                <li>Request payments from guests</li>
+                <li>Track payment status</li>
+                <li>Extend payment deadlines</li>
+                <li>Send reminders</li>
+                <li>Process refunds</li>
+                <li>Verify payment proof documents</li>
+            </ul>
+            
+            <h3>Payment Methods</h3>
+            <ul>
+                <li>Bank transfers</li>
+                <li>Credit/Debit cards</li>
+                <li>Digital wallets</li>
+                <li>Installment plans</li>
+            </ul>
+            
+            <div class="success-box">
+                Maintain clear payment deadlines. Send reminder emails proactively. Document all payment details for accounting and dispute resolution.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="guests">Guest Management</h2>
+            <p>Maintain guest profiles and manage registrations effectively.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/13-guest-registration.png" alt="Guest Registration Interface">
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/12-guest-registrations.png" alt="Registered Guests List">
+            
+            <h3>Guest Profile</h3>
+            <ul>
+                <li>Complete contact information</li>
+                <li>Booking history</li>
+                <li>Room preferences</li>
+                <li>Special requirements</li>
+                <li>VIP flags and loyalty status</li>
+                <li>Communication preferences</li>
+            </ul>
+            
+            <h3>Guest Operations</h3>
+            <ul>
+                <li>Register new guests</li>
+                <li>View complete guest database</li>
+                <li>Update contact information</li>
+                <li>Add special preferences</li>
+                <li>Track repeat bookings</li>
+                <li>Segment for marketing</li>
+            </ul>
+            
+            <div class="info-box">
+                Maintain accurate guest data for personalization. Use preferences to enhance guest experience and loyalty.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="settings">Payment Settings</h2>
+            <p>Configure payment methods, currency, and financial policies.</p>
+            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/14-settings.png" alt="Payment Settings Configuration">
+            
+            <h3>Configuration Options</h3>
+            <ul>
+                <li>Enable/disable payment methods</li>
+                <li>Set primary currency</li>
+                <li>Configure currency conversion</li>
+                <li>Define payment policies</li>
+                <li>Set deposit requirements</li>
+                <li>Configure refund policies</li>
+                <li>Setup payment gateway</li>
+                <li>Enter banking information</li>
+            </ul>
+            
+            <h3>Security & Compliance</h3>
+            <ul>
+                <li>PCI-DSS compliance</li>
+                <li>Encrypted payment data</li>
+                <li>Fraud detection enabled</li>
+                <li>Secure transactions</li>
+                <li>Regular payment testing</li>
+            </ul>
+            
+            <div class="success-box">
+                Support multiple payment options for guest convenience. Test payments regularly. Maintain security standards and compliance certifications.
+            </div>
+            
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+            
+            <h2 id="reference">Quick Reference Guide</h2>
+            
+            <h3>Daily Tasks</h3>
+            <ul>
+                <li>Check Overview dashboard for new bookings</li>
+                <li>Confirm pending reservations</li>
+                <li>Review recent activity</li>
+                <li>Process payment requests</li>
+            </ul>
+            
+            <h3>Weekly Tasks</h3>
+            <ul>
+                <li>Review analytics and performance reports</li>
+                <li>Check occupancy rates</li>
+                <li>Follow up on overdue payments</li>
+                <li>Analyze booking patterns</li>
+                <li>Monitor staff activity logs</li>
+            </ul>
+            
+            <h3>Monthly Tasks</h3>
+            <ul>
+                <li>Generate comprehensive financial reports</li>
+                <li>Review staff performance and access</li>
+                <li>Update promotions and seasonal offers</li>
+                <li>Plan inventory adjustments</li>
+                <li>Analyze guest feedback</li>
+                <li>Review revenue trends and forecasts</li>
+                <li>Backup critical data</li>
+            </ul>
+            
+            <div class="feature-card">
+                <strong>Security Best Practices</strong>
+                <ul style="margin-top: 1rem; margin-left: 1.5rem;">
+                    <li>Enable two-factor authentication for admin accounts</li>
+                    <li>Use strong, unique passwords</li>
+                    <li>Regularly audit staff permissions</li>
+                    <li>Monitor activity logs for suspicious behavior</li>
+                    <li>Keep systems and software updated</li>
+                    <li>Maintain regular backups</li>
+                    <li>Follow data protection regulations</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p><strong>MBA Suites Admin Dashboard</strong></p>
+            <p>Comprehensive hotel management system</p>
+            <p>Version 1.0 | Last Updated February 21, 2026</p>
+            <p style="margin-top: 1.5rem; font-size: 0.9375rem;">
+                For support, contact: <strong>admin@mbasuites.com</strong>
+            </p>
+        </div>
+    </footer>
+    
+    <button class="back-to-top" aria-label="Back to top"></button>
+    
+    <script>
+        const backToTop = document.querySelector('.back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('show');
+            } else {
+                backToTop.classList.remove('show');
+            }
+        });
+        
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        backToTop.innerHTML = '↑';
+    </script>
+</body>
+</html>
     <div class="container">
         <header>
             <h1>🏨 MBA Suites Admin Dashboard</h1>
