@@ -47,6 +47,7 @@
             color: white;
             padding: 2rem 1rem;
             border-bottom: 2px solid var(--secondary);
+            position: relative;
         }
         
         header .container {
@@ -69,15 +70,15 @@
         /* Main Layout */
         .layout-wrapper {
             display: flex;
-            max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
         }
         
         /* Navigation - Table of Contents */
         nav {
-            width: 280px;
+            width: 260px;
+            flex-shrink: 0;
             background: white;
-            padding: 2rem 1.5rem;
+            padding: 2rem 1.25rem;
             border-right: 1px solid var(--border);
             position: sticky;
             top: 0;
@@ -95,6 +96,7 @@
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 2px solid var(--border);
+            white-space: normal;
         }
         
         nav ul {
@@ -104,15 +106,17 @@
         nav a {
             color: var(--primary);
             text-decoration: none;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 0.9rem;
             border-radius: 0.375rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: all 0.2s ease;
             display: block;
             font-weight: 500;
             border-left: 3px solid transparent;
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
+            margin-bottom: 0.4rem;
+            line-height: 1.5;
+            white-space: normal;
+            word-break: break-word;
         }
         
         nav a:hover {
@@ -126,18 +130,37 @@
             color: white;
             border-left-color: var(--primary-accent);
         }
+
+        /* Mobile nav toggle */
+        .nav-toggle {
+            display: none;
+            position: absolute;
+            top: 1.25rem;
+            right: 1rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.45rem 0.6rem;
+            font-size: 1.125rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
         
         /* Main Container */
         .container {
             max-width: 900px;
+            margin: 0 auto;
             padding: 0 2rem;
+            width: 100%;
         }
         
         main {
             background: white;
-            min-height: calc(100vh - 200px);
-            padding: 3rem 2rem;
             flex: 1;
+            min-height: calc(100vh - 160px);
+            padding: 3rem 2rem;
+            width: 100%;
         }
         
         /* Typography */
@@ -418,6 +441,18 @@
                 border-right: none;
                 border-bottom: 1px solid var(--border);
                 box-shadow: none;
+                /* collapsed by default on small screens; expand with .open */
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.28s ease;
+            }
+
+            nav.open {
+                max-height: 60vh;
+            }
+
+            .nav-toggle {
+                display: block;
             }
             
             nav h3 {
@@ -594,10 +629,11 @@
             <h1>MBA Suites Admin Dashboard</h1>
             <p>Complete management system for hotel operations</p>
         </div>
+        <button class="nav-toggle" aria-expanded="false" aria-controls="toc" aria-label="Toggle table of contents">☰</button>
     </header>
     
     <div class="layout-wrapper">
-        <nav>
+        <nav id="toc">
             <h3>Table of Contents</h3>
             <ul>
                 <li><a href="#overview">Overview</a></li>
@@ -714,7 +750,7 @@
                 
                 <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
                 
-                <h2 id="hero">Hero Banner Management</h2>
+                <!-- <h2 id="hero">Hero Banner Management</h2>
                 <p>Customize the main hero section displayed on your website homepage.</p>
                 <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/05-hero.png" alt="Hero Banner Management">
                 
@@ -733,7 +769,7 @@
                     <li>Use high-resolution images</li>
                     <li>Test on mobile devices before saving</li>
                     <li>Highlight unique selling propositions</li>
-                </ul>
+                </ul> -->
                 
                 <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
                 
@@ -754,9 +790,9 @@
                     <li>Define promotion code and name</li>
                     <li>Set discount type and value</li>
                     <li>Choose applicable date range</li>
-                    <li>Select which rooms qualify</li>
+                    <!-- <li>Select which rooms qualify</li> -->
                     <li>Set usage limits if needed</li>
-                    <li>Include terms and conditions</li>
+                    <!-- <li>Include terms and conditions</li> -->
                 </ul>
                 
                 <div class="success-box">
@@ -885,10 +921,10 @@
             <h3>Payment Operations</h3>
             <ul>
                 <li>View pending payment requests</li>
-                <li>Request payments from guests</li>
+                <!-- <li>Request payments from guests</li> -->
                 <li>Track payment status</li>
-                <li>Extend payment deadlines</li>
-                <li>Send reminders</li>
+                <!-- <li>Extend payment deadlines</li> -->
+                <!-- <li>Send reminders</li> -->
                 <li>Process refunds</li>
                 <li>Verify payment proof documents</li>
             </ul>
@@ -897,8 +933,8 @@
             <ul>
                 <li>Bank transfers</li>
                 <li>Credit/Debit cards</li>
-                <li>Digital wallets</li>
-                <li>Installment plans</li>
+                <!-- <li>Digital wallets</li> -->
+                <!-- <li>Installment plans</li> -->
             </ul>
             
             <div class="success-box">
@@ -908,7 +944,7 @@
             <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
             
             <h2 id="guests">Guest Management</h2>
-            <p>Maintain guest profiles and manage registrations effectively.</p>
+            <!-- <p>Maintain guest profiles and manage registrations effectively.</p>-->
             <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/13-guest-registration.png" alt="Guest Registration Interface">
             <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/12-guest-registrations.png" alt="Registered Guests List">
             
@@ -918,8 +954,8 @@
                 <li>Booking history</li>
                 <li>Room preferences</li>
                 <li>Special requirements</li>
-                <li>VIP flags and loyalty status</li>
-                <li>Communication preferences</li>
+                <!-- <li>VIP flags and loyalty status</li> -->
+                <!-- <li>Communication preferences</li> -->
             </ul>
             
             <h3>Guest Operations</h3>
@@ -958,9 +994,9 @@
             <ul>
                 <li>PCI-DSS compliance</li>
                 <li>Encrypted payment data</li>
-                <li>Fraud detection enabled</li>
+                <!-- <li>Fraud detection enabled</li> -->
                 <li>Secure transactions</li>
-                <li>Regular payment testing</li>
+                <!-- <li>Regular payment testing</li> -->
             </ul>
             
             <div class="success-box">
@@ -996,13 +1032,13 @@
                 <li>Plan inventory adjustments</li>
                 <li>Analyze guest feedback</li>
                 <li>Review revenue trends and forecasts</li>
-                <li>Backup critical data</li>
+                <!-- <li>Backup critical data</li> -->
             </ul>
             
             <div class="feature-card">
                 <strong>Security Best Practices</strong>
                 <ul style="margin-top: 1rem; margin-left: 1.5rem;">
-                    <li>Enable two-factor authentication for admin accounts</li>
+                    <!-- <li>Enable two-factor authentication for admin accounts</li> -->
                     <li>Use strong, unique passwords</li>
                     <li>Regularly audit staff permissions</li>
                     <li>Monitor activity logs for suspicious behavior</li>
@@ -1028,8 +1064,8 @@
     <button class="back-to-top" aria-label="Back to top"></button>
     
     <script>
+        // Back to top button
         const backToTop = document.querySelector('.back-to-top');
-        
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 300) {
                 backToTop.classList.add('show');
@@ -1037,349 +1073,63 @@
                 backToTop.classList.remove('show');
             }
         });
-        
         backToTop.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        
         backToTop.innerHTML = '↑';
-    </script>
-</body>
-</html>
-        <header>
-            <h1>🏨 MBA Suites Admin Dashboard</h1>
-            <p>Comprehensive Guide to Managing Your Hotel Operations</p>
-        </header>
-        
-        <nav>
-            <h3>Quick Navigation</h3>
-            <ul>
-                <li><a href="#overview">Dashboard Overview</a></li>
-                <li><a href="#bookings">Bookings</a></li>
-                <li><a href="#rooms">Rooms</a></li>
-                <li><a href="#gallery">Gallery</a></li>
-                <li><a href="#hero">Hero Banner</a></li>
-                <li><a href="#promotions">Promotions</a></li>
-                <li><a href="#sync">Calendar Sync</a></li>
-                <li><a href="#analytics">Analytics</a></li>
-                <li><a href="#staff">Staff</a></li>
-                <li><a href="#activity">Activity Log</a></li>
-                <li><a href="#payments">Payments</a></li>
-                <li><a href="#guests">Guests</a></li>
-                <li><a href="#settings">Settings</a></li>
-                <li><a href="#quick-ref">Quick Reference</a></li>
-            </ul>
-        </nav>
-        
-        <main>
-            <h2 id="overview">Dashboard Overview</h2>
-            <p>The Overview tab is your main dashboard that displays key metrics and recent activity.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/01-overview.png" alt="Admin Dashboard Overview">
-            
-            <h3>Key Metrics</h3>
-            <div class="feature-box">
-                <strong>Active Bookings</strong>
-                <p>Number of confirmed and pending bookings</p>
-            </div>
-            <div class="feature-box">
-                <strong>Available Rooms</strong>
-                <p>Count of rooms currently available for booking</p>
-            </div>
-            <div class="feature-box">
-                <strong>Total Revenue</strong>
-                <p>Cumulative revenue from all bookings</p>
-            </div>
-            <div class="feature-box">
-                <strong>Occupancy Rate</strong>
-                <p>Percentage of rooms occupied</p>
-            </div>
-            
-            <hr>
-            
-            <h2 id="bookings">Bookings Management</h2>
-            <p>Manage all guest bookings, confirm reservations, and handle booking updates.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/02-bookings.png" alt="Bookings Management">
-            
-            <h3>Key Actions</h3>
-            <div class="action-list">
-                <h4>✅ Confirm Bookings</h4>
-                <p>Change status from "Pending" to "Confirmed" and automatically send confirmation emails.</p>
-                
-                <h4>❌ Cancel Bookings</h4>
-                <p>Mark bookings as cancelled and free up room availability.</p>
-                
-                <h4>📊 Filter & Search</h4>
-                <p>Filter by status or search by guest name/booking ID.</p>
-            </div>
-            
-            <div class="tip-box">Always confirm pending bookings promptly to maintain guest communication and prevent double-booking.</div>
-            
-            <hr>
-            
-            <h2 id="rooms">Rooms Management</h2>
-            <p>Create, edit, and manage your hotel room inventory.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/03-rooms.png" alt="Rooms Management">
-            
-            <h3>Required Information for New Rooms</h3>
-            <ul>
-                <li><strong>Room Name</strong> - e.g., "Deluxe Suite"</li>
-                <li><strong>Room Number</strong> - Unique identifier</li>
-                <li><strong>Room Type</strong> - Standard, Deluxe, or Suite</li>
-                <li><strong>Price Per Night</strong> - In your base currency</li>
-                <li><strong>Max Guests</strong> - Maximum occupancy</li>
-                <li><strong>Description</strong> - Detailed room features (min 10 chars)</li>
-                <li><strong>Amenities</strong> - WiFi, AC, TV, Safe, etc.</li>
-            </ul>
-            
-            <div class="tip-box">Keep room numbers unique and logical. Use high-quality images for better bookings.</div>
-            
-            <hr>
-            
-            <h2 id="gallery">Gallery & Room Media</h2>
-            <p>Manage and organize all room photographs and media.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/06-gallery.png" alt="Gallery & Media Management">
-            
-            <h3>Gallery Features</h3>
-            <ul>
-                <li>Upload multiple images per room</li>
-                <li>Drag-and-drop interface</li>
-                <li>Set primary images</li>
-                <li>Automatic image optimization</li>
-                <li>Batch uploads supported</li>
-            </ul>
-            
-            <div class="tip-box">Upload high-quality images (minimum 800px width). Include different angles and highlight unique features.</div>
-            
-            <hr>
-            
-            <h2 id="hero">Hero Banner Management</h2>
-            <p>Manage the main hero section on your website homepage.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/05-hero.png" alt="Hero Banner Management">
-            
-            <h3>Customizable Elements</h3>
-            <ul>
-                <li><strong>Hero Title</strong> - Main headline</li>
-                <li><strong>Subtitle</strong> - Secondary headline</li>
-                <li><strong>Background Image</strong> - Featured hero image</li>
-                <li><strong>Call-to-Action Button</strong> - Drives bookings</li>
-            </ul>
-            
-            <div class="tip-box">Keep headlines concise and impactful. Update seasonally for special promotions.</div>
-            
-            <hr>
-            
-            <h2 id="promotions">Promotions Management</h2>
-            <p>Create and manage promotional offers and special deals.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/04-promotions.png" alt="Promotions Management">
-            
-            <h3>Promotion Features</h3>
-            <ul>
-                <li>Create discount codes (percentage or fixed amount)</li>
-                <li>Set valid date ranges</li>
-                <li>Apply to specific rooms or all rooms</li>
-                <li>Set maximum uses</li>
-                <li>Track promotion performance</li>
-            </ul>
-            
-            <div class="tip-box">Use clear, memorable promotion codes. Blackout peak dates to protect revenue.</div>
-            
-            <hr>
-            
-            <h2 id="sync">Calendar Sync</h2>
-            <p>Synchronize your booking calendar with external calendars.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/07-sync.png" alt="Calendar Sync Configuration">
-            
-            <h3>Supported Integrations</h3>
-            <ul>
-                <li>Google Calendar</li>
-                <li>Outlook Calendar</li>
-                <li>ICS Feeds</li>
-                <li>Other calendar services via ICS</li>
-            </ul>
-            
-            <div class="tip-box">Test sync before full deployment to prevent overselling and double-booking.</div>
-            
-            <hr>
-            
-            <h2 id="analytics">Analytics & Reports</h2>
-            <p>Analyze business performance and generate insightful reports.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/08-analytics.png" alt="Analytics & Reports Dashboard">
-            
-            <h3>Available Reports</h3>
-            <ul>
-                <li><strong>Booking Analytics</strong> - Trends and patterns</li>
-                <li><strong>Revenue Analytics</strong> - Income by period/room</li>
-                <li><strong>Occupancy Analytics</strong> - Room utilization rates</li>
-                <li><strong>Guest Analytics</strong> - Demographics and behavior</li>
-                <li><strong>Operational Analytics</strong> - Staff and payment metrics</li>
-            </ul>
-            
-            <div class="tip-box">Review analytics weekly for trends. Monitor occupancy rates and track RevPAR (Revenue Per Available Room).</div>
-            
-            <hr>
-            
-            <h2 id="staff">Staff Management</h2>
-            <p>Manage admin and staff team members.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/09-staff.png" alt="Staff Management Interface">
-            
-            <h3>Staff Roles</h3>
-            <ul>
-                <li><strong>Admin</strong> - Full access to all features</li>
-                <li><strong>Manager</strong> - Management of rooms and bookings</li>
-                <li><strong>Staff</strong> - Limited access to assigned locations</li>
-            </ul>
-            
-            <div class="tip-box">Grant minimal permissions needed for each role. Regularly review staff access permissions.</div>
-            
-            <hr>
-            
-            <h2 id="activity">Activity Log</h2>
-            <p>View comprehensive audit trail of all system activities.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/10-activity.png" alt="Activity Log Dashboard">
-            
-            <h3>Tracked Activities</h3>
-            <ul>
-                <li>User logins and registrations</li>
-                <li>Booking actions (create, confirm, cancel)</li>
-                <li>Room management (add, edit, delete)</li>
-                <li>Profile and settings changes</li>
-                <li>Payment transactions</li>
-                <li>Review submissions</li>
-            </ul>
-            
-            <h3>Filtering Options</h3>
-            <ul>
-                <li>Filter by entity type (Users, Bookings, Rooms, etc.)</li>
-                <li>Filter by action (Create, Update, Delete, Confirm)</li>
-                <li>Search by user name or email</li>
-                <li>Custom date ranges</li>
-            </ul>
-            
-            <div class="tip-box">Review activity logs weekly for accountability and to investigate unusual patterns.</div>
-            
-            <hr>
-            
-            <h2 id="payments">Payment Management</h2>
-            <p>Manage guest payments and financial transactions.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/11-payments.png" alt="Payment Management Interface">
-            
-            <h3>Payment Operations</h3>
-            <ul>
-                <li>View pending payment requests</li>
-                <li>Request payments from guests</li>
-                <li>Process payments and upload proof</li>
-                <li>Extend payment deadlines</li>
-                <li>Send payment reminders</li>
-            </ul>
-            
-            <div class="tip-box">Keep payment deadlines clear and send reminders regularly. Verify all proof documents.</div>
-            
-            <hr>
-            
-            <h2 id="guests">Guest Management</h2>
-            <p>Manage guest registrations and information.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/13-guest-registration.png" alt="Guest Registration Interface">
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/12-guest-registrations.png" alt="Registered Guests List">
-            
-            <h3>Guest Features</h3>
-            <ul>
-                <li><strong>Guest Profiles</strong> - Full contact and preference information</li>
-                <li><strong>Booking History</strong> - Track all guest reservations</li>
-                <li><strong>Preferences</strong> - Room type, special requests, dietary needs</li>
-                <li><strong>VIP Flags</strong> - Identify and reward loyal guests</li>
-                <li><strong>Guest List</strong> - Browse all registered guests</li>
-            </ul>
-            
-            <div class="tip-box">Keep guest information updated. Use preferences for personalization and segment guests for marketing.</div>
-            
-            <hr>
-            
-            <h2 id="settings">Payment Settings</h2>
-            <p>Configure payment methods and financial settings.</p>
-            <img src="https://raw.githubusercontent.com/enyasystem/hotel-booking-app/main/screenshots/14-settings.png" alt="Payment Settings Configuration">
-            
-            <h3>Configuration Options</h3>
-            <ul>
-                <li><strong>Payment Methods</strong> - Enable/disable accepted methods</li>
-                <li><strong>Currency Settings</strong> - Primary currency and conversion</li>
-                <li><strong>Payment Terms</strong> - Policies and deadlines</li>
-                <li><strong>Banking Information</strong> - Account and recipient details</li>
-                <li><strong>Payment Gateway</strong> - Processor and API setup</li>
-            </ul>
-            
-            <div class="tip-box">Use multiple payment options for guest convenience. Test payments regularly and maintain PCI compliance.</div>
-            
-            <hr>
-            
-            <h2 id="quick-ref">Quick Reference Guide</h2>
-            
-            <h3>Daily Tasks</h3>
-            <ul>
-                <li>✅ Check Overview dashboard for new bookings</li>
-                <li>✅ Confirm pending bookings</li>
-                <li>✅ Review recent activity log</li>
-                <li>✅ Check for payment requests</li>
-            </ul>
-            
-            <h3>Weekly Tasks</h3>
-            <ul>
-                <li>✅ Review analytics and reports</li>
-                <li>✅ Check occupancy rates</li>
-                <li>✅ Follow up on overdue payments</li>
-                <li>✅ Analyze booking patterns</li>
-            </ul>
-            
-            <h3>Monthly Tasks</h3>
-            <ul>
-                <li>✅ Generate comprehensive reports</li>
-                <li>✅ Review staff performance</li>
-                <li>✅ Update promotions and offers</li>
-                <li>✅ Plan inventory adjustments</li>
-                <li>✅ Review guest feedback</li>
-                <li>✅ Analyze revenue trends</li>
-            </ul>
-            
-            <div class="feature-box">
-                <strong>💡 Pro Tips</strong>
-                <ul style="margin-top: 10px;">
-                    <li>Always maintain accurate room inventory to prevent overbooking</li>
-                    <li>Use activity logs for staff accountability and auditing</li>
-                    <li>Schedule regular backups of critical data</li>
-                    <li>Monitor payment compliance and security standards</li>
-                    <li>Keep guest information secure and private</li>
-                </ul>
-            </div>
-        </main>
-        
-        <footer>
-            <p><strong>MBA Suites Admin Dashboard Guide</strong></p>
-            <p>Version 1.0 - Last Updated: February 21, 2026</p>
-            <p>For support and inquiries, contact: admin@mbasuites.com</p>
-            <p style="margin-top: 15px; font-size: 0.9em;">
-                <a href="https://github.com/enyasystem/hotel-booking-app" style="color: #667eea;">View on GitHub</a> | 
-                <a href="https://mbasuites.com" style="color: #667eea;">Visit Website</a>
-            </p>
-        </footer>
-    </div>
-    
-    <a href="#" class="back-to-top">↑</a>
-    
-    <script>
-        // Back to top button functionality
-        const backToTop = document.querySelector('.back-to-top');
-        
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTop.style.display = 'flex';
-            } else {
-                backToTop.style.display = 'none';
-            }
-        });
-        
-        backToTop.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const toc = document.getElementById('toc');
+        const navLinks = document.querySelectorAll('nav a');
+        const sections = document.querySelectorAll('main [id]');
+
+        if (navToggle && toc) {
+            navToggle.addEventListener('click', () => {
+                const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!expanded));
+                toc.classList.toggle('open');
+            });
+
+            // Close nav when a link is clicked (mobile)
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (toc.classList.contains('open')) {
+                        toc.classList.remove('open');
+                        navToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        }
+
+        // Scrollspy using IntersectionObserver
+        if ('IntersectionObserver' in window && sections.length) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                        });
+                    }
+                });
+            }, { root: null, rootMargin: '0px 0px -60% 0px', threshold: 0 });
+
+            sections.forEach(s => observer.observe(s));
+        } else {
+            // Fallback: highlight based on scroll position
+            window.addEventListener('scroll', () => {
+                let index = sections.length - 1;
+                for (let i = 0; i < sections.length; i++) {
+                    const rect = sections[i].getBoundingClientRect();
+                    if (rect.top > 0 && rect.top < window.innerHeight * 0.4) {
+                        index = i; break;
+                    }
+                }
+                const id = sections[index] ? sections[index].id : null;
+                navLinks.forEach(link => link.classList.toggle('active', id && link.getAttribute('href') === `#${id}`));
+            });
+        }
     </script>
 </body>
 </html>

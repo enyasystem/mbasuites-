@@ -158,13 +158,9 @@ const Navbar = () => {
           </motion.div>
 
           {/* Mobile Menu Button */}
-          <motion.div className="md:hidden flex items-center gap-2">
-            {user && <NotificationCenter />}
-            <ThemeToggle />
-            <motion.button ref={buttonRef} className="p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
-              <Menu className="h-6 w-6" />
-            </motion.button>
-          </motion.div>
+          <motion.button ref={buttonRef} className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} whileTap={{ scale: 0.9 }}>
+            <Menu className="h-6 w-6" />
+          </motion.button>
         </div>
 
         {/* Mobile Menu */}
@@ -175,7 +171,7 @@ const Navbar = () => {
 
               <motion.div ref={menuRef} key="mobile-menu" className="md:hidden py-4 border-t border-border relative z-50" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
                 <div className="flex flex-col gap-4 px-4">
-                  <Link to="/" className="text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                  {/* <Link to="/" className="text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Home</Link> */}
                   <Link to="/rooms" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Rooms</Link>
                   <Link to="/my-bookings" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>My Bookings</Link>
                   <Link to="/help" className="text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Help</Link>
