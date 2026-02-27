@@ -1,4 +1,17 @@
-import { LocationData } from "@/types/location";
+// Type definition for LocationData (inlined to avoid import issues in edge functions)
+export interface LocationData {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  timezone: string;
+  currency: string;
+  price_per_night_usd?: number | null;
+  is_active: boolean;
+}
 
 export interface LocationHierarchy {
   [country: string]: {
