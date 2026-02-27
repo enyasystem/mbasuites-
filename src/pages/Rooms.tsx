@@ -7,6 +7,7 @@ import { RoomFilters } from "@/types/room";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { HierarchicalLocationSelector } from "@/components/HierarchicalLocationSelector";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { RippleCard } from "@/components/ui/ripple-card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Users, Maximize2, Star, Wifi, Coffee, Tv, MapPin } from "lucide-react";
+import { Users, Maximize2, Star, Wifi, Coffee, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -482,26 +483,13 @@ const Rooms = () => {
               <p className="text-muted-foreground">Discover the perfect room for your stay.</p>
             </div>
             
-            {/* Location Selector */}
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <Select
-                value={urlLocationId || locationId || "all"}
-                onValueChange={handleLocationChange}
-              >
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name} - {loc.city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Location Selector - Hierarchical */}
+            <HierarchicalLocationSelector
+              locations={locations}
+              selectedLocationId={urlLocationId || locationId}
+              onLocationChange={handleLocationChange}
+              width="w-[280px]"
+            />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-muted-foreground">

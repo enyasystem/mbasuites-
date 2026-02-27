@@ -286,8 +286,33 @@ export default function StaffManager() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All locations</SelectItem>
-                    {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                    {locations.length > 0 && Object.entries(
+                      locations.reduce((groups, loc) => {
+                        const country = loc.country;
+                        const city = loc.city;
+                        if (!groups[country]) groups[country] = {};
+                        if (!groups[country][city]) groups[country][city] = [];
+                        groups[country][city].push(loc);
+                        return groups;
+                      }, {} as Record<string, Record<string, typeof locations>>)
+                    ).map(([country, cities]) => (
+                      <div key={`group-${country}`}>
+                        <div className="px-2 py-1.5 text-sm font-semibold text-foreground bg-muted">
+                          {country}
+                        </div>
+                        {Object.entries(cities).map(([city, cityLocations]) => (
+                          <div key={`subgroup-${city}`}>
+                            <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                              {city}
+                            </div>
+                            {(cityLocations as typeof locations).map((loc) => (
+                              <SelectItem key={loc.id} value={loc.id} className="pl-8">
+                                {loc.name}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
@@ -422,8 +447,33 @@ export default function StaffManager() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="all">All locations</SelectItem>
-                                  {locations.map((loc) => (
-                                    <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                                  {locations.length > 0 && Object.entries(
+                                    locations.reduce((groups, loc) => {
+                                      const country = loc.country;
+                                      const city = loc.city;
+                                      if (!groups[country]) groups[country] = {};
+                                      if (!groups[country][city]) groups[country][city] = [];
+                                      groups[country][city].push(loc);
+                                      return groups;
+                                    }, {} as Record<string, Record<string, typeof locations>>)
+                                  ).map(([country, cities]) => (
+                                    <div key={`group-${country}`}>
+                                      <div className="px-2 py-1.5 text-sm font-semibold text-foreground bg-muted">
+                                        {country}
+                                      </div>
+                                      {Object.entries(cities).map(([city, cityLocations]) => (
+                                        <div key={`subgroup-${city}`}>
+                                          <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                                            {city}
+                                          </div>
+                                          {(cityLocations as typeof locations).map((loc) => (
+                                            <SelectItem key={loc.id} value={loc.id} className="pl-8">
+                                              {loc.name}
+                                            </SelectItem>
+                                          ))}
+                                        </div>
+                                      ))}
+                                    </div>
                                   ))}
                                 </SelectContent>
                               </Select>

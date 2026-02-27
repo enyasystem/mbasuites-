@@ -1,4 +1,4 @@
-import { Search, MapPin, Calendar, Users } from "lucide-react";
+import { Search, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -13,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { useState, useRef, useEffect } from "react";
 import GuestSelector from "@/components/GuestSelector";
+import { HierarchicalLocationSelector } from "@/components/HierarchicalLocationSelector";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -67,24 +68,21 @@ const SearchBar = () => {
             transition={{ duration: 0.2 }}
           >
             <label className="text-sm text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
               Location
             </label>
             {isLoading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
-              <Select value={locationId || ""} onValueChange={setLocationId}>
-                <SelectTrigger className="w-full transition-all hover:border-accent h-12 rounded-[35px]" aria-label="Select location">
-                  <SelectValue placeholder="Enter location" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border border-border z-50">
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.country} - {loc.city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex justify-center">
+                <HierarchicalLocationSelector
+                  locations={locations}
+                  selectedLocationId={locationId}
+                  onLocationChange={setLocationId}
+                  showIcon={false}
+                  placeholder="Enter location"
+                  width="w-full"
+                />
+              </div>
             )}
           </motion.div>
 
