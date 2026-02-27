@@ -12,7 +12,6 @@ import {
   getCitiesByCountry,
   getLocationsByCityAndCountry,
   formatLocationName,
-  filterActiveBranchLocations,
 } from "@/lib/locationHierarchy";
 import { MapPin } from "lucide-react";
 
@@ -33,10 +32,7 @@ export function HierarchicalLocationSelector({
   placeholder = "Select location",
   width = "w-[280px]",
 }: HierarchicalLocationSelectorProps) {
-  // Filter out legacy locations to avoid duplicate branches
-  const filteredLocations = useMemo(() => filterActiveBranchLocations(locations), [locations]);
-  
-  const countries = useMemo(() => getCountries(filteredLocations), [filteredLocations]);
+  const countries = useMemo(() => getCountries(locations), [locations]);
 
   const handleLocationChange = (locationId: string) => {
     onLocationChange(locationId);
@@ -57,7 +53,7 @@ export function HierarchicalLocationSelector({
           <SelectItem value="all">All Locations</SelectItem>
           
           {countries.map((country) => {
-            const cities = getCitiesByCountry(filteredLocations, country);
+            const cities = getCitiesByCountry(locations, country);
             return (
               <div key={`country-${country}`}>
                 {/* Country header */}
@@ -68,7 +64,7 @@ export function HierarchicalLocationSelector({
                 {/* Cities and locations under this country */}
                 {cities.map((city) => {
                   const locationsInCity = getLocationsByCityAndCountry(
-                    filteredLocations,
+                    locations,
                     country,
                     city
                   );

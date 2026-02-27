@@ -77,14 +77,6 @@ export function getLocationsByCityAndCountry(
 }
 
 /**
- * Filters out legacy locations (e.g., "MBA Suites X") to show only current properties
- */
-export function filterActiveBranchLocations(locations: LocationData[]): LocationData[] {
-  // Exclude legacy "MBA Suites" locations - keep only specific property names
-  return locations.filter((loc) => !loc.name.startsWith("MBA Suites"));
-}
-
-/**
  * Formats location display name as "Location Name - City"
  */
 export function formatLocationName(location: LocationData): string {
